@@ -30,7 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen,
   setIsMobileOpen
 }) => {
-  const { currentView, setCurrentView, currentZoneStops, stats } = useApp();
+  const { currentView, setCurrentView, currentZoneStops, stats, routeAssignment, routeMetrics } = useApp();
 
   const navItems = [
     {
@@ -168,19 +168,69 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
-        {/* Status da Van em Campo */}
+        {/* Status da Van & Telemetria de Frota */}
         {!isCollapsed && (
-          <div className="p-3.5 mx-3 mb-3 rounded-lg bg-blh-slate-800/70 border border-blh-slate-700/60 text-xs">
-            <div className="flex items-center gap-2 text-emerald-400 font-semibold mb-1">
-              <Truck className="w-4 h-4 shrink-0" />
-              <span>Van em Operação</span>
+          <div className="p-3.5 mx-3 mb-3 rounded-xl bg-gradient-to-b from-blh-slate-850 to-blh-slate-900 border border-blh-slate-800 shadow-hud text-xs space-y-2.5">
+            {/* Status Live */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  {routeAssignment?.status === 'active' && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  )}
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                    routeAssignment?.status === 'active'
+                      ? 'bg-emerald-500'
+                      : routeAssignment?.status === 'completed'
+                      ? 'bg-sky-500'
+                      : 'bg-blh-slate-500'
+                  }`} />
+                </span>
+                <span className="text-[11px] font-bold tracking-wider uppercase text-slate-200">
+                  {routeAssignment?.status === 'active'
+                    ? 'Van 01 · Em Campo'
+                    : routeAssignment?.status === 'completed'
+                    ? 'Van 01 · No Hospital'
+                    : 'Van 01 · Em Espera'}
+                </span>
+              </div>
+              <span className="font-mono text-[10px] font-semibold text-emerald-400/90 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/40">
+                LF-2026
+              </span>
             </div>
-            <p className="text-blh-slate-300 text-[11px] truncate">
-              {LEITE_FLOW.van.model}
-            </p>
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-blh-slate-700/50 text-[10px] text-blh-slate-400">
-              <span>Temperatura</span>
-              <span className="text-emerald-400 font-mono font-bold">-17.2 °C ✓</span>
+
+            {/* Veículo & Modelo */}
+            <div className="text-[11px] text-blh-slate-300 font-medium truncate flex items-center gap-1.5">
+              <Truck className="w-3.5 h-3.5 text-blh-slate-400 shrink-0" />
+              <span className="truncate">Fiorino — Coleta Domiciliar</span>
+            </div>
+
+            {/* Telemetria Grid */}
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-blh-slate-800/80 text-[10px]">
+              <div className="bg-blh-slate-900/60 p-1.5 rounded-lg border border-blh-slate-800">
+                <span className="text-blh-slate-400 block text-[9px] uppercase font-bold tracking-wider">Câmara Fria</span>
+                <span className="text-emerald-400 font-mono font-bold text-xs">-17.2 °C</span>
+              </div>
+              <div className="bg-blh-slate-900/60 p-1.5 rounded-lg border border-blh-slate-800">
+                <span className="text-blh-slate-400 block text-[9px] uppercase font-bold tracking-wider">Percurso Est.</span>
+                <span className="text-slate-200 font-mono font-bold text-xs">{routeMetrics.distanceKm.toFixed(1)} km</span>
+              </div>
+            </div>
+
+            {/* Tripulação da Missão */}
+            <div className="pt-2 border-t border-blh-slate-800/80 text-[10px] space-y-1">
+              <div className="flex items-center justify-between text-blh-slate-400">
+                <span>Condutor:</span>
+                <span className="text-slate-300 font-medium truncate max-w-[120px]">
+                  {routeAssignment?.driverName || 'Não escalado'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-blh-slate-400">
+                <span>Coletor(a):</span>
+                <span className="text-slate-300 font-medium truncate max-w-[120px]">
+                  {routeAssignment?.vehicleName || 'Não escalado'}
+                </span>
+              </div>
             </div>
           </div>
         )}

@@ -381,25 +381,36 @@ export const InteractiveMapView: React.FC = () => {
           </div>
         )}
 
-        {/* Painel Flutuante Lateral da Parada Selecionada (Seção 4) */}
+        {/* Painel Flutuante Lateral da Parada Selecionada (Cockpit de Telemetria de Bordo) */}
         {currentFocusedStop && (
-          <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:left-auto sm:top-3 sm:right-3 z-10 sm:w-96 max-h-[92%] overflow-y-auto bg-white/95 backdrop-blur-md rounded-xl border border-blh-line shadow-floating p-4 space-y-3">
+          <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:left-auto sm:top-3 sm:right-3 z-10 sm:w-96 max-h-[92%] overflow-y-auto bg-white/95 backdrop-blur-md rounded-2xl border border-blh-line shadow-floating p-4 sm:p-5 space-y-3.5">
+            {/* Tag de Telemetria de Frota */}
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-blh-line/60">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-900 bg-emerald-100/90 px-2 py-0.5 rounded">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                Telemetria de Bordo · Van 01
+              </span>
+              <span className="text-[10px] font-mono font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded">
+                -17.2°C Cadeia Frio
+              </span>
+            </div>
+
             {/* Cabeçalho do Card */}
-            <div className="border-b border-blh-line pb-2.5 flex items-start justify-between gap-2">
+            <div className="flex items-start justify-between gap-2">
               <div>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blh-primary text-white">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blh-slate-900 text-white">
                     PARADA #{currentFocusedStop.stopNumber}
                   </span>
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                       currentFocusedStop.collected
-                        ? 'bg-emerald-100 text-emerald-800'
+                        ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
                         : currentFocusedStop.skipped
-                        ? 'bg-rose-100 text-rose-800'
+                        ? 'bg-rose-100 text-rose-900 border border-rose-300'
                         : currentFocusedStop.status === 'next'
-                        ? 'bg-blue-100 text-blue-800'
-                        : 'bg-blh-slate-100 text-blh-slate-600'
+                        ? 'bg-blue-100 text-blue-900 border border-blue-300'
+                        : 'bg-blh-slate-100 text-blh-slate-700 border border-blh-slate-200'
                     }`}
                   >
                     {currentFocusedStop.collected
@@ -411,11 +422,11 @@ export const InteractiveMapView: React.FC = () => {
                       : '○ Pendente'}
                   </span>
                 </div>
-                <h2 className="font-serif font-bold text-base text-blh-slate-900 truncate max-w-[220px]">
+                <h2 className="font-sans font-bold text-base text-blh-slate-900 truncate max-w-[220px]">
                   {currentFocusedStop.donorName}
                 </h2>
-                <span className="text-[11px] text-blh-slate-500">
-                  Bebê: <strong>{currentFocusedStop.babyName}</strong> ({currentFocusedStop.babyAgeDays} dias)
+                <span className="text-[11px] text-blh-slate-600">
+                  Bebê: <strong className="text-blh-slate-900">{currentFocusedStop.babyName}</strong> ({currentFocusedStop.babyAgeDays} dias)
                 </span>
               </div>
 
@@ -424,10 +435,10 @@ export const InteractiveMapView: React.FC = () => {
                 href={buildWhatsAppUrl(currentFocusedStop.donorName, currentFocusedStop.phone)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+                className="p-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-xs"
                 title="Avisar mãe no WhatsApp"
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-4 h-4 text-emerald-700" />
               </a>
             </div>
 

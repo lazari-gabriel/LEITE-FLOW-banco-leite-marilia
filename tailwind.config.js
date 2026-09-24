@@ -41,6 +41,16 @@ export default {
           "success-soft": "#f0fdf4",
           danger: "#b91c1c",
           "danger-soft": "#fef2f2",
+        },
+        fleet: {
+          navy: "#0b131b",
+          dark: "#0f1a24",
+          panel: "#142230",
+          border: "#1e3144",
+          cold: "#0284c7",
+          "cold-soft": "#e0f2fe",
+          emerald: "#059669",
+          amber: "#d97706"
         }
       },
       fontFamily: {
@@ -52,6 +62,8 @@ export default {
         card: "0 1px 3px rgba(15, 28, 36, 0.05), 0 4px 12px rgba(15, 28, 36, 0.03)",
         elevation: "0 4px 20px rgba(15, 28, 36, 0.08)",
         floating: "0 10px 25px rgba(15, 28, 36, 0.12)",
+        hud: "0 12px 30px -8px rgba(11, 19, 27, 0.15), 0 4px 12px -2px rgba(11, 19, 27, 0.06)",
+        glow: "0 0 20px -5px rgba(5, 150, 105, 0.35)",
       },
       borderRadius: {
         sm: "6px",

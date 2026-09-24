@@ -247,60 +247,63 @@ export const RoteirizacaoView: React.FC = () => {
             </div>
           )}
 
-          {/* CARD DESTAQUE: PRÓXIMA PARADA (HERO CARD) */}
+          {/* CARD DESTAQUE: PRÓXIMA PARADA (HERO CARD - COCKPIT DE DESPACHO) */}
           {nextStop && !isAllCompleted && isRouteActive && (
-            <div className="p-5 sm:p-6 rounded-xl border-2 border-blh-primary bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white shadow-md relative overflow-hidden animate-slideDown">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="p-5 sm:p-6 rounded-2xl border-2 border-emerald-600 bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 text-white shadow-xl relative overflow-hidden animate-slideDown">
+              {/* Background telemetry glow */}
+              <div className="absolute -right-12 -top-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
                 <div className="space-y-2 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-blh-primary text-white font-bold text-[10px] uppercase tracking-wider">
-                      Próxima Parada
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold uppercase tracking-wider border border-emerald-500/40">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                      Radar de Chegada Ativo
                     </span>
-                    <span className="text-xs font-bold text-emerald-800">
-                      Parada #{nextStop.stopNumber}
+                    <span className="text-xs font-mono font-bold text-emerald-300 bg-white/10 px-2 py-0.5 rounded">
+                      PARADA #{nextStop.stopNumber}
                     </span>
                   </div>
 
                   <div>
-                    <h2 className="text-lg sm:text-xl font-sans font-bold text-blh-slate-900 leading-tight truncate">
+                    <h2 className="text-xl sm:text-2xl font-sans font-extrabold text-white tracking-tight leading-tight truncate">
                       {nextStop.donorName}
                     </h2>
-                    <p className="text-xs sm:text-sm text-blh-slate-700 mt-0.5">
-                      📍 {nextStop.address} — {nextStop.neighborhood}
+                    <p className="text-xs sm:text-sm text-slate-300 mt-1 flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span className="truncate">{nextStop.address} — {nextStop.neighborhood}</span>
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-blh-slate-600 pt-1 flex-wrap">
-                    <span>
+                  <div className="flex items-center gap-3 text-xs text-slate-300 pt-1 flex-wrap">
+                    <span className="font-mono bg-white/10 px-2 py-0.5 rounded text-emerald-200">
                       Distância: <strong>{nextStop.distanceFromPrevKm || 2.4} km</strong>
                     </span>
-                    <span>•</span>
-                    <span>
+                    <span className="font-mono bg-white/10 px-2 py-0.5 rounded text-amber-200">
                       Tempo est.: <strong>~{nextStop.estimatedMinutesFromPrev || 6} min</strong>
                     </span>
-                    <span>•</span>
-                    <span>
-                      Bebê: <strong>{nextStop.babyName}</strong> ({nextStop.babyAgeDays} dias)
+                    <span className="text-slate-400">
+                      Bebê: <strong className="text-white">{nextStop.babyName}</strong> ({nextStop.babyAgeDays} dias)
                     </span>
                   </div>
                 </div>
 
-                {/* Ações Rápidas em Destaque */}
+                {/* Ações Rápidas de Campo */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
                   <Button
                     variant="outline"
                     size="md"
                     onClick={() => handleNavigateToStop(nextStop)}
-                    leftIcon={<Navigation className="w-4 h-4 text-blh-primary" />}
-                    className="bg-white hover:bg-blh-primary-soft border-blh-primary text-blh-primary font-bold"
+                    leftIcon={<Navigation className="w-4 h-4 text-emerald-400" />}
+                    className="bg-white/10 hover:bg-white/20 border-white/20 text-white font-bold backdrop-blur-sm"
                   >
-                    Ir para Parada
+                    GPS / Trajeto
                   </Button>
 
                   <Button
                     size="lg"
                     onClick={() => handleArrivedAtNextStop(nextStop)}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base shadow-lg hover:shadow-xl px-6 py-3"
+                    className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-base shadow-lg hover:shadow-emerald-500/20 px-7 py-3 transition-all"
                     leftIcon={<Check className="w-5 h-5 stroke-[3]" />}
                   >
                     CHEGUEI
@@ -310,8 +313,8 @@ export const RoteirizacaoView: React.FC = () => {
                     size="md"
                     variant="ghost"
                     onClick={() => setActiveSkipDonorId(nextStop.donorId)}
-                    className="text-rose-600 hover:bg-rose-50 border border-rose-200 text-xs font-semibold"
-                    leftIcon={<XCircle className="w-4 h-4 text-rose-500" />}
+                    className="text-rose-300 hover:bg-rose-500/20 border border-rose-500/30 text-xs font-semibold"
+                    leftIcon={<XCircle className="w-4 h-4 text-rose-400" />}
                   >
                     Não Feita
                   </Button>
@@ -396,47 +399,51 @@ export const RoteirizacaoView: React.FC = () => {
             ) : (
               <div className="space-y-3 pt-2">
                 {/* PONTO DE SAÍDA: HOSPITAL */}
-                <div className="p-3.5 rounded-lg border border-blh-slate-200 bg-blh-slate-50 flex items-center justify-between text-xs">
+                <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blh-primary-dark text-white flex items-center justify-center text-sm font-bold shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center text-sm font-bold shadow-xs shrink-0">
                       🏥
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-blh-primary tracking-wider block">
-                        Ponto de Partida
+                      <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider block">
+                        Origem / Saída da Frota
                       </span>
                       <strong className="text-sm text-blh-slate-900">{LEITE_FLOW.hospitalName}</strong>
-                      <span className="text-xs text-blh-slate-500 block">Saída da van com caixas térmicas e kits</span>
+                      <span className="text-xs text-blh-slate-500 block">Saída da van com caixas térmicas e kits esterilizados</span>
                     </div>
                   </div>
-                  <span className="font-mono text-emerald-700 font-bold text-xs">08:00</span>
+                  <span className="font-mono text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-bold text-xs">08:00</span>
                 </div>
 
-                {/* PARADAS DAS DOADORAS */}
-                {currentZoneStops.map((stop) => (
-                  <StopCard
-                    key={stop.donorId}
-                    stop={stop}
-                    onOpenColeta={() => setActiveModalDonorId(stop.donorId)}
-                    onOpenSkip={() => setActiveSkipDonorId(stop.donorId)}
-                  />
-                ))}
+                {/* PARADAS DAS DOADORAS EM TIMELINE CONECTADA */}
+                <div className="relative border-l-2 border-dashed border-emerald-200 ml-4 pl-4 sm:pl-6 space-y-3 my-2">
+                  {currentZoneStops.map((stop) => (
+                    <div key={stop.donorId} className="relative">
+                      <span className="absolute -left-[23px] sm:-left-[31px] top-5 w-3.5 h-3.5 rounded-full border-2 border-white bg-emerald-600 shadow-xs" />
+                      <StopCard
+                        stop={stop}
+                        onOpenColeta={() => setActiveModalDonorId(stop.donorId)}
+                        onOpenSkip={() => setActiveSkipDonorId(stop.donorId)}
+                      />
+                    </div>
+                  ))}
+                </div>
 
                 {/* PONTO DE RETORNO: HOSPITAL */}
-                <div className="p-3.5 rounded-lg border border-blh-slate-200 bg-blh-slate-50 flex items-center justify-between text-xs">
+                <div className="p-3.5 rounded-xl border border-blh-slate-200 bg-blh-slate-50 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blh-primary-dark text-white flex items-center justify-center text-sm font-bold shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-blh-slate-700 text-white flex items-center justify-center text-sm font-bold shadow-xs shrink-0">
                       🏥
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-blh-primary tracking-wider block">
-                        Ponto de Retorno
+                      <span className="text-[10px] uppercase font-bold text-blh-slate-600 tracking-wider block">
+                        Destino / Desembarque no BLH
                       </span>
                       <strong className="text-sm text-blh-slate-900">{LEITE_FLOW.hospitalName}</strong>
                       <span className="text-xs text-blh-slate-500 block">Recepção, triagem física e pasteurização dos frascos</span>
                     </div>
                   </div>
-                  <span className="font-mono text-blh-slate-600 font-bold text-xs">Retorno</span>
+                  <span className="font-mono text-blh-slate-700 bg-blh-slate-200 px-2 py-0.5 rounded font-bold text-xs">Retorno</span>
                 </div>
               </div>
             )}

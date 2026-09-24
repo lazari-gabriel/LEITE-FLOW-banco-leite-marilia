@@ -67,16 +67,21 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
       </div>
 
       {/* Right: Operational Status, Live Clock & Quick Action */}
-      <div className="flex items-center gap-3 shrink-0">
-        {/* Compliance Badge */}
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/90 border border-emerald-300 text-emerald-950 text-xs font-semibold tabular-nums shadow-xs">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-          <span>Cadeia de Frio &lt; -10°C</span>
+      <div className="flex items-center gap-2.5 shrink-0">
+        {/* Cold Chain Live Telemetry Badge */}
+        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-sky-900 text-xs font-semibold tabular-nums shadow-xs">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-600" />
+          </span>
+          <ShieldCheck className="w-3.5 h-3.5 text-sky-700 shrink-0" />
+          <span>Sensor Frio: <strong className="font-mono text-sky-950">-17.2°C</strong></span>
+          <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100/80 px-1.5 py-0.2 rounded border border-emerald-300">ANVISA ✓</span>
         </div>
 
-        {/* Live Clock */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-blh-slate-100 border border-blh-slate-300 text-blh-slate-800 text-xs font-mono tabular-nums shadow-xs">
-          <Clock className="w-3.5 h-3.5 text-blh-slate-600 shrink-0" />
+        {/* Live Operational Clock */}
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blh-slate-100 border border-blh-slate-200 text-blh-slate-800 text-xs font-mono font-medium tabular-nums shadow-xs">
+          <Clock className="w-3.5 h-3.5 text-blh-slate-500 shrink-0" />
           <span>{currentDateTime}</span>
         </div>
 

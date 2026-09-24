@@ -19,10 +19,12 @@ import {
   Lock,
   UserPlus,
   AlertTriangle,
-  GripVertical
+  GripVertical,
+  Route
 } from 'lucide-react';
 import { useApp } from '../../../hooks/useApp';
 import { ZONE_BY_DAY } from '../../../constants/zones';
+import { LEITE_FLOW } from '../../../constants/blh';
 import { Button } from '../../ui/Button';
 import { EmptyState } from '../../ui/EmptyState';
 import { Donor } from '../../../types/donor';
@@ -139,88 +141,135 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
 
   return (
     <div className="space-y-5 animate-fadeIn">
-      {/* Header */}
-      <div className="bg-white rounded-xl border border-blh-line shadow-card p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header com Bento Grid de Frota */}
+      <div className="bg-white rounded-2xl border border-blh-line shadow-card p-5 sm:p-6 space-y-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-blh-line">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-blh-primary bg-blh-primary-soft px-2.5 py-1 rounded-md">
-                Despacho de Rota
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-blh-primary bg-blh-primary-soft px-3 py-1 rounded-md border border-blh-primary/20">
+                <Truck className="w-3.5 h-3.5 text-blh-primary" />
+                Torre de Despacho &amp; Roteirização
               </span>
               {isCompleted ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-800 bg-blue-100 px-2.5 py-1 rounded-md">
-                  <CheckCircle2 className="w-3 h-3 text-blue-700" /> Rota Concluída (Arquivada)
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-blue-900 bg-blue-100 px-3 py-1 rounded-md border border-blue-200">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-700" /> Rota Concluída
                 </span>
               ) : isActive ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md">
-                  <Lock className="w-3 h-3" /> Em Andamento
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-950 bg-emerald-100 px-3 py-1 rounded-md border border-emerald-300">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Missão em Andamento
                 </span>
               ) : (
-                <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-1 rounded-md">
-                  Rascunho (Planejamento)
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-950 bg-amber-100 px-3 py-1 rounded-md border border-amber-300">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  Planejamento / Expedição
                 </span>
               )}
             </div>
-            <h2 className="text-lg font-sans font-bold text-blh-slate-900">
-              {isCompleted ? 'Rota Concluída' : isActive ? 'Rota em Andamento' : 'Montando Rota'} — Zona {zoneConfig.zona}
-            </h2>
-            <p className="text-xs text-blh-slate-600 mt-0.5">
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-blh-slate-900 tracking-tight">
+              {isCompleted ? 'Missão Concluída' : isActive ? 'Rota em Campo' : 'Planejamento de Rota'} — Zona {zoneConfig.zona}
+            </h1>
+            <p className="text-xs sm:text-sm text-blh-slate-600 mt-1 max-w-2xl">
               {isCompleted
-                ? 'Esta rota foi concluída e arquivada com sucesso. Modo somente leitura com rastreabilidade total.'
+                ? 'Relatório oficial da rota de hoje arquivado com rastreabilidade total de frascos e coletas.'
                 : isActive
-                ? 'A lista de paradas está travada durante a execução da coleta.'
-                : 'Defina quem vai na rota, ajuste a ordem e confirme os dados antes de iniciar.'}
+                ? 'A van está em operação nas ruas de Marília. A lista de paradas está travada para segurança do trajeto.'
+                : `Defina a tripulação da van, organize a sequência ideal de paradas da Zona ${zoneConfig.zona} e despache a rota.`}
             </p>
           </div>
 
-          {/* Resumo rápido */}
-          <div className="flex items-center gap-4 text-xs shrink-0">
-            <div className="text-center">
-              <div className="font-bold font-mono tabular-nums text-2xl text-blh-primary">{assignedIds.length}</div>
-              <div className="text-blh-slate-600 font-medium">paradas</div>
+          <div className="flex items-center gap-2.5 bg-blh-slate-50 p-3 rounded-xl border border-blh-line self-start lg:self-center shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+              <Truck className="w-5 h-5 text-emerald-700" />
             </div>
-            <div className="text-center">
-              <div className="font-bold font-mono tabular-nums text-2xl text-blh-slate-800">{routeMetrics.distanceKm.toFixed(1)}</div>
-              <div className="text-blh-slate-600 font-medium">km est.</div>
-            </div>
-            <div className="text-center">
-              <div className="font-bold font-mono tabular-nums text-2xl text-blh-slate-800">{routeMetrics.estimatedMinutes}</div>
-              <div className="text-blh-slate-600 font-medium">min est.</div>
+            <div className="text-xs">
+              <div className="font-bold text-blh-slate-900 flex items-center gap-1.5">
+                <span>Fiorino LF-2026</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 bg-emerald-200 text-emerald-900 rounded font-bold">VAN 01</span>
+              </div>
+              <div className="text-[11px] text-blh-slate-500">Base: Hospital Materno Infantil</div>
             </div>
           </div>
         </div>
 
-        {/* Motorista e Pessoa que foi coletar */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[11px] font-bold text-blh-slate-600 mb-1">
-              <Truck className="inline w-3.5 h-3.5 mr-1 text-blh-primary" />
-              Motorista / Condutor
-            </label>
-            <input
-              type="text"
-              disabled={isActive}
-              placeholder="Nome do motorista da van"
-              value={driverName}
-              onChange={(e) => setDriverNameLocal(e.target.value)}
-              onBlur={handleDriverBlur}
-              className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary disabled:bg-blh-slate-100 disabled:cursor-not-allowed"
-            />
+        {/* Bento Grid de Métricas de Frota */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blh-primary-soft text-blh-primary flex items-center justify-center shrink-0">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-blh-slate-500 uppercase tracking-wider block">Paradas na Rota</span>
+              <span className="text-xl font-bold font-mono text-blh-primary tabular-nums">{assignedIds.length}</span>
+            </div>
           </div>
-          <div>
-            <label className="block text-[11px] font-bold text-blh-slate-600 mb-1">
-              <UserCheck className="inline w-3.5 h-3.5 mr-1 text-blh-primary" />
-              Pessoa que foi coletar
-            </label>
-            <input
-              type="text"
-              disabled={isActive}
-              placeholder="Nome da pessoa que foi coletar"
-              value={vehicleName}
-              onChange={(e) => setVehicleNameLocal(e.target.value)}
-              onBlur={handleDriverBlur}
-              className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary disabled:bg-blh-slate-100 disabled:cursor-not-allowed"
-            />
+
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+              <Route className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-blh-slate-500 uppercase tracking-wider block">Distância Estimada</span>
+              <span className="text-xl font-bold font-mono text-blh-slate-900 tabular-nums">{routeMetrics.distanceKm.toFixed(1)} <span className="text-xs font-normal text-blh-slate-500">km</span></span>
+            </div>
+          </div>
+
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-blh-slate-500 uppercase tracking-wider block">Tempo Previsto</span>
+              <span className="text-xl font-bold font-mono text-blh-slate-900 tabular-nums">~{routeMetrics.estimatedMinutes} <span className="text-xs font-normal text-blh-slate-500">min</span></span>
+            </div>
+          </div>
+
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-blh-slate-500 uppercase tracking-wider block">Meta de Volume</span>
+              <span className="text-xl font-bold font-mono text-emerald-800 tabular-nums">~{assignedIds.length * 150} <span className="text-xs font-normal text-blh-slate-500">mL</span></span>
+            </div>
+          </div>
+        </div>
+
+        {/* Atribuição da Tripulação Operacional */}
+        <div className="p-4 rounded-xl bg-blh-slate-50/60 border border-blh-line">
+          <div className="text-xs font-bold text-blh-slate-800 uppercase tracking-wider mb-2.5 flex items-center gap-2">
+            <Users className="w-4 h-4 text-blh-primary" />
+            Tripulação Escalada para a Rota
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-bold text-blh-slate-700 mb-1">
+                Motorista / Condutor da Van
+              </label>
+              <input
+                type="text"
+                disabled={isActive}
+                placeholder="Nome do motorista da van"
+                value={driverName}
+                onChange={(e) => setDriverNameLocal(e.target.value)}
+                onBlur={handleDriverBlur}
+                className="w-full text-xs sm:text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary disabled:bg-blh-slate-100 disabled:cursor-not-allowed bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-blh-slate-700 mb-1">
+                Pessoa que foi coletar (Coletor / Enfermagem)
+              </label>
+              <input
+                type="text"
+                disabled={isActive}
+                placeholder="Nome da pessoa que foi coletar"
+                value={vehicleName}
+                onChange={(e) => setVehicleNameLocal(e.target.value)}
+                onBlur={handleDriverBlur}
+                className="w-full text-xs sm:text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary disabled:bg-blh-slate-100 disabled:cursor-not-allowed bg-white"
+              />
+            </div>
           </div>
         </div>
 
@@ -367,7 +416,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
 
       {/* Tab: Na Rota de Hoje */}
       {activeTab === 'rota' && (
-        <div className="bg-white rounded-xl border border-blh-line shadow-card">
+        <div className="bg-white rounded-xl border border-blh-line shadow-card overflow-hidden">
           {assignedIds.length === 0 ? (
             <div className="p-6">
               <EmptyState
@@ -378,137 +427,179 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
               />
             </div>
           ) : (
-            <div className="divide-y divide-blh-line">
-              {routeStops.map((stop, index) => {
-                const donorObj = donors.find((d) => d.id === stop.donorId);
-                const isDifferentZone = donorObj && donorObj.zona !== zoneConfig.zona;
-
-                return (
-                  <div
-                    key={stop.donorId}
-                    draggable={isPlanning}
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, index)}
-                    onDragEnd={handleDragEnd}
-                    className={`p-4 flex items-center gap-3 transition-all ${
-                      draggedIndex === index
-                        ? 'opacity-40 bg-blh-slate-100 scale-[0.99]'
-                        : dragOverIndex === index
-                        ? 'border-t-2 border-blh-primary bg-blh-primary-soft/30'
-                        : 'hover:bg-blh-slate-50/50'
-                    } ${stop.collected || stop.skipped ? 'opacity-60' : ''}`}
-                  >
-                    {/* Grip para arrastar */}
-                    {isPlanning && (
-                      <div
-                        className="cursor-grab active:cursor-grabbing text-blh-slate-400 hover:text-blh-primary p-1 -ml-1 rounded shrink-0 transition-colors"
-                        title="Arraste para reordenar esta parada"
-                      >
-                        <GripVertical className="w-4 h-4" />
-                      </div>
-                    )}
-
-                    {/* Número da parada */}
-                    <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold font-mono tabular-nums shrink-0 shadow-xs ${
-                        stop.collected
-                          ? 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300'
-                          : stop.skipped
-                          ? 'bg-rose-100 text-rose-800 ring-1 ring-rose-300'
-                          : stop.status === 'next'
-                          ? 'bg-blh-primary text-white shadow-md'
-                          : 'bg-blh-slate-200 text-blh-slate-700'
-                      }`}
-                    >
-                      {stop.collected ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                      ) : stop.skipped ? (
-                        <X className="w-4 h-4 text-rose-700" />
-                      ) : (
-                        index + 1
-                      )}
-                    </div>
-
-                    {/* Info da doadora */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm text-blh-slate-900 truncate">
-                          {stop.donorName}
-                        </span>
-                        {isDifferentZone && (
-                          <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 text-[10px] font-bold border border-purple-200">
-                            Zona {donorObj.zona} (Exceção)
-                          </span>
-                        )}
-                        {stop.status === 'next' && (
-                          <span className="px-2 py-0.5 rounded-full bg-blh-primary-soft text-blh-primary text-[10px] font-extrabold uppercase tracking-wider">
-                            Próxima
-                          </span>
-                        )}
-                        {stop.collected && (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
-                            Concluída
-                          </span>
-                        )}
-                        {stop.skipped && (
-                          <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold uppercase tracking-wider">
-                            Não Realizada
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-blh-slate-600 mt-0.5">
-                        <span className="truncate">{stop.neighborhood} — {stop.address}</span>
-                        {stop.distanceFromPrevKm ? (
-                          <span className="shrink-0 flex items-center gap-1 font-mono tabular-nums text-blh-slate-500 font-medium">
-                            <Clock className="w-3 h-3" />
-                            ~{stop.estimatedMinutesFromPrev}min
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    {/* Controles de edição / reordenação / remoção (apenas em planejamento) */}
-                    {isPlanning && (
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {/* Reordenar */}
-                        <button
-                          type="button"
-                          onClick={() => reorderRouteStop(index, Math.max(0, index - 1))}
-                          disabled={index === 0}
-                          className="w-9 h-9 min-h-[38px] min-w-[38px] rounded-lg border border-blh-slate-300 flex items-center justify-center text-blh-slate-700 hover:bg-blh-slate-100 hover:text-blh-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs"
-                          title="Mover para cima"
-                          aria-label="Mover para cima"
-                        >
-                          <ChevronUp className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => reorderRouteStop(index, Math.min(routeStops.length - 1, index + 1))}
-                          disabled={index === routeStops.length - 1}
-                          className="w-9 h-9 min-h-[38px] min-w-[38px] rounded-lg border border-blh-slate-300 flex items-center justify-center text-blh-slate-700 hover:bg-blh-slate-100 hover:text-blh-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs"
-                          title="Mover para baixo"
-                          aria-label="Mover para baixo"
-                        >
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
-
-                        {/* Tirar só desta rota */}
-                        <button
-                          type="button"
-                          onClick={() => removeDonorFromRoute(stop.donorId)}
-                          className="w-9 h-9 min-h-[38px] min-w-[38px] rounded-lg border border-amber-300 bg-amber-50/50 flex items-center justify-center text-amber-800 hover:bg-amber-100 transition-all shadow-xs"
-                          title="Tirar só desta rota (permanece ativa para futuras)"
-                          aria-label="Tirar desta rota"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
+            <div className="p-4 sm:p-5 space-y-3">
+              {/* Ponto de Partida: Hospital Materno Infantil */}
+              <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                    🏥
                   </div>
-                );
-              })}
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider block">
+                      Origem / Saída da Frota
+                    </span>
+                    <strong className="text-sm text-blh-slate-900">{LEITE_FLOW.hospitalName}</strong>
+                    <span className="text-[11px] text-blh-slate-500 block">Embarque de caixas térmicas com gelo reciclável (≤ -10°C)</span>
+                  </div>
+                </div>
+                <span className="font-mono text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-bold text-xs">08:00</span>
+              </div>
+
+              {/* Lista Conectada de Paradas */}
+              <div className="relative border-l-2 border-dashed border-emerald-200 ml-4 pl-4 sm:pl-6 space-y-3.5 my-2">
+                {routeStops.map((stop, index) => {
+                  const donorObj = donors.find((d) => d.id === stop.donorId);
+                  const isDifferentZone = donorObj && donorObj.zona !== zoneConfig.zona;
+
+                  return (
+                    <div
+                      key={stop.donorId}
+                      draggable={isPlanning}
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`relative p-3.5 sm:p-4 rounded-xl border transition-all ${
+                        draggedIndex === index
+                          ? 'opacity-40 bg-blh-slate-100 scale-[0.99] border-blh-line'
+                          : dragOverIndex === index
+                          ? 'border-t-2 border-blh-primary bg-blh-primary-soft/30'
+                          : 'bg-white hover:bg-blh-slate-50/60 border-blh-line hover:border-blh-line-strong hover:shadow-xs'
+                      } ${stop.collected || stop.skipped ? 'opacity-65 bg-blh-slate-50/40' : ''}`}
+                    >
+                      {/* Ponto indicador no timeline */}
+                      <span className="absolute -left-[23px] sm:-left-[31px] top-4 w-3.5 h-3.5 rounded-full border-2 border-white bg-emerald-600 shadow-xs" />
+
+                      <div className="flex items-center gap-3">
+                        {/* Grip para arrastar */}
+                        {isPlanning && (
+                          <div
+                            className="cursor-grab active:cursor-grabbing text-blh-slate-400 hover:text-blh-primary p-1 -ml-1 rounded shrink-0 transition-colors"
+                            title="Arraste para reordenar esta parada"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </div>
+                        )}
+
+                        {/* Número da parada */}
+                        <div
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold font-mono tabular-nums shrink-0 shadow-xs ${
+                            stop.collected
+                              ? 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300'
+                              : stop.skipped
+                              ? 'bg-rose-100 text-rose-800 ring-1 ring-rose-300'
+                              : stop.status === 'next'
+                              ? 'bg-blh-primary text-white shadow-md'
+                              : 'bg-blh-slate-100 text-blh-slate-800 border border-blh-slate-200'
+                          }`}
+                        >
+                          {stop.collected ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                          ) : stop.skipped ? (
+                            <X className="w-4 h-4 text-rose-700" />
+                          ) : (
+                            index + 1
+                          )}
+                        </div>
+
+                        {/* Info da doadora */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-blh-slate-900 truncate">
+                              {stop.donorName}
+                            </span>
+                            {isDifferentZone && (
+                              <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 text-[10px] font-bold border border-purple-200">
+                                Zona {donorObj.zona} (Exceção)
+                              </span>
+                            )}
+                            {stop.status === 'next' && (
+                              <span className="px-2 py-0.5 rounded-full bg-blh-primary-soft text-blh-primary text-[10px] font-extrabold uppercase tracking-wider">
+                                Próxima
+                              </span>
+                            )}
+                            {stop.collected && (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
+                                Concluída
+                              </span>
+                            )}
+                            {stop.skipped && (
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold uppercase tracking-wider">
+                                Não Realizada
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-blh-slate-600 mt-0.5 flex-wrap">
+                            <span className="truncate">{stop.neighborhood} — {stop.address}</span>
+                            {stop.distanceFromPrevKm ? (
+                              <span className="shrink-0 flex items-center gap-1 font-mono tabular-nums text-blh-slate-500 font-medium">
+                                <Clock className="w-3 h-3 text-emerald-700" />
+                                ~{stop.estimatedMinutesFromPrev}min ({stop.distanceFromPrevKm} km)
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        {/* Controles de edição / reordenação / remoção (apenas em planejamento) */}
+                        {isPlanning && (
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {/* Reordenar */}
+                            <button
+                              type="button"
+                              onClick={() => reorderRouteStop(index, Math.max(0, index - 1))}
+                              disabled={index === 0}
+                              className="w-8 h-8 rounded-lg border border-blh-slate-200 flex items-center justify-center text-blh-slate-700 hover:bg-blh-slate-100 hover:text-blh-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs"
+                              title="Mover para cima"
+                              aria-label="Mover para cima"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => reorderRouteStop(index, Math.min(routeStops.length - 1, index + 1))}
+                              disabled={index === routeStops.length - 1}
+                              className="w-8 h-8 rounded-lg border border-blh-slate-200 flex items-center justify-center text-blh-slate-700 hover:bg-blh-slate-100 hover:text-blh-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs"
+                              title="Mover para baixo"
+                              aria-label="Mover para baixo"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+
+                            {/* Tirar só desta rota */}
+                            <button
+                              type="button"
+                              onClick={() => removeDonorFromRoute(stop.donorId)}
+                              className="w-8 h-8 rounded-lg border border-amber-300 bg-amber-50/50 flex items-center justify-center text-amber-800 hover:bg-amber-100 transition-all shadow-xs"
+                              title="Tirar só desta rota (permanece ativa para futuras)"
+                              aria-label="Tirar desta rota"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Ponto de Retorno: Hospital Materno Infantil */}
+              <div className="p-3.5 rounded-xl border border-blh-slate-200 bg-blh-slate-50 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blh-slate-700 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                    🏥
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-blh-slate-600 tracking-wider block">
+                      Destino / Desembarque no BLH
+                    </span>
+                    <strong className="text-sm text-blh-slate-900">{LEITE_FLOW.hospitalName}</strong>
+                    <span className="text-[11px] text-blh-slate-500 block">Triagem, medição de temperatura das caixas e pasteurização</span>
+                  </div>
+                </div>
+                <span className="font-mono text-blh-slate-700 bg-blh-slate-200 px-2 py-0.5 rounded font-bold text-xs">Retorno</span>
+              </div>
             </div>
           )}
         </div>
