@@ -15,8 +15,7 @@ import {
   CheckCircle2,
   Clock,
   Search,
-  Edit3,
-  UserX,
+  UserCheck,
   Lock,
   UserPlus,
   AlertTriangle,
@@ -26,7 +25,6 @@ import { useApp } from '../../../hooks/useApp';
 import { ZONE_BY_DAY } from '../../../constants/zones';
 import { Button } from '../../ui/Button';
 import { EmptyState } from '../../ui/EmptyState';
-import { Modal } from '../../ui/Modal';
 import { Donor } from '../../../types/donor';
 
 type DispatcherTab = 'rota' | 'disponiveis';
@@ -50,18 +48,13 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
     clearRouteAssignment,
     activateRoute,
     optimizeCurrentRoute,
-    setCurrentView,
-    deleteDonor,
-    startEditDonor
+    setCurrentView
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<DispatcherTab>('rota');
   const [searchAvailable, setSearchAvailable] = useState('');
   const [driverName, setDriverNameLocal] = useState(routeAssignment?.driverName || '');
   const [vehicleName, setVehicleNameLocal] = useState(routeAssignment?.vehicleName || '');
-  
-  // Modal de inativação rápida
-  const [inactivatingDonor, setInactivatingDonor] = useState<Donor | null>(null);
 
   const zoneConfig = ZONE_BY_DAY[selectedDay] || ZONE_BY_DAY['Segunda'];
 
@@ -102,14 +95,6 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
   const isCompleted = routeAssignment?.status === 'completed';
   const isActive = routeAssignment?.status === 'active';
   const isPlanning = !isActive && !isCompleted;
-
-  const handleConfirmInactivate = () => {
-    if (inactivatingDonor) {
-      deleteDonor(inactivatingDonor.id);
-      removeDonorFromRoute(inactivatingDonor.id);
-      setInactivatingDonor(null);
-    }
-  };
 
   // Drag and drop para reordenação manual das paradas
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -205,17 +190,17 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
           </div>
         </div>
 
-        {/* Driver / Vehicle fields */}
+        {/* Motorista e Pessoa que foi coletar */}
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-[11px] font-bold text-blh-slate-600 mb-1">
-              <User className="inline w-3.5 h-3.5 mr-1 text-blh-primary" />
-              Coletor / Motorista
+              <Truck className="inline w-3.5 h-3.5 mr-1 text-blh-primary" />
+              Motorista / Condutor
             </label>
             <input
               type="text"
               disabled={isActive}
-              placeholder="Nome do coletor responsável"
+              placeholder="Nome do motorista da van"
               value={driverName}
               onChange={(e) => setDriverNameLocal(e.target.value)}
               onBlur={handleDriverBlur}
@@ -224,13 +209,13 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
           </div>
           <div>
             <label className="block text-[11px] font-bold text-blh-slate-600 mb-1">
-              <Truck className="inline w-3.5 h-3.5 mr-1 text-blh-primary" />
-              Veículo / Van
+              <UserCheck className="inline w-3.5 h-3.5 mr-1 text-blh-primary" />
+              Pessoa que foi coletar
             </label>
             <input
               type="text"
               disabled={isActive}
-              placeholder="Ex: Van BLH — ABC-1234"
+              placeholder="Nome da pessoa que foi coletar"
               value={vehicleName}
               onChange={(e) => setVehicleNameLocal(e.target.value)}
               onBlur={handleDriverBlur}
@@ -509,19 +494,6 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
                           <ChevronDown className="w-4 h-4" />
                         </button>
 
-                        {/* Editar Doadora (redireciona para a aba Cadastro de Doadoras) */}
-                        {donorObj && (
-                          <button
-                            type="button"
-                            onClick={() => startEditDonor(donorObj.id)}
-                            className="w-9 h-9 min-h-[38px] min-w-[38px] rounded-lg border border-blh-slate-300 flex items-center justify-center text-blh-primary hover:bg-blh-primary-soft transition-all shadow-xs"
-                            title="Editar Cadastro da Doadora (Aba Cadastro)"
-                            aria-label="Editar Doadora"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                        )}
-
                         {/* Tirar só desta rota */}
                         <button
                           type="button"
@@ -532,19 +504,6 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
                         >
                           <X className="w-4 h-4" />
                         </button>
-
-                        {/* Inativar Cadastro */}
-                        {donorObj && (
-                          <button
-                            type="button"
-                            onClick={() => setInactivatingDonor(donorObj)}
-                            className="w-9 h-9 min-h-[38px] min-w-[38px] rounded-lg border border-rose-300 bg-rose-50/50 flex items-center justify-center text-rose-700 hover:bg-rose-100 transition-all shadow-xs"
-                            title="Inativar doadora permanentemente"
-                            aria-label="Inativar doadora"
-                          >
-                            <UserX className="w-4 h-4" />
-                          </button>
-                        )}
                       </div>
                     )}
                   </div>
@@ -690,48 +649,6 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
             Iniciar Rota de Campo — {assignedIds.length} {assignedIds.length === 1 ? 'parada' : 'paradas'}
           </Button>
         </div>
-      )}
-
-      {/* Modal de Confirmação de Inativação */}
-      {inactivatingDonor && (
-        <Modal
-          isOpen={true}
-          onClose={() => setInactivatingDonor(null)}
-          title="Confirmar Inativação da Doadora"
-          subtitle={inactivatingDonor.nome}
-          maxWidth="md"
-        >
-          <div className="space-y-4">
-            <div className="p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-950 text-xs flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-sm text-rose-900">Remoção Lógica (Inativação)</p>
-                <p className="mt-1 leading-relaxed text-rose-800">
-                  A doadora <strong>{inactivatingDonor.nome}</strong> será removida das rotas atuais e futuras.
-                </p>
-                <p className="mt-2 font-semibold text-emerald-900 bg-emerald-100/60 p-2 rounded border border-emerald-300">
-                  ✓ Regra de Ouro da Integridade: Todas as coletas e frascos já coletados por ela permanecerão intactos para sempre no histórico do Banco de Leite e no Dashboard.
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-3 border-t border-blh-line flex items-center justify-between gap-3">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setInactivatingDonor(null)}>
-                Cancelar
-              </Button>
-
-              <Button
-                type="button"
-                size="md"
-                onClick={handleConfirmInactivate}
-                className="bg-rose-600 hover:bg-rose-700 text-white font-bold"
-                leftIcon={<UserX className="w-4 h-4" />}
-              >
-                Inativar Doadora
-              </Button>
-            </div>
-          </div>
-        </Modal>
       )}
     </div>
   );
