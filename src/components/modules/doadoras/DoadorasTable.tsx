@@ -1,5 +1,23 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, MapPin, Eye, Route, Check, X, ShieldAlert, Edit3, UserX, UserCheck, AlertTriangle } from 'lucide-react';
+import { 
+  Search, 
+  Filter, 
+  MapPin, 
+  Eye, 
+  Route, 
+  Check, 
+  X, 
+  ShieldAlert, 
+  Edit3, 
+  UserX, 
+  UserCheck, 
+  AlertTriangle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 import { Donor, ZoneName } from '../../../types/donor';
 import { useApp } from '../../../hooks/useApp';
 import { Badge } from '../../ui/Badge';
@@ -12,15 +30,30 @@ interface DoadorasTableProps {
   onEditDonor?: (donor: Donor) => void;
 }
 
+type SortField = 'id' | 'nome' | 'zona' | 'aptidao' | 'statusCadastro';
+
 export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => {
   const { donors, navigateToDonorRoute, deleteDonor, reactivateDonor, startEditDonor } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedZone, setSelectedZone] = useState<string>('Todas');
   const [selectedStatus, setSelectedStatus] = useState<string>('Todas');
   const [selectedCadastroStatus, setSelectedCadastroStatus] = useState<string>('Todas');
+  const [sortField, setSortField] = useState<SortField>('id');
+  const [sortAsc, setSortAsc] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
   const [inspectDonor, setInspectDonor] = useState<Donor | null>(null);
   const [inactivatingDonor, setInactivatingDonor] = useState<Donor | null>(null);
   const [reactivatingDonor, setReactivatingDonor] = useState<Donor | null>(null);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
 
   // Filtragem combinada
   const filteredDonors = useMemo(() => {
@@ -41,6 +74,25 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
       return matchSearch && matchZone && matchStatus && matchCadastro;
     });
   }, [donors, searchTerm, selectedZone, selectedStatus, selectedCadastroStatus]);
+
+  // Ordenação
+  const sortedDonors = useMemo(() => {
+    return [...filteredDonors].sort((a, b) => {
+      let comparison = 0;
+      if (sortField === 'id') comparison = a.id - b.id;
+      else if (sortField === 'nome') comparison = a.nome.localeCompare(b.nome);
+      else if (sortField === 'zona') comparison = a.zona.localeCompare(b.zona);
+      else if (sortField === 'aptidao') comparison = a.aptidao.localeCompare(b.aptidao);
+      else if (sortField === 'statusCadastro') comparison = (a.statusCadastro || 'ativa').localeCompare(b.statusCadastro || 'ativa');
+      return sortAsc ? comparison : -comparison;
+    });
+  }, [filteredDonors, sortField, sortAsc]);
+
+  const totalPages = Math.ceil(sortedDonors.length / itemsPerPage) || 1;
+  const paginatedDonors = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return sortedDonors.slice(start, start + itemsPerPage);
+  }, [sortedDonors, currentPage, itemsPerPage]);
 
   const handleConfirmInactivate = () => {
     if (inactivatingDonor) {
@@ -140,18 +192,78 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
           <table className="w-full text-left text-xs text-blh-slate-700">
             <thead className="bg-blh-slate-50 border-b border-blh-line text-[11px] font-bold text-blh-slate-600 uppercase tracking-wider">
               <tr>
-                <th className="px-4 py-3">Código</th>
-                <th className="px-4 py-3">Doadora &amp; Bebê</th>
-                <th className="px-4 py-3">Zona / Endereço</th>
+                <th 
+                  onClick={() => handleSort('id')}
+                  className="px-4 py-3 cursor-pointer hover:bg-blh-slate-100 transition-colors select-none"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Código</span>
+                    {sortField === 'id' ? (
+                      sortAsc ? <ArrowUp className="w-3 h-3 text-blh-primary" /> : <ArrowDown className="w-3 h-3 text-blh-primary" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-blh-slate-400 opacity-60" />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  onClick={() => handleSort('nome')}
+                  className="px-4 py-3 cursor-pointer hover:bg-blh-slate-100 transition-colors select-none"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Doadora &amp; Bebê</span>
+                    {sortField === 'nome' ? (
+                      sortAsc ? <ArrowUp className="w-3 h-3 text-blh-primary" /> : <ArrowDown className="w-3 h-3 text-blh-primary" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-blh-slate-400 opacity-60" />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  onClick={() => handleSort('zona')}
+                  className="px-4 py-3 cursor-pointer hover:bg-blh-slate-100 transition-colors select-none"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Zona / Endereço</span>
+                    {sortField === 'zona' ? (
+                      sortAsc ? <ArrowUp className="w-3 h-3 text-blh-primary" /> : <ArrowDown className="w-3 h-3 text-blh-primary" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-blh-slate-400 opacity-60" />
+                    )}
+                  </div>
+                </th>
                 <th className="px-4 py-3">Classificação</th>
                 <th className="px-4 py-3">Sorologia</th>
-                <th className="px-4 py-3">Veredito</th>
-                <th className="px-4 py-3">Cadastro</th>
+                <th 
+                  onClick={() => handleSort('aptidao')}
+                  className="px-4 py-3 cursor-pointer hover:bg-blh-slate-100 transition-colors select-none"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Veredito</span>
+                    {sortField === 'aptidao' ? (
+                      sortAsc ? <ArrowUp className="w-3 h-3 text-blh-primary" /> : <ArrowDown className="w-3 h-3 text-blh-primary" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-blh-slate-400 opacity-60" />
+                    )}
+                  </div>
+                </th>
+                <th 
+                  onClick={() => handleSort('statusCadastro')}
+                  className="px-4 py-3 cursor-pointer hover:bg-blh-slate-100 transition-colors select-none"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Cadastro</span>
+                    {sortField === 'statusCadastro' ? (
+                      sortAsc ? <ArrowUp className="w-3 h-3 text-blh-primary" /> : <ArrowDown className="w-3 h-3 text-blh-primary" />
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 text-blh-slate-400 opacity-60" />
+                    )}
+                  </div>
+                </th>
                 <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-blh-line">
-              {filteredDonors.map((d) => {
+              {paginatedDonors.map((d) => {
                 const isApt = d.aptidao === 'Apta';
                 const isActive = d.statusCadastro === 'ativa';
                 const milkClass = calculateMilkClass(d.parto);
@@ -242,7 +354,7 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                             variant="ghost"
                             onClick={() => onEditDonor(d)}
                             title="Editar Cadastro da Doadora"
-                            className="p-2 min-h-[34px] min-w-[34px] rounded-lg text-blh-slate-700 hover:text-blh-primary hover:bg-blh-slate-100"
+                            className="p-2 min-h-[38px] min-w-[38px] rounded-lg text-blh-slate-700 hover:text-blh-primary hover:bg-blh-slate-100"
                             aria-label="Editar Doadora"
                           >
                             <Edit3 className="w-4 h-4" />
@@ -256,7 +368,7 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                             variant="ghost"
                             onClick={() => setInspectDonor(d)}
                             title="Ver laudo de contraindicação"
-                            className="p-2 min-h-[34px] min-w-[34px] rounded-lg text-amber-600 hover:text-amber-800 hover:bg-amber-50"
+                            className="p-2 min-h-[38px] min-w-[38px] rounded-lg text-amber-600 hover:text-amber-800 hover:bg-amber-50"
                             aria-label="Ver Laudo"
                           >
                             <ShieldAlert className="w-4 h-4" />
@@ -269,7 +381,7 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                             size="sm"
                             variant="outline"
                             onClick={() => navigateToDonorRoute(d.zona, d.id)}
-                            className="font-bold border-blh-slate-300 hover:border-blh-primary text-blh-slate-800 hover:text-blh-primary"
+                            className="font-bold border-blh-slate-300 hover:border-blh-primary text-blh-slate-800 hover:text-blh-primary min-h-[38px]"
                           >
                             Rota
                           </Button>
@@ -281,6 +393,58 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
               })}
             </tbody>
           </table>
+
+          {/* Barra de Paginação Operacional */}
+          <div className="p-4 border-t border-blh-line flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-blh-slate-600">
+            <div>
+              Mostrando <strong className="text-blh-slate-900">{sortedDonors.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</strong> a{' '}
+              <strong className="text-blh-slate-900">{Math.min(currentPage * itemsPerPage, sortedDonors.length)}</strong> de{' '}
+              <strong className="text-blh-slate-900">{sortedDonors.length}</strong> doadoras
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2.5 py-1.5 rounded-lg border border-blh-slate-200 text-blh-slate-700 hover:bg-blh-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs flex items-center gap-1"
+                  aria-label="Página anterior"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Anterior</span>
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg font-bold text-xs transition-all ${
+                        currentPage === page
+                          ? 'bg-blh-primary text-white shadow-xs'
+                          : 'border border-blh-slate-200 text-blh-slate-700 hover:bg-blh-slate-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2.5 py-1.5 rounded-lg border border-blh-slate-200 text-blh-slate-700 hover:bg-blh-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs flex items-center gap-1"
+                  aria-label="Próxima página"
+                >
+                  <span className="hidden sm:inline">Próxima</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
