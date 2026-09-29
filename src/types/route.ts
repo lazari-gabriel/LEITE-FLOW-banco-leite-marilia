@@ -56,15 +56,42 @@ export interface RouteMetrics {
   estimatedMinutes: number;
 }
 
-/** Planejamento de rota do dia — escolha manual pelo despachante */
+export type RouteShift = 'Manhã' | 'Tarde' | 'Integral';
+
+export type RouteStatus = 'planning' | 'active' | 'completed' | 'canceled';
+
+/** Planejamento e despacho de rota de frota — Gestão Multi-Veículo (CRUD) */
 export interface RouteAssignment {
-  id: string;          // ex: "2026-09-12-Norte"
+  id: string;                  // ex: "rot-20260929-01"
+  code: string;                // ex: "ROT-01", "ROT-02"
+  name: string;                // ex: "Van 01 - Rota Norte Principal"
   day: WeekDay;
   zone: ZoneName;
-  donorIds: number[];  // ordenados — posição = número da parada
-  driverName: string;
-  vehicleName: string;
+  donorIds: number[];          // ordenados — posição = número da parada
+  driverName: string;          // Motorista / Condutor
+  collectorName?: string;      // Pessoa que foi coletar
+  vehicleName: string;         // Modelo/Identificação do veículo (ex: "Mercedes Sprinter BLH")
+  vehiclePlate?: string;       // Placa (ex: "BRA-2E19")
+  shift?: RouteShift;          // Manhã / Tarde / Integral
   createdAt: string;
-  status: 'planning' | 'active' | 'completed';
+  startedAt?: string;
+  completedAt?: string;
+  status: RouteStatus;
   skippedStops: SkippedStop[];  // paradas não realizadas com motivo
+  notes?: string;
 }
+
+export interface RouteFormData {
+  name: string;
+  day: WeekDay;
+  zone: ZoneName;
+  driverName: string;
+  collectorName: string;
+  vehicleName: string;
+  vehiclePlate: string;
+  shift: RouteShift;
+  donorIds?: number[];
+  autoFillZoneDonors?: boolean;
+  notes?: string;
+}
+

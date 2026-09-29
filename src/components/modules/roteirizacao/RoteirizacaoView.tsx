@@ -18,17 +18,21 @@ import { WeekDaySelector } from './WeekDaySelector';
 import { StopCard } from './StopCard';
 import { ColetaModal } from './ColetaModal';
 import { RouteDispatcher } from './RouteDispatcher';
+import { RouteFleetManager } from './RouteFleetManager';
 import { SkipStopModal } from './SkipStopModal';
 import { Button } from '../../ui/Button';
 import { EmptyState } from '../../ui/EmptyState';
 import { LEITE_FLOW } from '../../../constants/blh';
 import { buildGoogleMapsSingleStopUrl } from '../../../services/routeService';
 
-type MainTab = 'montar' | 'executar';
+type MainTab = 'frota' | 'montar' | 'executar';
 
 export const RoteirizacaoView: React.FC = () => {
   const { 
     selectedDay, 
+    routes,
+    activeRouteId,
+    setActiveRouteId,
     currentZoneStops, 
     nextStop, 
     setCurrentView,
@@ -40,10 +44,11 @@ export const RoteirizacaoView: React.FC = () => {
     activateRoute
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<MainTab>('montar');
+  const [activeTab, setActiveTab] = useState<MainTab>('frota');
   const [activeModalDonorId, setActiveModalDonorId] = useState<number | null>(null);
   const [activeSkipDonorId, setActiveSkipDonorId] = useState<number | null>(null);
 
+  const dayRoutes = routes.filter((r) => r.day === selectedDay && r.status !== 'canceled');
   const zoneConfig = ZONE_BY_DAY[selectedDay] || ZONE_BY_DAY['Segunda'];
   const completedCount = currentZoneStops.filter((s) => s.collected).length;
   const skippedCount = currentZoneStops.filter((s) => s.skipped).length;
@@ -80,33 +85,50 @@ export const RoteirizacaoView: React.FC = () => {
       {/* Seletor dos Dias da Semana */}
       <WeekDaySelector />
 
-      {/* Tabs de Navegação */}
+      {/* Tabs de Navegação da Frota (Gestão da Frota | Montar Paradas | Executar Coletas) */}
       <div className="flex gap-1 p-1 bg-blh-slate-100 rounded-xl">
         <button
           type="button"
+          onClick={() => setActiveTab('frota')}
+          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all ${
+            activeTab === 'frota'
+              ? 'bg-white text-blh-primary shadow-sm'
+              : 'text-blh-slate-600 hover:text-blh-slate-900'
+          }`}
+        >
+          <Truck className="w-4 h-4" />
+          <span className="hidden sm:inline">Gestão da</span> Frota
+          <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blh-slate-200 text-blh-slate-800">
+            {dayRoutes.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('montar')}
-          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-4 rounded-lg transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all ${
             activeTab === 'montar'
               ? 'bg-white text-blh-primary shadow-sm'
               : 'text-blh-slate-600 hover:text-blh-slate-900'
           }`}
         >
           <ClipboardList className="w-4 h-4" />
-          Montar Rota
+          Montar Paradas
           {routeAssignment && (
             <span className={`ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
               isRouteActive
                 ? 'bg-emerald-500 text-white'
                 : 'bg-blh-primary text-white'
             }`}>
-              {isRouteActive ? 'Ativa' : routeAssignment.donorIds.length}
+              {routeAssignment.code} ({routeAssignment.donorIds.length})
             </span>
           )}
         </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('executar')}
-          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-4 rounded-lg transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all ${
             activeTab === 'executar'
               ? 'bg-white text-blh-primary shadow-sm'
               : 'text-blh-slate-600 hover:text-blh-slate-900'
@@ -122,14 +144,56 @@ export const RoteirizacaoView: React.FC = () => {
         </button>
       </div>
 
-      {/* ── Tab: MONTAR ROTA (RouteDispatcher) ── */}
+      {/* ── Tab 1: GESTÃO DA FROTA (CRUD Completo de Rotas) ── */}
+      {activeTab === 'frota' && (
+        <RouteFleetManager
+          onSelectRouteForEditing={(routeId) => {
+            setActiveRouteId(routeId);
+            setActiveTab('montar');
+          }}
+          onSelectRouteForExecution={(routeId) => {
+            setActiveRouteId(routeId);
+            setActiveTab('executar');
+          }}
+        />
+      )}
+
+      {/* ── Tab 2: MONTAR PARADAS (RouteDispatcher) ── */}
       {activeTab === 'montar' && (
         <RouteDispatcher onNavigateToExecution={() => setActiveTab('executar')} />
       )}
 
-      {/* ── Tab: EXECUTAR COLETAS ── */}
+      {/* ── Tab 3: EXECUTAR COLETAS ── */}
       {activeTab === 'executar' && (
         <div className="space-y-4">
+          {/* Seletor Rápido de Veículo caso haja mais de 1 rota no dia */}
+          {dayRoutes.length > 1 && (
+            <div className="p-3 bg-white rounded-xl border border-blh-slate-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+              <div className="flex items-center gap-2 text-xs font-bold text-blh-slate-700">
+                <Truck className="w-4 h-4 text-blh-primary" />
+                <span>Veículo em Execução:</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {dayRoutes.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setActiveRouteId(r.id)}
+                    className={`text-xs px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1.5 ${
+                      routeAssignment?.id === r.id
+                        ? 'bg-blh-primary text-white shadow-xs'
+                        : 'bg-blh-slate-100 text-blh-slate-700 hover:bg-blh-slate-200'
+                    }`}
+                  >
+                    <span>{r.code}</span>
+                    <span className="font-normal opacity-90">({r.vehicleName.split(' - ')[0]})</span>
+                    {r.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Banner de rota não iniciada */}
           {!isRouteActive && !isRouteCompleted && totalStops > 0 && (
             <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

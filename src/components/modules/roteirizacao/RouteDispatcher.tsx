@@ -39,6 +39,10 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
   const {
     donors,
     selectedDay,
+    routes,
+    activeRouteId,
+    setActiveRouteId,
+    getAllAssignedDonorIds,
     routeAssignment,
     currentZoneStops,
     routeMetrics,
@@ -56,7 +60,16 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
   const [activeTab, setActiveTab] = useState<DispatcherTab>('rota');
   const [searchAvailable, setSearchAvailable] = useState('');
   const [driverName, setDriverNameLocal] = useState(routeAssignment?.driverName || '');
-  const [vehicleName, setVehicleNameLocal] = useState(routeAssignment?.vehicleName || '');
+  const [collectorName, setCollectorNameLocal] = useState(routeAssignment?.collectorName || '');
+
+  React.useEffect(() => {
+    if (routeAssignment) {
+      setDriverNameLocal(routeAssignment.driverName || '');
+      setCollectorNameLocal(routeAssignment.collectorName || '');
+    }
+  }, [routeAssignment?.id, routeAssignment?.driverName, routeAssignment?.collectorName]);
+
+  const assignedToOtherRoutes = getAllAssignedDonorIds(selectedDay, routeAssignment?.id);
 
   const zoneConfig = ZONE_BY_DAY[selectedDay] || ZONE_BY_DAY['Segunda'];
 
@@ -90,7 +103,9 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
   const routeStops = currentZoneStops;
 
   const handleDriverBlur = () => {
-    setDriverInfo(driverName, vehicleName);
+    if (routeAssignment) {
+      setDriverInfo(driverName, routeAssignment.vehicleName, collectorName, routeAssignment.vehiclePlate, routeAssignment.id);
+    }
   };
 
   const canStartRoute = assignedIds.length > 0;
@@ -178,16 +193,43 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 bg-blh-slate-50 p-3 rounded-xl border border-blh-line self-start lg:self-center shrink-0">
+          <div className="flex items-center gap-2.5 bg-blh-slate-50 p-2.5 sm:p-3 rounded-xl border border-blh-line self-start lg:self-center shrink-0">
             <div className="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
               <Truck className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="text-xs">
-              <div className="font-bold text-blh-slate-900 flex items-center gap-1.5">
-                <span>Fiorino LF-2026</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 bg-emerald-200 text-emerald-900 rounded font-bold">VAN 01</span>
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="font-mono text-[10px] px-1.5 py-0.2 bg-emerald-200 text-emerald-900 rounded font-black">
+                  {routeAssignment?.code || 'ROT-01'}
+                </span>
+                <span className="font-bold text-blh-slate-900 truncate max-w-[150px]">
+                  {routeAssignment?.vehicleName || 'Van 01'}
+                </span>
+                {routeAssignment?.vehiclePlate && (
+                  <span className="text-[10px] font-mono font-bold text-blh-slate-500 uppercase">
+                    [{routeAssignment.vehiclePlate}]
+                  </span>
+                )}
               </div>
-              <div className="text-[11px] text-blh-slate-500">Base: Hospital Materno Infantil</div>
+              <div className="flex items-center gap-1.5">
+                <label htmlFor="route-selector" className="text-[11px] text-blh-slate-500 font-medium">
+                  Alternar Rota:
+                </label>
+                <select
+                  id="route-selector"
+                  value={routeAssignment?.id || ''}
+                  onChange={(e) => setActiveRouteId(e.target.value)}
+                  className="text-xs font-bold px-2 py-0.5 rounded border border-blh-slate-300 bg-white text-blh-slate-800 focus:outline-none focus:ring-1 focus:ring-blh-primary"
+                >
+                  {routes
+                    .filter((r) => r.day === selectedDay && r.status !== 'canceled')
+                    .map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.code} - {r.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -264,8 +306,8 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
                 type="text"
                 disabled={isActive}
                 placeholder="Nome da pessoa que foi coletar"
-                value={vehicleName}
-                onChange={(e) => setVehicleNameLocal(e.target.value)}
+                value={collectorName}
+                onChange={(e) => setCollectorNameLocal(e.target.value)}
                 onBlur={handleDriverBlur}
                 className="w-full text-xs sm:text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary disabled:bg-blh-slate-100 disabled:cursor-not-allowed bg-white"
               />
@@ -682,7 +724,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-sm text-blh-slate-900 truncate">
                           {donor.nome}
                         </span>
@@ -695,6 +737,11 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
                         >
                           Zona {donor.zona} {isCurrentZone ? '(Hoje)' : '(Exceção)'}
                         </span>
+                        {assignedToOtherRoutes.has(donor.id) && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                            ⚠️ Escalada na {assignedToOtherRoutes.get(donor.id)}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] text-blh-slate-500 mt-0.5 flex items-center gap-2">
                         <span className="truncate">{donor.bairro} — {donor.endereco}</span>
