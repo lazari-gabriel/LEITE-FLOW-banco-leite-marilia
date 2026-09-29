@@ -160,7 +160,10 @@ export const RoteirizacaoView: React.FC = () => {
 
       {/* ── Tab 2: MONTAR PARADAS (RouteDispatcher) ── */}
       {activeTab === 'montar' && (
-        <RouteDispatcher onNavigateToExecution={() => setActiveTab('executar')} />
+        <RouteDispatcher 
+          onNavigateToExecution={() => setActiveTab('executar')} 
+          onNavigateToFleet={() => setActiveTab('frota')}
+        />
       )}
 
       {/* ── Tab 3: EXECUTAR COLETAS ── */}
