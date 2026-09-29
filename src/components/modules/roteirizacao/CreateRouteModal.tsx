@@ -4,7 +4,7 @@ import { X, Truck, User, HeartHandshake, Calendar, Clock, Plus, AlertCircle, Spa
 import { useApp } from '../../../hooks/useApp';
 import { WeekDay, ZoneName } from '../../../types/donor';
 import { RouteFormData, RouteShift } from '../../../types/route';
-import { ZONAS_SEMANA } from '../../../constants/zones';
+import { ZONAS_SEMANA, DAY_BY_ZONE, ZONE_BY_DAY } from '../../../constants/zones';
 import { FLEET_VEHICLES, FLEET_DRIVERS, FLEET_COLLECTORS } from '../../../data/initialRoutes';
 import { Button } from '../../ui/Button';
 
@@ -23,9 +23,10 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
 }) => {
   const { createRoute, donors, getAllAssignedDonorIds } = useApp();
 
+  const initialZone = (ZONE_BY_DAY[defaultDay]?.zona || 'Norte') as ZoneName;
   const [name, setName] = useState('');
   const [day, setDay] = useState<WeekDay>(defaultDay);
-  const [zone, setZone] = useState<ZoneName>('Norte');
+  const [zone, setZone] = useState<ZoneName>(initialZone);
   const [shift, setShift] = useState<RouteShift>('Manhã');
   const [vehicleName, setVehicleName] = useState(FLEET_VEHICLES[0]?.name || '');
   const [vehiclePlate, setVehiclePlate] = useState(FLEET_VEHICLES[0]?.plate || '');
@@ -34,10 +35,26 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
   const [autoFill, setAutoFill] = useState(true);
   const [notes, setNotes] = useState('');
 
-  // Sincroniza zona com o dia padrão sugerido
+  // Ao abrir o modal, inicializa com o dia e zona sincronizados
+  React.useEffect(() => {
+    if (isOpen) {
+      setDay(defaultDay);
+      const z = (ZONE_BY_DAY[defaultDay]?.zona || 'Norte') as ZoneName;
+      setZone(z);
+    }
+  }, [isOpen, defaultDay]);
+
+  // Ao selecionar a Zona de Coleta, atualiza o Dia da Semana automaticamente
+  const handleZoneChange = (newZone: ZoneName) => {
+    setZone(newZone);
+    const correspondingDay = (DAY_BY_ZONE[newZone] || 'Segunda') as WeekDay;
+    setDay(correspondingDay);
+  };
+
+  // Ao selecionar o Dia da Semana, atualiza a Zona de Coleta automaticamente
   const handleDayChange = (newDay: WeekDay) => {
     setDay(newDay);
-    const zConfig = ZONAS_SEMANA.find((z) => z.dia === newDay);
+    const zConfig = ZONE_BY_DAY[newDay];
     if (zConfig) {
       setZone(zConfig.zona);
     }
@@ -131,39 +148,42 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
             />
           </div>
 
-          {/* Dia, Zona e Turno */}
+          {/* Zona de Coleta, Dia da Semana e Turno (Sincronizados) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
-                Dia da Semana
-              </label>
-              <select
-                value={day}
-                onChange={(e) => handleDayChange(e.target.value as WeekDay)}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary outline-none bg-white font-medium"
-              >
-                <option value="Segunda">Segunda</option>
-                <option value="Terça">Terça</option>
-                <option value="Quarta">Quarta</option>
-                <option value="Quinta">Quinta</option>
-                <option value="Sexta">Sexta</option>
-              </select>
-            </div>
-
             <div>
               <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
                 Zona de Coleta
               </label>
               <select
                 value={zone}
-                onChange={(e) => setZone(e.target.value as ZoneName)}
+                onChange={(e) => handleZoneChange(e.target.value as ZoneName)}
                 className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary outline-none bg-white font-medium"
               >
-                <option value="Norte">Zona Norte</option>
-                <option value="Sul">Zona Sul</option>
-                <option value="Oeste">Zona Oeste</option>
-                <option value="Leste">Zona Leste</option>
-                <option value="Rural">Zona Rural</option>
+                <option value="Norte">Zona Norte (Segunda)</option>
+                <option value="Sul">Zona Sul (Terça)</option>
+                <option value="Oeste">Zona Oeste (Quarta)</option>
+                <option value="Leste">Zona Leste (Quinta)</option>
+                <option value="Rural">Zona Rural (Sexta)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span>Dia da Semana</span>
+                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                  Automático
+                </span>
+              </label>
+              <select
+                value={day}
+                onChange={(e) => handleDayChange(e.target.value as WeekDay)}
+                className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary outline-none bg-white font-medium"
+              >
+                <option value="Segunda">Segunda-feira (Zona Norte)</option>
+                <option value="Terça">Terça-feira (Zona Sul)</option>
+                <option value="Quarta">Quarta-feira (Zona Oeste)</option>
+                <option value="Quinta">Quinta-feira (Zona Leste)</option>
+                <option value="Sexta">Sexta-feira (Zona Rural)</option>
               </select>
             </div>
 
