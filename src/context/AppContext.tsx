@@ -178,7 +178,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [routes, selectedDay]);
 
-  // Sincronização inteligente de rotas ao selecionar o dia
+  // Sincronização de rota ativa ao selecionar o dia
   useEffect(() => {
     const routesForDay = routes.filter((r) => r.day === selectedDay && r.status !== 'canceled');
     if (routesForDay.length > 0) {
@@ -186,40 +186,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveRouteIdState(routesForDay[0].id);
       }
     } else {
-      // Auto-inicializa rota primária ROT-0X para o dia caso ainda não exista nenhuma
-      const zone = currentZoneConfig.zona;
-      const codeNum = routes.length + 1;
-      const code = `ROT-${String(codeNum).padStart(2, '0')}`;
-      const defaultVehicle = FLEET_VEHICLES[0] || { name: 'Van 01 - Mercedes-Benz Sprinter BLH', plate: 'BRA-2E19' };
-      const defaultDriver = FLEET_DRIVERS[0] || { name: 'Carlos Alberto Silva' };
-      const defaultCollector = FLEET_COLLECTORS[0] || { name: 'Enfª Cláudia Guimarães' };
-
-      const zoneDonors = donors.filter(
-        (d) => d.zona === zone && d.aptidao === 'Apta' && d.statusCadastro === 'ativa'
-      );
-      const autoOrderedIds = optimizeDonorIdsNearestNeighbor(zoneDonors);
-
-      const newPrimaryRoute: RouteAssignment = {
-        id: `rot-${selectedDay.toLowerCase()}-primary`,
-        code,
-        name: `Van 01 - Rota ${zone} Principal`,
-        day: selectedDay,
-        zone,
-        donorIds: autoOrderedIds,
-        driverName: defaultDriver.name,
-        collectorName: defaultCollector.name,
-        vehicleName: defaultVehicle.name,
-        vehiclePlate: defaultVehicle.plate,
-        shift: 'Manhã',
-        createdAt: new Date().toISOString(),
-        status: 'planning',
-        skippedStops: []
-      };
-
-      setRoutes((prev) => [...prev, newPrimaryRoute]);
-      setActiveRouteIdState(newPrimaryRoute.id);
+      setActiveRouteIdState(null);
     }
-  }, [selectedDay, currentZoneConfig.zona, donors, routes, activeRouteId]);
+  }, [selectedDay, routes, activeRouteId]);
 
   const currentZoneStops = useMemo(() => {
     if (!routeAssignment) return [];
