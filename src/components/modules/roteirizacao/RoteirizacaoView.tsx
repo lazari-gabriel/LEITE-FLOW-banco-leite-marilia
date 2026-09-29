@@ -90,15 +90,15 @@ export const RoteirizacaoView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('frota')}
-          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all duration-200 ease-out ${
             activeTab === 'frota'
-              ? 'bg-white text-blh-primary shadow-sm'
-              : 'text-blh-slate-600 hover:text-blh-slate-900'
+              ? 'bg-white text-blh-primary shadow-sm ring-1 ring-blh-slate-200'
+              : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-white/50'
           }`}
         >
           <Truck className="w-4 h-4" />
           <span className="hidden sm:inline">Gestão da</span> Frota
-          <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blh-slate-200 text-blh-slate-800">
+          <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blh-slate-200 text-blh-slate-800 transition-colors">
             {dayRoutes.length}
           </span>
         </button>
@@ -106,16 +106,16 @@ export const RoteirizacaoView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('montar')}
-          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all duration-200 ease-out ${
             activeTab === 'montar'
-              ? 'bg-white text-blh-primary shadow-sm'
-              : 'text-blh-slate-600 hover:text-blh-slate-900'
+              ? 'bg-white text-blh-primary shadow-sm ring-1 ring-blh-slate-200'
+              : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-white/50'
           }`}
         >
           <ClipboardList className="w-4 h-4" />
           Montar Paradas
           {routeAssignment && (
-            <span className={`ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+            <span className={`ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full transition-colors ${
               isRouteActive
                 ? 'bg-emerald-500 text-white'
                 : 'bg-blh-primary text-white'
@@ -128,16 +128,16 @@ export const RoteirizacaoView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('executar')}
-          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all duration-200 ease-out ${
             activeTab === 'executar'
-              ? 'bg-white text-blh-primary shadow-sm'
-              : 'text-blh-slate-600 hover:text-blh-slate-900'
+              ? 'bg-white text-blh-primary shadow-sm ring-1 ring-blh-slate-200'
+              : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-white/50'
           }`}
         >
           <Play className="w-4 h-4" />
           Executar Coletas
           {doneCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full">
+            <span className="ml-1 px-1.5 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full transition-colors">
               {doneCount}/{totalStops}
             </span>
           )}
@@ -146,29 +146,33 @@ export const RoteirizacaoView: React.FC = () => {
 
       {/* ── Tab 1: GESTÃO DA FROTA (CRUD Completo de Rotas) ── */}
       {activeTab === 'frota' && (
-        <RouteFleetManager
-          onSelectRouteForEditing={(routeId) => {
-            setActiveRouteId(routeId);
-            setActiveTab('montar');
-          }}
-          onSelectRouteForExecution={(routeId) => {
-            setActiveRouteId(routeId);
-            setActiveTab('executar');
-          }}
-        />
+        <div key="tab-panel-frota" className="animate-routeSwap">
+          <RouteFleetManager
+            onSelectRouteForEditing={(routeId) => {
+              setActiveRouteId(routeId);
+              setActiveTab('montar');
+            }}
+            onSelectRouteForExecution={(routeId) => {
+              setActiveRouteId(routeId);
+              setActiveTab('executar');
+            }}
+          />
+        </div>
       )}
 
       {/* ── Tab 2: MONTAR PARADAS (RouteDispatcher) ── */}
       {activeTab === 'montar' && (
-        <RouteDispatcher 
-          onNavigateToExecution={() => setActiveTab('executar')} 
-          onNavigateToFleet={() => setActiveTab('frota')}
-        />
+        <div key="tab-panel-montar" className="animate-routeSwap">
+          <RouteDispatcher 
+            onNavigateToExecution={() => setActiveTab('executar')} 
+            onNavigateToFleet={() => setActiveTab('frota')}
+          />
+        </div>
       )}
 
       {/* ── Tab 3: EXECUTAR COLETAS ── */}
       {activeTab === 'executar' && (
-        <div className="space-y-4">
+        <div key="tab-panel-executar" className="animate-routeSwap space-y-4">
           {/* Seletor Rápido de Veículo caso haja mais de 1 rota no dia */}
           {dayRoutes.length > 1 && (
             <div className="p-3 bg-white rounded-xl border border-blh-slate-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">

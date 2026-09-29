@@ -176,7 +176,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
         {/* Cabeçalho da Rota Ativa & Seletor de Frota */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-blh-line">
           {/* Lado Esquerdo: Identificação Clara e Limpa da Rota */}
-          <div className="space-y-2 min-w-0 flex-1">
+          <div key={`route-ident-${routeAssignment.id}`} className="space-y-2 min-w-0 flex-1 animate-routeSwap">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-blh-primary bg-blh-primary-soft px-3 py-1 rounded-md border border-blh-primary/20">
                 <Truck className="w-3.5 h-3.5 text-blh-primary" />
@@ -205,7 +205,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             </div>
 
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="px-2.5 py-1 rounded-lg bg-blh-primary text-white font-mono font-bold text-sm tracking-wide shadow-xs shrink-0">
+              <span className="px-2.5 py-1 rounded-lg bg-blh-primary text-white font-mono font-bold text-sm tracking-wide shadow-xs shrink-0 transition-transform duration-200">
                 {routeAssignment.code}
               </span>
               <h1 className="text-xl sm:text-2xl font-bold text-blh-slate-900 tracking-tight truncate">
@@ -215,18 +215,18 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
 
             {/* Chips de Metadados Sutis e Limpos */}
             <div className="flex items-center gap-2 sm:gap-3 text-xs text-blh-slate-600 flex-wrap pt-0.5">
-              <span className="inline-flex items-center gap-1.5 font-medium bg-blh-slate-50 px-2.5 py-1 rounded-lg border border-blh-slate-200/80">
+              <span className="inline-flex items-center gap-1.5 font-medium bg-blh-slate-50 px-2.5 py-1 rounded-lg border border-blh-slate-200/80 transition-all duration-200">
                 <Truck className="w-3.5 h-3.5 text-blh-primary" />
                 <span className="truncate max-w-[200px]">{routeAssignment.vehicleName}</span>
                 {routeAssignment.vehiclePlate && (
                   <span className="font-mono text-blh-slate-700 font-bold uppercase">[{routeAssignment.vehiclePlate}]</span>
                 )}
               </span>
-              <span className="inline-flex items-center gap-1.5 font-medium bg-blh-slate-50 px-2.5 py-1 rounded-lg border border-blh-slate-200/80">
+              <span className="inline-flex items-center gap-1.5 font-medium bg-blh-slate-50 px-2.5 py-1 rounded-lg border border-blh-slate-200/80 transition-all duration-200">
                 <Clock className="w-3.5 h-3.5 text-amber-600" />
                 Turno {routeAssignment.shift || 'Manhã'}
               </span>
-              <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+              <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 transition-all duration-200">
                 <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                 {assignedIds.length} {assignedIds.length === 1 ? 'parada' : 'paradas'} alocadas
               </span>
@@ -241,7 +241,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                 Alternar Rota ({dayRoutes.length} no dia):
               </label>
               {dayRoutes.length > 1 && (
-                <span className="text-[10px] text-blh-slate-500 font-mono">
+                <span className="text-[10px] text-blh-slate-500 font-mono transition-opacity duration-200">
                   {routeAssignment.code} selecionada
                 </span>
               )}
@@ -251,7 +251,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
               id="select-route-input"
               value={routeAssignment.id}
               onChange={(e) => setActiveRouteId(e.target.value)}
-              className="w-full text-xs font-bold px-3 py-2 rounded-lg border border-blh-slate-300 bg-white text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary focus:border-blh-primary shadow-xs cursor-pointer"
+              className="w-full text-xs font-bold px-3 py-2 rounded-lg border border-blh-slate-300 bg-white text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary focus:border-blh-primary shadow-xs cursor-pointer transition-all duration-200 hover:border-blh-slate-400"
             >
               {dayRoutes.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -260,7 +260,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
               ))}
             </select>
 
-            {/* Carrossel de rolagem horizontal com mini-pills (suporta qualquer quantidade de rotas sem quebrar o layout) */}
+            {/* Carrossel de rolagem horizontal com mini-pills com transições suaves */}
             {dayRoutes.length > 1 && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 max-w-full text-xs no-scrollbar">
                 {dayRoutes.map((r) => {
@@ -270,16 +270,16 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                       key={r.id}
                       type="button"
                       onClick={() => setActiveRouteId(r.id)}
-                      className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                      className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all duration-200 ease-out transform active:scale-95 ${
                         isCurrent
-                          ? 'bg-blh-primary text-white shadow-xs'
-                          : 'bg-white hover:bg-blh-slate-100 text-blh-slate-700 border border-blh-slate-200'
+                          ? 'bg-blh-primary text-white shadow-xs ring-2 ring-blh-primary/30 scale-[1.03]'
+                          : 'bg-white hover:bg-blh-slate-100 text-blh-slate-700 border border-blh-slate-200 hover:border-blh-slate-300 hover:scale-[1.01]'
                       }`}
                       title={`${r.code} - ${r.vehicleName || r.name} (${r.donorIds.length} paradas)`}
                     >
                       <span className="font-mono">{r.code}</span>
-                      <span className={`px-1 py-0.2 rounded-full text-[9px] font-mono ${
-                        isCurrent ? 'bg-white/20 text-white' : 'bg-blh-slate-100 text-blh-slate-600'
+                      <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono transition-colors duration-200 ${
+                        isCurrent ? 'bg-white/20 text-white font-bold' : 'bg-blh-slate-100 text-blh-slate-600'
                       }`}>
                         {r.donorIds.length}
                       </span>
@@ -290,9 +290,10 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             )}
           </div>
         </div>
-        {/* Bento Grid de Métricas da Rota Ativa */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation animate-stagger-1">
+
+        {/* Bento Grid de Métricas da Rota Ativa com transição suave */}
+        <div key={`route-metrics-${routeAssignment.id}`} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 animate-routeSwap">
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation">
             <div className="w-10 h-10 rounded-xl bg-blh-primary-soft text-blh-primary flex items-center justify-center shrink-0">
               <MapPin className="w-5 h-5" />
             </div>
@@ -302,7 +303,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             </div>
           </div>
 
-          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation animate-stagger-2">
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
               <Route className="w-5 h-5" />
             </div>
@@ -312,7 +313,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             </div>
           </div>
 
-          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation animate-stagger-3">
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation">
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
               <Clock className="w-5 h-5" />
             </div>
@@ -322,7 +323,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             </div>
           </div>
 
-          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation animate-stagger-4">
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
               <Users className="w-5 h-5" />
             </div>
@@ -334,7 +335,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
         </div>
 
         {/* ── TRIPULAÇÃO ESCALADA (SOMENTE LEITURA NESTA ABA) ── */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-blh-slate-50/80 border border-blh-line">
+        <div key={`route-crew-${routeAssignment.id}`} className="p-4 sm:p-5 rounded-2xl bg-blh-slate-50/80 border border-blh-line animate-routeSwap">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-blh-primary-soft text-blh-primary flex items-center justify-center">
@@ -554,7 +555,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
 
       {/* ── TAB 1: PARADAS NA ROTA ATIVA ── */}
       {activeTab === 'rota' && (
-        <div className="bg-white rounded-xl border border-blh-line shadow-card overflow-hidden">
+        <div key={`tab-rota-${routeAssignment.id}`} className="bg-white rounded-xl border border-blh-line shadow-card overflow-hidden animate-routeSwap">
           {/* Header contextual da sequência */}
           <div className="px-4 py-3 bg-blh-slate-50/90 border-b border-blh-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2 flex-wrap">
@@ -766,7 +767,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
 
       {/* ── TAB 2: DOADORAS DISPONÍVEIS (PARA ADICIONAR À ROTA ATIVA) ── */}
       {activeTab === 'disponiveis' && (
-        <div className="bg-white rounded-xl border border-blh-line shadow-card overflow-hidden">
+        <div key={`tab-disp-${routeAssignment.id}`} className="bg-white rounded-xl border border-blh-line shadow-card overflow-hidden animate-routeSwap">
           {/* Banner de Contexto de Adição */}
           <div className="px-4 py-3 bg-blh-slate-50 border-b border-blh-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2">
