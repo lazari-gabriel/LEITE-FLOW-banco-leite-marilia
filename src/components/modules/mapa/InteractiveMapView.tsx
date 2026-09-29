@@ -7,18 +7,19 @@ import {
   Clock, 
   Check, 
   AlertCircle, 
-  Milestone,
-  CheckCircle2,
-  RefreshCw,
-  Phone,
-  MessageCircle,
-  Tag,
-  XCircle,
-  Lock,
-  CheckSquare,
-  Square,
-  Flag,
-  Play
+  Milestone, 
+  CheckCircle2, 
+  RefreshCw, 
+  Phone, 
+  MessageCircle, 
+  Tag, 
+  XCircle, 
+  Lock, 
+  CheckSquare, 
+  Square, 
+  Flag, 
+  Play,
+  Layers
 } from 'lucide-react';
 import { useApp } from '../../../hooks/useApp';
 import { LEITE_FLOW } from '../../../constants/blh';
@@ -27,6 +28,38 @@ import { Button } from '../../ui/Button';
 import { ColetaModal } from '../roteirizacao/ColetaModal';
 import { SkipStopModal } from '../roteirizacao/SkipStopModal';
 import { buildGoogleMapsSingleStopUrl, buildGoogleMapsUrl, buildWhatsAppUrl } from '../../../services/routeService';
+
+const MAP_PROVIDERS = {
+  osm: {
+    id: 'osm',
+    name: 'OpenStreetMap',
+    shortName: 'Padrão (OSM)',
+    icon: '🗺️',
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+    maxZoom: 19,
+  },
+  'esri-streets': {
+    id: 'esri-streets',
+    name: 'Ruas Claras',
+    shortName: 'Ruas HD',
+    icon: '🏙️',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; DeLorme, NAVTEQ',
+    maxZoom: 19,
+  },
+  'esri-satellite': {
+    id: 'esri-satellite',
+    name: 'Satélite',
+    shortName: 'Satélite',
+    icon: '🛰️',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS',
+    maxZoom: 18,
+  },
+} as const;
+
+type MapProviderKey = keyof typeof MAP_PROVIDERS;
 
 export const InteractiveMapView: React.FC = () => {
   const { 
@@ -48,14 +81,40 @@ export const InteractiveMapView: React.FC = () => {
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const routePolylineRef = useRef<L.Polyline | null>(null);
 
+  const [currentProvider, setCurrentProvider] = useState<MapProviderKey>('osm');
   const [mapError, setMapError] = useState(false);
   const [activeModalDonorId, setActiveModalDonorId] = useState<number | null>(null);
   const [activeSkipDonorId, setActiveSkipDonorId] = useState<number | null>(null);
   const [selectedStopDonorId, setSelectedStopDonorId] = useState<number | null>(null);
   const [isMobilePanelCollapsed, setIsMobilePanelCollapsed] = useState(false);
+
+  // Troca dinâmica de camada do mapa
+  const changeMapProvider = (key: MapProviderKey) => {
+    setCurrentProvider(key);
+    if (!mapInstanceRef.current) return;
+    if (tileLayerRef.current) {
+      mapInstanceRef.current.removeLayer(tileLayerRef.current);
+    }
+    const provider = MAP_PROVIDERS[key];
+    const newTileLayer = L.tileLayer(provider.url, {
+      attribution: provider.attribution,
+      maxZoom: provider.maxZoom,
+    }).addTo(mapInstanceRef.current);
+
+    newTileLayer.bringToBack();
+
+    newTileLayer.on('tileerror', () => {
+      if (key !== 'osm') {
+        changeMapProvider('osm');
+      }
+    });
+
+    tileLayerRef.current = newTileLayer;
+  };
 
   // Checklist interativo de chegada
   const [checkedArrivalItems, setCheckedArrivalItems] = useState<Record<string, boolean>>({
@@ -105,15 +164,20 @@ export const InteractiveMapView: React.FC = () => {
 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        // Carto Positron Voyager (Visual limpo, leve e sem poluição)
-        const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; CARTO, &copy; OpenStreetMap',
-          maxZoom: 19,
+        // OpenStreetMap (100% livre, aberto, sem necessidade de API key ou marcas d'água)
+        const initialProvider = MAP_PROVIDERS[currentProvider];
+        const tileLayer = L.tileLayer(initialProvider.url, {
+          attribution: initialProvider.attribution,
+          maxZoom: initialProvider.maxZoom,
         }).addTo(map);
 
         tileLayer.on('tileerror', () => {
-          // Erro silencioso ou fallback
+          if (currentProvider !== 'osm') {
+            changeMapProvider('osm');
+          }
         });
+
+        tileLayerRef.current = tileLayer;
 
         const markersLayer = L.layerGroup().addTo(map);
         markersLayerRef.current = markersLayer;
@@ -362,6 +426,32 @@ export const InteractiveMapView: React.FC = () => {
       <div className="relative rounded-2xl overflow-hidden border border-blh-line shadow-card bg-blh-slate-100 h-[460px] sm:h-[580px] lg:h-[700px] transition-all">
         {/* Leaflet Map Div */}
         <div ref={mapContainerRef} className="w-full h-full z-0" />
+
+        {/* Seletor Flutuante de Camadas de Mapa */}
+        <div className="absolute top-3 left-3 z-10 flex items-center bg-white/95 backdrop-blur-md rounded-xl p-1 shadow-floating border border-blh-line gap-1">
+          <div className="hidden sm:flex items-center pl-2 pr-1 text-blh-slate-400">
+            <Layers className="w-3.5 h-3.5" />
+          </div>
+          {Object.entries(MAP_PROVIDERS).map(([key, provider]) => {
+            const isSelected = currentProvider === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => changeMapProvider(key as MapProviderKey)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-all ${
+                  isSelected
+                    ? 'bg-blh-primary text-white shadow-xs font-bold'
+                    : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-blh-slate-100 font-medium'
+                }`}
+                title={provider.name}
+              >
+                <span className="text-sm leading-none">{provider.icon}</span>
+                <span className="hidden sm:inline text-[11px]">{provider.shortName}</span>
+              </button>
+            );
+          })}
+        </div>
 
         {/* Fallback de Erro do Mapa */}
         {mapError && (
