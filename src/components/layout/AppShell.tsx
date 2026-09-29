@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { BottomNav } from './BottomNav';
 import { ToastContainer } from '../ui/Toast';
 import { useApp } from '../../hooks/useApp';
 
@@ -14,7 +15,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const { toasts, removeToast } = useApp();
 
   return (
-    <div className="min-h-screen flex bg-blh-bg text-blh-slate-900">
+    <div className="min-h-screen flex bg-blh-bg text-blh-slate-900 font-sans antialiased">
       {/* Sidebar */}
       <Sidebar
         isCollapsed={isCollapsed}
@@ -31,10 +32,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       >
         <Header onOpenMobileMenu={() => setIsMobileOpen(true)} />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-5 lg:p-8 pb-24 lg:pb-8 max-w-7xl w-full mx-auto animate-viewEnter">
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <BottomNav onOpenMobileMenu={() => setIsMobileOpen(true)} />
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />

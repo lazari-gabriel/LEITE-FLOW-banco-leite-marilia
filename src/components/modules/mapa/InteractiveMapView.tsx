@@ -55,6 +55,7 @@ export const InteractiveMapView: React.FC = () => {
   const [activeModalDonorId, setActiveModalDonorId] = useState<number | null>(null);
   const [activeSkipDonorId, setActiveSkipDonorId] = useState<number | null>(null);
   const [selectedStopDonorId, setSelectedStopDonorId] = useState<number | null>(null);
+  const [isMobilePanelCollapsed, setIsMobilePanelCollapsed] = useState(false);
 
   // Checklist interativo de chegada
   const [checkedArrivalItems, setCheckedArrivalItems] = useState<Record<string, boolean>>({
@@ -358,7 +359,7 @@ export const InteractiveMapView: React.FC = () => {
       </div>
 
       {/* Área do Mapa com Painel Integrado */}
-      <div className="relative rounded-xl overflow-hidden border border-blh-line shadow-card bg-blh-slate-100 h-[640px] lg:h-[700px]">
+      <div className="relative rounded-2xl overflow-hidden border border-blh-line shadow-card bg-blh-slate-100 h-[460px] sm:h-[580px] lg:h-[700px] transition-all">
         {/* Leaflet Map Div */}
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
@@ -383,17 +384,45 @@ export const InteractiveMapView: React.FC = () => {
 
         {/* Painel Flutuante Lateral da Parada Selecionada (Cockpit de Telemetria de Bordo) */}
         {currentFocusedStop && (
-          <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:left-auto sm:top-3 sm:right-3 z-10 sm:w-96 max-h-[92%] overflow-y-auto bg-white/95 backdrop-blur-md rounded-2xl border border-blh-line shadow-floating p-4 sm:p-5 space-y-3.5">
-            {/* Tag de Telemetria de Frota */}
-            <div className="flex items-center justify-between gap-2 pb-2 border-b border-blh-line/60">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-900 bg-emerald-100/90 px-2 py-0.5 rounded">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                Telemetria de Bordo · Van 01
-              </span>
-              <span className="text-[10px] font-mono font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded">
-                -17.2°C Cadeia Frio
+          isMobilePanelCollapsed ? (
+            <div 
+              onClick={() => setIsMobilePanelCollapsed(false)}
+              className="absolute bottom-3 left-3 right-3 sm:hidden z-10 bg-white/95 backdrop-blur-md rounded-xl border border-blh-line shadow-floating p-3 flex items-center justify-between cursor-pointer animate-slideUp"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blh-slate-900 text-white shrink-0">
+                  PARADA #{currentFocusedStop.stopNumber}
+                </span>
+                <span className="text-xs font-bold text-blh-slate-900 truncate">
+                  {currentFocusedStop.donorName}
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-blh-primary shrink-0 flex items-center gap-1">
+                Ver detalhes &uarr;
               </span>
             </div>
+          ) : (
+            <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:left-auto sm:top-3 sm:right-3 z-10 sm:w-96 max-h-[85%] sm:max-h-[92%] overflow-y-auto bg-white/95 backdrop-blur-md rounded-2xl border border-blh-line shadow-floating p-4 sm:p-5 space-y-3.5 animate-slideUp">
+              {/* Tag de Telemetria de Frota */}
+              <div className="flex items-center justify-between gap-2 pb-2 border-b border-blh-line/60">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-900 bg-emerald-100/90 px-2 py-0.5 rounded">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                  Telemetria · Van 01
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-mono font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded">
+                    -17.2°C Frio
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsMobilePanelCollapsed(true)}
+                    className="sm:hidden text-[10px] font-bold text-blh-slate-500 hover:text-blh-slate-800 px-1.5 py-0.5 rounded bg-blh-slate-100"
+                    title="Recolher painel para ver mapa"
+                  >
+                    Ocultar &darr;
+                  </button>
+                </div>
+              </div>
 
             {/* Cabeçalho do Card */}
             <div className="flex items-start justify-between gap-2">
@@ -587,7 +616,8 @@ export const InteractiveMapView: React.FC = () => {
               <span className="font-semibold text-blh-primary">{routeMetrics.distanceKm} km · ~{routeMetrics.estimatedMinutes} min</span>
             </div>
           </div>
-        )}
+        )
+      )}
       </div>
 
       {/* Modal de Registro de Coleta e Etiqueta */}

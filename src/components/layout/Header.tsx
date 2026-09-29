@@ -68,15 +68,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
 
       {/* Right: Operational Status, Live Clock & Quick Action */}
       <div className="flex items-center gap-2.5 shrink-0">
-        {/* Cold Chain Live Telemetry Badge */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-sky-900 text-xs font-semibold tabular-nums shadow-xs">
-          <span className="relative flex h-2 w-2">
+        {/* Cold Chain Live Telemetry Badge (Compact on Mobile, Full on Desktop) */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200/80 text-sky-900 text-xs font-semibold tabular-nums shadow-xs animate-fadeIn">
+          <span className="relative flex h-2 w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-600" />
           </span>
-          <ShieldCheck className="w-3.5 h-3.5 text-sky-700 shrink-0" />
-          <span>Sensor Frio: <strong className="font-mono text-sky-950">-17.2°C</strong></span>
-          <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100/80 px-1.5 py-0.2 rounded border border-emerald-300">ANVISA ✓</span>
+          <ShieldCheck className="w-3.5 h-3.5 text-sky-700 shrink-0 hidden sm:inline" />
+          <span className="hidden sm:inline">Sensor: </span>
+          <strong className="font-mono text-sky-950 font-bold">-17.2°C</strong>
+          <span className="hidden md:inline text-[10px] text-emerald-800 font-bold bg-emerald-100/80 px-1.5 py-0.2 rounded border border-emerald-300">ANVISA ✓</span>
         </div>
 
         {/* Live Operational Clock */}

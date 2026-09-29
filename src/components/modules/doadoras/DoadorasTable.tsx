@@ -121,10 +121,10 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
           </p>
         </div>
 
-        {/* Barra de Busca e Filtros */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        {/* Barra de Busca e Filtros Responsivos */}
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
           {/* Busca */}
-          <div className="relative min-w-[200px]">
+          <div className="relative w-full sm:min-w-[220px] flex-1">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-blh-slate-400" />
             <input
               type="text"
@@ -135,43 +135,51 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
             />
           </div>
 
-          {/* Filtro Zona */}
-          <select
-            value={selectedZone}
-            onChange={(e) => setSelectedZone(e.target.value)}
-            className="text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white font-medium text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary/30"
-          >
-            <option value="Todas">Todas as Zonas</option>
-            <option value="Norte">Zona Norte</option>
-            <option value="Sul">Zona Sul</option>
-            <option value="Oeste">Zona Oeste</option>
-            <option value="Leste">Zona Leste</option>
-            <option value="Rural">Zona Rural/Maracá</option>
-          </select>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full sm:w-auto">
+            {/* Filtro Zona */}
+            <select
+              value={selectedZone}
+              onChange={(e) => setSelectedZone(e.target.value)}
+              className="text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white font-medium text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary/30"
+            >
+              <option value="Todas">Todas as Zonas</option>
+              <option value="Norte">Zona Norte</option>
+              <option value="Sul">Zona Sul</option>
+              <option value="Oeste">Zona Oeste</option>
+              <option value="Leste">Zona Leste</option>
+              <option value="Rural">Zona Rural/Maracá</option>
+            </select>
 
-          {/* Filtro Aptidão */}
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white font-medium text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary/30"
-          >
-            <option value="Todas">Aptidão: Todas</option>
-            <option value="Apta">Aptas (Go)</option>
-            <option value="Inapta">Inaptas (No-Go)</option>
-            <option value="Pendente">Pendentes</option>
-          </select>
+            {/* Filtro Aptidão */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white font-medium text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary/30"
+            >
+              <option value="Todas">Aptidão: Todas</option>
+              <option value="Apta">Aptas (Go)</option>
+              <option value="Inapta">Inaptas (No-Go)</option>
+              <option value="Pendente">Pendentes</option>
+            </select>
 
-          {/* Filtro Cadastro Ativo/Inativo */}
-          <select
-            value={selectedCadastroStatus}
-            onChange={(e) => setSelectedCadastroStatus(e.target.value)}
-            className="text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white font-medium text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary/30"
-          >
-            <option value="Todas">Cadastro: Todos</option>
-            <option value="Ativas">Apenas Ativas</option>
-            <option value="Inativas">Inativas (Removidas)</option>
-          </select>
+            {/* Filtro Cadastro Ativo/Inativo */}
+            <select
+              value={selectedCadastroStatus}
+              onChange={(e) => setSelectedCadastroStatus(e.target.value)}
+              className="text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white font-medium text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary/30"
+            >
+              <option value="Todas">Cadastro: Todos</option>
+              <option value="Ativas">Apenas Ativas</option>
+              <option value="Inativas">Inativas (Removidas)</option>
+            </select>
+          </div>
         </div>
+      </div>
+
+      {/* Indicador de rolagem lateral para celular */}
+      <div className="flex sm:hidden items-center justify-between text-[11px] text-blh-slate-500 pt-1">
+        <span>Tabela completa:</span>
+        <span className="font-semibold text-blh-primary">Deslize para o lado &rarr;</span>
       </div>
 
       {/* Tabela de Dados */}

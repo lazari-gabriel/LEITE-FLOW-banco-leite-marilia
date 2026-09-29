@@ -192,9 +192,9 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
           </div>
         </div>
 
-        {/* Bento Grid de Métricas de Frota */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3">
+        {/* Bento Grid de Métricas de Frota com Animações Escalonadas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation animate-stagger-1">
             <div className="w-10 h-10 rounded-xl bg-blh-primary-soft text-blh-primary flex items-center justify-center shrink-0">
               <MapPin className="w-5 h-5" />
             </div>
@@ -204,7 +204,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
             </div>
           </div>
 
-          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3">
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation animate-stagger-2">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
               <Route className="w-5 h-5" />
             </div>
@@ -214,7 +214,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
             </div>
           </div>
 
-          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3">
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation animate-stagger-3">
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
               <Clock className="w-5 h-5" />
             </div>
@@ -224,7 +224,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({ onNavigateToEx
             </div>
           </div>
 
-          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3">
+          <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation animate-stagger-4">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
               <Users className="w-5 h-5" />
             </div>

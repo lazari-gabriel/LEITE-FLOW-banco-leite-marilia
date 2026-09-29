@@ -43,15 +43,15 @@ export const StopCard: React.FC<StopCardProps> = ({ stop, onOpenColeta, onOpenSk
   return (
     <div
       onClick={handleCardClick}
-      className={`p-4 sm:p-5 rounded-xl border transition-all duration-150 ${
+      className={`p-4 sm:p-5 rounded-xl border transition-all duration-200 ${
         isSkipped
           ? 'bg-rose-50/40 border-rose-200 opacity-80'
           : isCompleted
-          ? 'bg-white border-emerald-200'
+          ? 'bg-white border-emerald-200 hover:border-emerald-300'
           : isNext
-          ? 'bg-emerald-50/50 border-blh-primary shadow-sm ring-1 ring-blh-primary/30 cursor-pointer'
+          ? 'bg-emerald-50/50 border-blh-primary shadow-sm ring-1 ring-blh-primary/30 hover:shadow-elevation hover:-translate-y-0.5 cursor-pointer animate-pulseGlow'
           : isRouteActive
-          ? 'bg-white border-blh-line hover:border-blh-line-strong hover:shadow-sm cursor-pointer'
+          ? 'bg-white border-blh-line hover:border-blh-line-strong hover:shadow-sm hover:-translate-y-0.5 cursor-pointer'
           : 'bg-white border-blh-line opacity-90'
       }`}
     >

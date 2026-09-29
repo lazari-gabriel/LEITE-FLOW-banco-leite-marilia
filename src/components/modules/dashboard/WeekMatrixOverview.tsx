@@ -33,18 +33,19 @@ export const WeekMatrixOverview: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5 mt-5">
-        {ZONAS_SEMANA.map((z) => {
+        {ZONAS_SEMANA.map((z, index) => {
           const aptCount = donors.filter(
             (d) => d.zona === z.zona && d.aptidao === 'Apta' && d.statusCadastro === 'ativa'
           ).length;
           const bottlesCount = bottles.filter((b) => b.zona === z.zona).length;
           const isSelected = selectedDay === z.dia;
+          const staggerClass = index === 0 ? 'animate-stagger-1' : index === 1 ? 'animate-stagger-2' : index === 2 ? 'animate-stagger-3' : index === 3 ? 'animate-stagger-4' : 'animate-stagger-5';
 
           return (
             <div
               key={z.dia}
               onClick={() => handleSelectDay(z.dia)}
-              className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between group hover:border-blh-primary hover:shadow-md ${
+              className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between group hover:border-blh-primary hover:shadow-elevation hover:-translate-y-1 active:scale-[0.98] ${staggerClass} ${
                 isSelected
                   ? 'border-blh-primary bg-blh-primary-soft/40 shadow-sm ring-1 ring-blh-primary/30'
                   : 'border-blh-line bg-white'

@@ -74,13 +74,14 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Cards Principais com Linguagem Humana */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      {/* Cards Principais com Linguagem Humana e Animação Escalonada */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5 sm:gap-4">
         <StatCard
           label="Doadoras Aptas"
           value={stats.aptDonors}
           caption="Liberadas para coleta semanal"
           variant="success"
+          className="animate-stagger-1 hover:-translate-y-1 hover:shadow-elevation transition-all duration-200"
           icon={<Users className="w-4 h-4 text-emerald-600" />}
         />
         <StatCard
@@ -88,6 +89,7 @@ export const DashboardView: React.FC = () => {
           value={stats.inaptDonors}
           caption={`${stats.inactiveDonors} inativadas (histórico preservado)`}
           variant="alert"
+          className="animate-stagger-2 hover:-translate-y-1 hover:shadow-elevation transition-all duration-200"
           icon={<UserX className="w-4 h-4 text-rose-600" />}
         />
         <StatCard
@@ -95,6 +97,7 @@ export const DashboardView: React.FC = () => {
           value={stats.totalBottles}
           caption="Rastreados com código único"
           variant="default"
+          className="animate-stagger-3 hover:-translate-y-1 hover:shadow-elevation transition-all duration-200"
           icon={<Milk className="w-4 h-4 text-blh-primary" />}
         />
         <StatCard
@@ -107,6 +110,7 @@ export const DashboardView: React.FC = () => {
           }
           caption="Leite cru aguardando pasteurização"
           variant="accent"
+          className="animate-stagger-4 hover:-translate-y-1 hover:shadow-elevation transition-all duration-200"
           icon={<Droplets className="w-4 h-4 text-blh-accent" />}
         />
         <StatCard
@@ -119,6 +123,7 @@ export const DashboardView: React.FC = () => {
           }
           caption="Cadeia de frio < -10°C em 100%"
           variant="warn"
+          className="animate-stagger-5 hover:-translate-y-1 hover:shadow-elevation transition-all duration-200"
           icon={<Thermometer className="w-4 h-4 text-amber-600" />}
         />
       </div>

@@ -68,11 +68,13 @@ export const TripleVerificationPipeline: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
-        {nodes.map((node, index) => (
-          <div
-            key={index}
-            className={`p-4 rounded-xl border flex flex-col justify-between transition-all hover:shadow-sm ${node.color}`}
-          >
+        {nodes.map((node, index) => {
+          const staggerClass = index === 0 ? 'animate-stagger-1' : index === 1 ? 'animate-stagger-2' : 'animate-stagger-3';
+          return (
+            <div
+              key={index}
+              className={`p-4 sm:p-5 rounded-xl border flex flex-col justify-between transition-all duration-200 hover:-translate-y-1 hover:shadow-elevation ${staggerClass} ${node.color}`}
+            >
             <div>
               <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded tracking-wider uppercase mb-2.5 ${node.badgeColor}`}>
                 {node.badge}
@@ -96,7 +98,8 @@ export const TripleVerificationPipeline: React.FC = () => {
               ))}
             </ul>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

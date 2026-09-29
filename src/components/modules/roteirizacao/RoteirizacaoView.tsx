@@ -240,9 +240,11 @@ export const RoteirizacaoView: React.FC = () => {
               </div>
               <div className="w-full bg-blh-slate-200 h-2.5 rounded-full overflow-hidden">
                 <div
-                  className="bg-emerald-600 h-full rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 h-full rounded-full transition-all duration-500 relative overflow-hidden"
                   style={{ width: `${progressPercent}%` }}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                </div>
               </div>
             </div>
           )}
