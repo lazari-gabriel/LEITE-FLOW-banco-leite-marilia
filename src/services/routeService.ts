@@ -184,3 +184,51 @@ export function buildWhatsAppUrl(donorName: string, phone: string): string {
   const msg = `Olá ${donorName}, a equipe do LEITE FLOW do Hospital Materno Infantil de Marília está a caminho da sua residência para a coleta programada.`;
   return `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`;
 }
+
+// Cache em memória para geometrias viárias OSRM
+const routeGeometryCache = new Map<string, [number, number][]>();
+
+/**
+ * Busca a geometria real de condução pelas ruas via OSRM (Open Source Routing Machine).
+ * Converte waypoints [lat, lng] em traçado detalhado que segue curvas, avenidas e esquinas reais.
+ * Se houver falha de conexão/timeout, faz fallback transparente para os waypoints diretos.
+ */
+export async function fetchDrivingRouteGeometry(waypoints: [number, number][]): Promise<[number, number][]> {
+  if (waypoints.length < 2) return waypoints;
+
+  const cacheKey = waypoints.map(([lat, lng]) => `${lat.toFixed(5)},${lng.toFixed(5)}`).join(';');
+  if (routeGeometryCache.has(cacheKey)) {
+    return routeGeometryCache.get(cacheKey)!;
+  }
+
+  try {
+    // OSRM espera {lng},{lat} separados por ponto e vírgula
+    const coordinatesQuery = waypoints.map(([lat, lng]) => `${lng},${lat}`).join(';');
+    const url = `https://router.project-osrm.org/route/v1/driving/${coordinatesQuery}?overview=full&geometries=geojson`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`OSRM HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (data.code === 'Ok' && data.routes?.[0]?.geometry?.coordinates) {
+      // Converte GeoJSON [lng, lat] para formato Leaflet [lat, lng]
+      const streetCoords: [number, number][] = data.routes[0].geometry.coordinates.map(
+        ([lng, lat]: [number, number]) => [lat, lng]
+      );
+      routeGeometryCache.set(cacheKey, streetCoords);
+      return streetCoords;
+    }
+  } catch (err) {
+    console.warn('Não foi possível obter traçado viário OSRM, usando rota direta:', err);
+  }
+
+  return waypoints;
+}
+

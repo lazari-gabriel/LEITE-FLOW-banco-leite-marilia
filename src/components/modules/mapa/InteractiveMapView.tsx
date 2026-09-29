@@ -27,7 +27,12 @@ import { ZONAS_SEMANA, ZONE_BY_DAY } from '../../../constants/zones';
 import { Button } from '../../ui/Button';
 import { ColetaModal } from '../roteirizacao/ColetaModal';
 import { SkipStopModal } from '../roteirizacao/SkipStopModal';
-import { buildGoogleMapsSingleStopUrl, buildGoogleMapsUrl, buildWhatsAppUrl } from '../../../services/routeService';
+import { 
+  buildGoogleMapsSingleStopUrl, 
+  buildGoogleMapsUrl, 
+  buildWhatsAppUrl,
+  fetchDrivingRouteGeometry 
+} from '../../../services/routeService';
 
 const MAP_PROVIDERS = {
   osm: {
@@ -83,9 +88,10 @@ export const InteractiveMapView: React.FC = () => {
   const mapInstanceRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
-  const routePolylineRef = useRef<L.Polyline | null>(null);
+  const routeLayerRef = useRef<L.LayerGroup | L.Polyline | null>(null);
 
   const [currentProvider, setCurrentProvider] = useState<MapProviderKey>('osm');
+  const [isLoadingRoads, setIsLoadingRoads] = useState(false);
   const [mapError, setMapError] = useState(false);
   const [activeModalDonorId, setActiveModalDonorId] = useState<number | null>(null);
   const [activeSkipDonorId, setActiveSkipDonorId] = useState<number | null>(null);
@@ -189,9 +195,9 @@ export const InteractiveMapView: React.FC = () => {
       if (!map || !markersLayer) return;
 
       markersLayer.clearLayers();
-      if (routePolylineRef.current) {
-        map.removeLayer(routePolylineRef.current);
-        routePolylineRef.current = null;
+      if (routeLayerRef.current) {
+        map.removeLayer(routeLayerRef.current);
+        routeLayerRef.current = null;
       }
 
       // 1. Ponto de Saída e Retorno: Hospital Materno Infantil
@@ -290,21 +296,61 @@ export const InteractiveMapView: React.FC = () => {
         `).addTo(markersLayer);
       });
 
-      // 3. Polyline destacada da viagem
+      // 3. Traçado Viário Real pelas Ruas (OSRM Driving Engine)
       if (currentZoneStops.length > 0) {
         waypoints.push(LEITE_FLOW.coords);
 
-        const polyline = L.polyline(waypoints, {
-          color: '#235347',
-          weight: 4.5,
-          opacity: 0.9,
-          dashArray: '8, 8',
-        }).addTo(map);
-
-        routePolylineRef.current = polyline;
-
         const bounds = L.latLngBounds(waypoints);
         map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+
+        // Traçado provisório sutil enquanto calcula as esquinas e avenidas
+        const initialPolyline = L.polyline(waypoints, {
+          color: '#235347',
+          weight: 3,
+          opacity: 0.35,
+          dashArray: '6, 6',
+        }).addTo(map);
+        routeLayerRef.current = initialPolyline;
+
+        setIsLoadingRoads(true);
+        let isMounted = true;
+
+        fetchDrivingRouteGeometry(waypoints)
+          .then((streetCoords) => {
+            if (!isMounted || !mapInstanceRef.current) return;
+
+            // Remove o traço provisório
+            if (routeLayerRef.current) {
+              mapInstanceRef.current.removeLayer(routeLayerRef.current);
+            }
+
+            // Camada dupla para acabamento profissional (estilo Google Maps / Waze)
+            // 1. Halo branco de contraste para garantir visibilidade perfeita em ruas e satélite
+            const routeHalo = L.polyline(streetCoords, {
+              color: '#ffffff',
+              weight: 8,
+              opacity: 0.9,
+              lineCap: 'round',
+              lineJoin: 'round',
+            });
+
+            // 2. Traçado principal verde clínico
+            const routeMain = L.polyline(streetCoords, {
+              color: '#16a34a',
+              weight: 5,
+              opacity: 0.95,
+              lineCap: 'round',
+              lineJoin: 'round',
+            });
+
+            const routeGroup = L.layerGroup([routeHalo, routeMain]).addTo(mapInstanceRef.current);
+            routeLayerRef.current = routeGroup;
+            setIsLoadingRoads(false);
+          })
+          .catch((err) => {
+            console.warn('Erro ao desenhar traçado viário:', err);
+            setIsLoadingRoads(false);
+          });
       }
     } catch (err) {
       console.error('Erro no Leaflet:', err);
@@ -427,30 +473,47 @@ export const InteractiveMapView: React.FC = () => {
         {/* Leaflet Map Div */}
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
-        {/* Seletor Flutuante de Camadas de Mapa */}
-        <div className="absolute top-3 left-3 z-10 flex items-center bg-white/95 backdrop-blur-md rounded-xl p-1 shadow-floating border border-blh-line gap-1">
-          <div className="hidden sm:flex items-center pl-2 pr-1 text-blh-slate-400">
-            <Layers className="w-3.5 h-3.5" />
+        {/* Seletor Flutuante de Camadas de Mapa e Indicador de Ruas */}
+        <div className="absolute top-3 left-3 z-10 flex items-center flex-wrap gap-2 pointer-events-auto">
+          <div className="flex items-center bg-white/95 backdrop-blur-md rounded-xl p-1 shadow-floating border border-blh-line gap-1">
+            <div className="hidden sm:flex items-center pl-2 pr-1 text-blh-slate-400">
+              <Layers className="w-3.5 h-3.5" />
+            </div>
+            {Object.entries(MAP_PROVIDERS).map(([key, provider]) => {
+              const isSelected = currentProvider === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => changeMapProvider(key as MapProviderKey)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-all ${
+                    isSelected
+                      ? 'bg-blh-primary text-white shadow-xs font-bold'
+                      : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-blh-slate-100 font-medium'
+                  }`}
+                  title={provider.name}
+                >
+                  <span className="text-sm leading-none">{provider.icon}</span>
+                  <span className="hidden sm:inline text-[11px]">{provider.shortName}</span>
+                </button>
+              );
+            })}
           </div>
-          {Object.entries(MAP_PROVIDERS).map(([key, provider]) => {
-            const isSelected = currentProvider === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => changeMapProvider(key as MapProviderKey)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-all ${
-                  isSelected
-                    ? 'bg-blh-primary text-white shadow-xs font-bold'
-                    : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-blh-slate-100 font-medium'
-                }`}
-                title={provider.name}
-              >
-                <span className="text-sm leading-none">{provider.icon}</span>
-                <span className="hidden sm:inline text-[11px]">{provider.shortName}</span>
-              </button>
-            );
-          })}
+
+          {/* Badge Indicador de Caminho Real por Ruas */}
+          <div className="hidden sm:flex items-center gap-1.5 bg-white/95 backdrop-blur-md rounded-xl px-2.5 py-1.5 shadow-floating border border-blh-line text-[11px] font-semibold">
+            {isLoadingRoads ? (
+              <>
+                <RefreshCw className="w-3 h-3 text-emerald-600 animate-spin" />
+                <span className="text-emerald-800 font-medium">Calculando ruas...</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-blh-slate-800 font-medium">Traçado por Ruas (GPS)</span>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Fallback de Erro do Mapa */}
