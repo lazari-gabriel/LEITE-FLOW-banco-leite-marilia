@@ -170,69 +170,99 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
 
   return (
     <div className="space-y-5 animate-fadeIn">
-      {/* ── BARRA DE IDENTIDADE & SELETOR DE ROTA ATIVA ── */}
-      <div className="bg-gradient-to-r from-emerald-950 via-blh-slate-900 to-blh-slate-950 text-white rounded-2xl p-4 sm:p-5 shadow-elevation border border-emerald-900/40 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
-          <div className="space-y-1.5">
+      {/* ── CARD PRINCIPAL: IDENTIDADE, MÉTRICAS E TRIPULAÇÃO ── */}
+      <div className="bg-white rounded-2xl border border-blh-line shadow-card p-5 sm:p-6 space-y-5">
+        
+        {/* Cabeçalho da Rota Ativa & Seletor de Frota */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-blh-line">
+          {/* Lado Esquerdo: Identificação Clara e Limpa da Rota */}
+          <div className="space-y-2 min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Montando Paradas Para
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-blh-primary bg-blh-primary-soft px-3 py-1 rounded-md border border-blh-primary/20">
+                <Truck className="w-3.5 h-3.5 text-blh-primary" />
+                Montar Paradas
               </span>
-              <span className="text-xs text-blh-slate-300 font-mono">
+
+              <span className="text-xs font-semibold text-blh-slate-500">
                 {selectedDay}-feira • Zona {zoneConfig.zona}
               </span>
+
               {isCompleted ? (
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                  Rota Concluída
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-blue-900 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200">
+                  <CheckCircle2 className="w-3 h-3 text-blue-600" /> Rota Concluída
                 </span>
               ) : isActive ? (
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 animate-pulse">
-                  Em Andamento
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-900 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Missão em Andamento
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
                   Em Planejamento
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-              <span className="px-2.5 py-1 rounded-lg bg-emerald-500 text-white font-mono font-black text-sm sm:text-base tracking-wide shadow-sm">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="px-2.5 py-1 rounded-lg bg-blh-primary text-white font-mono font-bold text-sm tracking-wide shadow-xs shrink-0">
                 {routeAssignment.code}
               </span>
-              <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-bold text-blh-slate-900 tracking-tight truncate">
                 {routeAssignment.name}
-              </h2>
+              </h1>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3 text-xs text-blh-slate-300 flex-wrap pt-0.5">
-              <span className="inline-flex items-center gap-1.5 font-medium bg-white/10 px-2 py-0.5 rounded">
-                <Truck className="w-3.5 h-3.5 text-emerald-400" />
-                {routeAssignment.vehicleName}
+            {/* Chips de Metadados Sutis e Limpos */}
+            <div className="flex items-center gap-2 sm:gap-3 text-xs text-blh-slate-600 flex-wrap pt-0.5">
+              <span className="inline-flex items-center gap-1.5 font-medium bg-blh-slate-50 px-2.5 py-1 rounded-lg border border-blh-slate-200/80">
+                <Truck className="w-3.5 h-3.5 text-blh-primary" />
+                <span className="truncate max-w-[200px]">{routeAssignment.vehicleName}</span>
                 {routeAssignment.vehiclePlate && (
-                  <span className="font-mono text-emerald-300 font-bold uppercase">[{routeAssignment.vehiclePlate}]</span>
+                  <span className="font-mono text-blh-slate-700 font-bold uppercase">[{routeAssignment.vehiclePlate}]</span>
                 )}
               </span>
-              <span className="inline-flex items-center gap-1.5 font-medium bg-white/10 px-2 py-0.5 rounded">
-                <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <span className="inline-flex items-center gap-1.5 font-medium bg-blh-slate-50 px-2.5 py-1 rounded-lg border border-blh-slate-200/80">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
                 Turno {routeAssignment.shift || 'Manhã'}
               </span>
-              <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-300 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded">
-                <MapPin className="w-3.5 h-3.5" />
-                {assignedIds.length} {assignedIds.length === 1 ? 'parada alocada' : 'paradas alocadas'}
+              <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                {assignedIds.length} {assignedIds.length === 1 ? 'parada' : 'paradas'} alocadas
               </span>
             </div>
           </div>
 
-          {/* Seletor Rápido de Rota quando há mais de 1 rota no dia */}
-          {dayRoutes.length > 1 && (
-            <div className="bg-white/5 backdrop-blur-sm p-2.5 rounded-xl border border-white/10 shrink-0">
-              <label className="block text-[10px] font-bold text-blh-slate-300 uppercase tracking-wider mb-2">
-                Alternar Rota de {selectedDay} ({dayRoutes.length} no dia):
+          {/* Lado Direito: Seletor Inteligente de Rota (Suporta 2, 6, 10+ rotas perfeitamente) */}
+          <div className="w-full lg:w-80 shrink-0 bg-blh-slate-50/80 p-3 rounded-xl border border-blh-line space-y-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="select-route-input" className="text-[11px] font-bold text-blh-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5 text-blh-primary" />
+                Alternar Rota ({dayRoutes.length} no dia):
               </label>
-              <div className="flex flex-wrap gap-2">
+              {dayRoutes.length > 1 && (
+                <span className="text-[10px] text-blh-slate-500 font-mono">
+                  {routeAssignment.code} selecionada
+                </span>
+              )}
+            </div>
+
+            <select
+              id="select-route-input"
+              value={routeAssignment.id}
+              onChange={(e) => setActiveRouteId(e.target.value)}
+              className="w-full text-xs font-bold px-3 py-2 rounded-lg border border-blh-slate-300 bg-white text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary focus:border-blh-primary shadow-xs cursor-pointer"
+            >
+              {dayRoutes.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.code} • {r.vehicleName?.split(' - ')[0] || r.name} ({r.donorIds.length} {r.donorIds.length === 1 ? 'parada' : 'paradas'})
+                </option>
+              ))}
+            </select>
+
+            {/* Carrossel de rolagem horizontal com mini-pills (suporta qualquer quantidade de rotas sem quebrar o layout) */}
+            {dayRoutes.length > 1 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 max-w-full text-xs no-scrollbar">
                 {dayRoutes.map((r) => {
                   const isCurrent = r.id === routeAssignment.id;
                   return (
@@ -240,16 +270,16 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                       key={r.id}
                       type="button"
                       onClick={() => setActiveRouteId(r.id)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
                         isCurrent
-                          ? 'bg-emerald-500 text-white shadow-md ring-2 ring-emerald-300/60 font-black'
-                          : 'bg-white/10 hover:bg-white/20 text-blh-slate-200 border border-white/10'
+                          ? 'bg-blh-primary text-white shadow-xs'
+                          : 'bg-white hover:bg-blh-slate-100 text-blh-slate-700 border border-blh-slate-200'
                       }`}
+                      title={`${r.code} - ${r.vehicleName || r.name} (${r.donorIds.length} paradas)`}
                     >
-                      <span className="font-mono text-[11px]">{r.code}</span>
-                      <span className="truncate max-w-[130px]">{r.vehicleName?.split(' - ')[0] || r.name}</span>
-                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                        isCurrent ? 'bg-emerald-700 text-emerald-100 font-bold' : 'bg-black/30 text-blh-slate-300'
+                      <span className="font-mono">{r.code}</span>
+                      <span className={`px-1 py-0.2 rounded-full text-[9px] font-mono ${
+                        isCurrent ? 'bg-white/20 text-white' : 'bg-blh-slate-100 text-blh-slate-600'
                       }`}>
                         {r.donorIds.length}
                       </span>
@@ -257,13 +287,9 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                   );
                 })}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-
-      {/* Card Principal: Métricas, Tripulação e Ações */}
-      <div className="bg-white rounded-2xl border border-blh-line shadow-card p-5 sm:p-6 space-y-5">
         {/* Bento Grid de Métricas da Rota Ativa */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           <div className="bg-blh-slate-50/80 p-3.5 rounded-xl border border-blh-line flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevation animate-stagger-1">
@@ -742,15 +768,15 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
       {activeTab === 'disponiveis' && (
         <div className="bg-white rounded-xl border border-blh-line shadow-card overflow-hidden">
           {/* Banner de Contexto de Adição */}
-          <div className="px-4 py-3 bg-emerald-50/80 border-b border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="px-4 py-3 bg-blh-slate-50 border-b border-blh-line flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
-              <span className="text-emerald-950">
-                Você está adicionando doadoras à rota: <strong>{routeAssignment.code} — {routeAssignment.name}</strong> ({routeAssignment.vehicleName})
+              <span className="w-2 h-2 rounded-full bg-blh-primary" />
+              <span className="text-blh-slate-700">
+                Adicionando doadoras à rota: <strong className="text-blh-slate-900">{routeAssignment.code} — {routeAssignment.name}</strong> ({routeAssignment.vehicleName})
               </span>
             </div>
-            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded self-start sm:self-auto border border-emerald-200">
-              {assignedIds.length} {assignedIds.length === 1 ? 'parada já na van' : 'paradas já na van'}
+            <span className="text-[11px] font-bold text-blh-slate-700 bg-white px-2.5 py-0.5 rounded border border-blh-slate-200 self-start sm:self-auto shadow-xs">
+              {assignedIds.length} {assignedIds.length === 1 ? 'parada alocada' : 'paradas alocadas'}
             </span>
           </div>
 
@@ -864,7 +890,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                           addDonorToRoute(donor.id);
                           setActiveTab('rota');
                         }}
-                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blh-primary hover:bg-blh-primary-dark text-white text-xs font-bold transition-all shadow-xs"
                         title={`Incluir ${donor.nome} na rota ${routeAssignment.code}`}
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -887,7 +913,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
           <Button
             size="lg"
             onClick={activateRoute}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base shadow-xl hover:shadow-2xl"
+            className="w-full bg-blh-primary hover:bg-blh-primary-dark text-white font-bold text-base shadow-xl hover:shadow-2xl"
             leftIcon={<Play className="w-5 h-5 fill-white" />}
           >
             Iniciar Rota de Campo ({routeAssignment.code}) — {assignedIds.length} {assignedIds.length === 1 ? 'parada' : 'paradas'}
