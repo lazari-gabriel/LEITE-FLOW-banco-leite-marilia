@@ -196,9 +196,129 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
           }}
         />
       ) : (
-        <div className="overflow-x-auto -mx-5 sm:mx-0">
-          <table className="w-full text-left text-xs text-blh-slate-700">
-            <thead className="bg-blh-slate-50 border-b border-blh-line text-[11px] font-bold text-blh-slate-600 uppercase tracking-wider">
+        <>
+          {/* Mobile View: Cards Responsivos Otimizados para Toque */}
+          <div className="block md:hidden divide-y divide-blh-line -mx-5">
+            {paginatedDonors.map((d) => {
+              const isApt = d.aptidao === 'Apta';
+              const isActive = d.statusCadastro === 'ativa';
+              const milkClass = calculateMilkClass(d.parto);
+              const milkDesc = getMilkClassDescription(milkClass);
+
+              const dParto = new Date(d.parto);
+              const diffTime = Math.abs(new Date().getTime() - dParto.getTime());
+              const diasBebe = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+              return (
+                <div
+                  key={d.id}
+                  className={`p-4 space-y-3 transition-colors ${
+                    !isActive ? 'bg-blh-slate-50/60 opacity-80' : 'bg-white'
+                  }`}
+                >
+                  {/* Header do Card Mobile */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-blh-slate-100 text-blh-slate-700">
+                          DOAD-{String(d.id).padStart(3, '0')}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blh-primary-soft text-blh-primary">
+                          Zona {d.zona}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-sm text-blh-slate-900 truncate">
+                        {d.nome}
+                      </h3>
+                      <p className="text-xs text-blh-slate-500">
+                        Bebê: <strong className="text-blh-slate-700">{d.bebe}</strong> ({diasBebe} dias)
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <Badge
+                        variant={isApt ? 'success' : d.aptidao === 'Pendente' ? 'warning' : 'danger'}
+                        dot
+                      >
+                        {d.aptidao}
+                      </Badge>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isActive) {
+                            setInactivatingDonor(d);
+                          } else {
+                            setReactivatingDonor(d);
+                          }
+                        }}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
+                          isActive
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                            : 'bg-blh-slate-100 text-blh-slate-600 border-blh-slate-300'
+                        }`}
+                      >
+                        {isActive ? 'Ativa' : 'Inativa'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Detalhes Médicos & Endereço */}
+                  <div className="bg-blh-slate-50 rounded-xl p-2.5 space-y-1.5 text-xs text-blh-slate-600 border border-blh-line/60">
+                    <div className="flex items-start gap-1.5 text-blh-slate-700">
+                      <MapPin className="w-3.5 h-3.5 text-blh-slate-400 shrink-0 mt-0.5" />
+                      <span className="leading-snug">{d.endereco}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] pt-1 border-t border-blh-line/40">
+                      <span>Classificação: <strong className="text-blh-slate-900">{milkDesc.name}</strong></span>
+                      <span>Sorologia: <strong className={d.sorologia1 === 'normal' ? 'text-emerald-700' : 'text-rose-700'}>{d.sorologia1 === 'normal' ? 'Não Reagente' : 'Alterada'}</strong></span>
+                    </div>
+                  </div>
+
+                  {/* Ações Mobile com toque ergonômico */}
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    {!isApt && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setInspectDonor(d)}
+                        className="text-amber-700 hover:bg-amber-50 text-xs min-h-[36px]"
+                      >
+                        Ver Laudo
+                      </Button>
+                    )}
+
+                    {onEditDonor && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onEditDonor(d)}
+                        leftIcon={<Edit3 className="w-3.5 h-3.5" />}
+                        className="text-xs min-h-[36px]"
+                      >
+                        Editar
+                      </Button>
+                    )}
+
+                    {isApt && isActive && (
+                      <Button
+                        size="sm"
+                        onClick={() => navigateToDonorRoute(d.zona, d.id)}
+                        leftIcon={<Route className="w-3.5 h-3.5" />}
+                        className="text-xs min-h-[36px] font-bold"
+                      >
+                        Ver na Rota
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto -mx-5 sm:mx-0">
+            <table className="w-full text-left text-xs text-blh-slate-700">
+              <thead className="bg-blh-slate-50 border-b border-blh-line text-[11px] font-bold text-blh-slate-600 uppercase tracking-wider">
               <tr>
                 <th 
                   onClick={() => handleSort('id')}
@@ -454,6 +574,7 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
             )}
           </div>
         </div>
+        </>
       )}
 
       {/* Modal de Laudo / Motivo da Reprovação */}

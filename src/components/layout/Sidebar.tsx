@@ -97,19 +97,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
         `}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-blh-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-600 to-blh-primary flex items-center justify-center text-white shadow-md shrink-0">
-              <Milk className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            {!isCollapsed && (
-              <div className="min-w-0 truncate">
-                <h1 className="font-serif font-bold text-base leading-tight text-white tracking-wide truncate">
-                  LEITE FLOW
-                </h1>
-                <p className="text-[11px] text-emerald-400 font-medium tracking-wider uppercase truncate">
-                  Coleta &amp; Vida
-                </p>
+        <div className="p-4 sm:p-5 border-b border-blh-slate-800 flex items-center justify-between">
+          <div 
+            onClick={() => handleNavigate('roteirizacao')}
+            className="flex items-center gap-3 min-w-0 cursor-pointer group"
+          >
+            {isCollapsed ? (
+              <img
+                src="/logo-circle-white.png"
+                alt="LEITE FLOW"
+                className="w-10 h-10 object-contain shrink-0 group-hover:scale-105 transition-transform"
+              />
+            ) : (
+              <div className="flex items-center gap-3 min-w-0">
+                <img
+                  src="/logo-circle-white.png"
+                  alt="LEITE FLOW"
+                  className="w-10 h-10 object-contain shrink-0 drop-shadow-md group-hover:scale-105 transition-transform"
+                />
+                <div className="min-w-0 truncate">
+                  <h1 className="font-serif font-black text-base leading-tight text-white tracking-wide truncate">
+                    LEITE FLOW
+                  </h1>
+                  <p className="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase truncate">
+                    Hosp. Materno Infantil
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -117,7 +130,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Close button on mobile */}
           <button
             onClick={() => setIsMobileOpen(false)}
-            className="lg:hidden p-1.5 rounded-md text-blh-slate-400 hover:text-white hover:bg-blh-slate-800 transition-colors"
+            className="lg:hidden p-1.5 rounded-lg text-blh-slate-400 hover:text-white hover:bg-blh-slate-800 transition-colors"
+            aria-label="Fechar menu"
           >
             <X className="w-5 h-5" />
           </button>

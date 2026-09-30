@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Menu, Clock, PlusCircle, ShieldCheck, Heart } from 'lucide-react';
 import { useApp } from '../../hooks/useApp';
 import { Button } from '../ui/Button';
+import { Logo } from '../ui/Logo';
 
 interface HeaderProps {
   onOpenMobileMenu: () => void;
@@ -41,26 +42,27 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-blh-line px-4 lg:px-8 py-3 flex items-center justify-between shadow-sm">
-      {/* Left: Mobile Menu & Breadcrumb */}
-      <div className="flex items-center gap-3 min-w-0">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-blh-line px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between shadow-xs">
+      {/* Left: Mobile Menu & Official Brand Logo */}
+      <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
         <button
           onClick={onOpenMobileMenu}
-          className="lg:hidden p-2 rounded-md text-blh-slate-600 hover:text-blh-slate-900 hover:bg-blh-slate-100 transition-colors"
+          className="lg:hidden p-2 -ml-1 rounded-lg text-blh-slate-600 hover:text-blh-slate-900 hover:bg-blh-slate-100 transition-colors focus:outline-hidden"
           aria-label="Abrir menu"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-2 text-xs text-blh-slate-600 min-w-0">
-          <span
-            className="font-bold text-blh-primary hover:text-blh-primary-dark transition-colors cursor-pointer tracking-wider"
-            onClick={() => setCurrentView('roteirizacao')}
-          >
-            LEITE FLOW
-          </span>
-          <span className="text-blh-slate-400 font-medium">/</span>
-          <span className="font-bold text-blh-slate-900 truncate">
+        {/* Logo Oficial Leite Flow */}
+        <Logo
+          variant="responsive"
+          size="sm"
+          onClick={() => setCurrentView('roteirizacao')}
+          className="cursor-pointer shrink-0"
+        />
+
+        <div className="hidden md:flex items-center gap-2 text-xs text-blh-slate-400 min-w-0 border-l border-blh-line pl-3">
+          <span className="font-bold text-blh-slate-800 truncate">
             {breadcrumbMap[currentView] || 'Painel'}
           </span>
         </div>

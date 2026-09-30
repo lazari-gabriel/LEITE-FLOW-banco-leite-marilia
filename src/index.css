@@ -144,6 +144,10 @@
   scrollbar-width: none;
 }
 
+.pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
 /* Respeito estrito à preferência do usuário por redução de movimento (Acessibilidade WCAG) */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

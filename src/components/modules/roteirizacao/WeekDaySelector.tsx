@@ -7,7 +7,7 @@ export const WeekDaySelector: React.FC = () => {
   const { selectedDay, setSelectedDay, donors, bottles } = useApp();
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+    <div className="flex sm:grid overflow-x-auto no-scrollbar pb-2 sm:pb-0 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3 snap-x">
       {ZONAS_SEMANA.map((z) => {
         const isSelected = selectedDay === z.dia;
         const aptCount = donors.filter(
@@ -20,7 +20,7 @@ export const WeekDaySelector: React.FC = () => {
             key={z.dia}
             type="button"
             onClick={() => setSelectedDay(z.dia)}
-            className={`p-3.5 rounded-lg border text-left transition-all duration-150 flex flex-col justify-between ${
+            className={`min-w-[145px] sm:min-w-0 shrink-0 snap-start p-3 sm:p-3.5 rounded-xl border text-left transition-all duration-150 flex flex-col justify-between ${
               isSelected
                 ? 'bg-blh-primary text-white border-blh-primary shadow-md ring-2 ring-blh-primary/20'
                 : 'bg-white text-blh-slate-800 border-blh-line hover:border-blh-line-strong hover:bg-blh-slate-50'

@@ -32,7 +32,8 @@ export const ThermalLabelPreview: React.FC<ThermalLabelPreviewProps> = ({
       {/* Cabeçalho Oficial LEITE FLOW & Hospital Materno Infantil */}
       <div className="flex items-start justify-between gap-3 pb-2.5 border-b-2 border-black">
         <div className="min-w-0">
-          <div className="flex items-center gap-1 text-[11px] font-extrabold tracking-widest text-black uppercase">
+          <div className="flex items-center gap-1.5 text-[11px] font-extrabold tracking-widest text-black uppercase">
+            <img src="/logo-symbol.png" alt="Leite Flow" className="w-4 h-4 object-contain inline-block" />
             <span>LEITE FLOW</span>
             <span>•</span>
             <span>BLH MARÍLIA</span>
