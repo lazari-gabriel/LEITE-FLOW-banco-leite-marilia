@@ -742,56 +742,82 @@
           <span class="badge badge-cold">3 Pilares Entregues no MVP</span>
         </div>
         <h2>O Nosso Objetivo: Eficiência Máxima no Campo</h2>
-        <p class="subtitle">Delimitação precisa do escopo de entrega para resolver as maiores dores operacionais da coleta.</p>
+        <p class="subtitle">Delimitação precisa das 3 entregas centrais que resolvem os gargalos da coleta domiciliar.</p>
 
-        <div style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; align-items: stretch;">
-          <!-- Coluna da Esquerda: Os 3 Pilares do MVP Baseados no Projeto -->
-          <div style="display: flex; flex-direction: column; gap: 12px; justify-content: space-between;">
-            <!-- Pilar 1 -->
-            <div class="card card-top-cold" style="padding: 14px 18px;">
-              <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <span class="stat-huge cold" style="font-size: 1.6rem;">01</span>
-                  <h3 style="font-size: 1.05rem; color: var(--text-main);">Otimização de Rota Urbana</h3>
+        <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 22px; align-items: stretch;">
+          <!-- Coluna da Esquerda: Os 3 Pilares com Métricas e Detalhes Práticos -->
+          <div style="display: flex; flex-direction: column; gap: 14px; justify-content: space-between;">
+            
+            <!-- Pilar 1: Logística Urbana Inteligente -->
+            <div class="card card-top-cold" style="padding: 16px 20px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span class="stat-huge cold" style="font-size: 1.7rem; line-height: 1;">01</span>
+                  <div>
+                    <h3 style="font-size: 1.1rem; color: var(--text-main); font-weight: 700;">Roteirização por Zonas Urbanas</h3>
+                    <div style="font-size: 0.76rem; color: var(--fleet-cold); font-weight: 600;">Partida e Retorno no Hospital Materno Infantil</div>
+                  </div>
                 </div>
-                <span class="badge badge-cold" style="font-size: 0.7rem; padding: 2px 8px;">Hospital Materno</span>
+                <span class="badge badge-cold" style="font-size: 0.72rem; padding: 3px 9px;">-35% Trajeto</span>
               </div>
-              <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
-                Partida e retorno na sede do hospital com zoneamento semanal por bairros de Marília (Norte, Sul, Leste, Oeste, Rural/Maracá), encurtando a quilometragem da van.
-              </p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="color: var(--fleet-cold); font-weight: bold;">✔</span> Agrupamento por dia/bairro em Marília
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="color: var(--fleet-cold); font-weight: bold;">✔</span> Trajeto ordenado por proximidade GPS
+                </div>
+              </div>
             </div>
 
-            <!-- Pilar 2 -->
-            <div class="card card-top-pine" style="padding: 14px 18px;">
-              <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <span class="stat-huge pine" style="font-size: 1.6rem;">02</span>
-                  <h3 style="font-size: 1.05rem; color: var(--text-main);">Etiquetagem Térmica (60x40mm)</h3>
+            <!-- Pilar 2: Etiquetagem Física Térmica Rastreável -->
+            <div class="card card-top-pine" style="padding: 16px 20px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span class="stat-huge pine" style="font-size: 1.7rem; line-height: 1;">02</span>
+                  <div>
+                    <h3 style="font-size: 1.1rem; color: var(--text-main); font-weight: 700;">Etiquetagem Térmica 60x40mm</h3>
+                    <div style="font-size: 0.76rem; color: #10b981; font-weight: 600;">Rastreabilidade Total &bull; Conforme RDC 171/2006</div>
+                  </div>
                 </div>
-                <span class="badge" style="font-size: 0.7rem; padding: 2px 8px;">RDC 171/2006</span>
+                <span class="badge" style="font-size: 0.72rem; padding: 3px 9px;">ID Imutável</span>
               </div>
-              <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
-                Geração vetorial de código único imutável <span class="code-pill">LF-2026-XXXXXX</span>, código de barras Code 128 e QR Code, impresso na hora e resistente ao congelador.
-              </p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="color: #10b981; font-weight: bold;">✔</span> Código único <span class="code-pill" style="font-size: 0.72rem;">LF-2026-XXXXXX</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="color: #10b981; font-weight: bold;">✔</span> Code 128 + QR Code à prova de gelo
+                </div>
+              </div>
             </div>
 
-            <!-- Pilar 3 -->
-            <div class="card card-top-coral" style="padding: 14px 18px;">
-              <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <span class="stat-huge coral" style="font-size: 1.6rem;">03</span>
-                  <h3 style="font-size: 1.05rem; color: var(--text-main);">Agilidade de Campo &bull; &lt; 1 min</h3>
+            <!-- Pilar 3: Agilidade em Campo e Reposição -->
+            <div class="card card-top-coral" style="padding: 16px 20px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span class="stat-huge coral" style="font-size: 1.7rem; line-height: 1;">03</span>
+                  <div>
+                    <h3 style="font-size: 1.1rem; color: var(--text-main); font-weight: 700;">Agilidade de Campo &bull; &lt; 1 min</h3>
+                    <div style="font-size: 0.76rem; color: var(--blh-coral); font-weight: 600;">Fluxo em 1 Toque + Reposição Contínua</div>
+                  </div>
                 </div>
-                <span class="badge badge-coral" style="font-size: 0.7rem; padding: 2px 8px;">Zero Fricção</span>
+                <span class="badge badge-coral" style="font-size: 0.72rem; padding: 3px 9px;">Zero Fricção</span>
               </div>
-              <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
-                Fluxo guiado por 1 toque: GPS <span class="code-pill">[IR P/ PARADA]</span>, chegada <span class="code-pill">[CHEGUEI]</span>, seleção rápida de volume (100 a 300 mL) e reposição de frascos vazios.
-              </p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="color: var(--blh-coral); font-weight: bold;">✔</span> Registro ágil: <span class="code-pill" style="font-size: 0.7rem;">[CHEGUEI]</span> + volume em 1 toque
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="color: var(--blh-coral); font-weight: bold;">✔</span> Entrega de novos frascos esterilizados
+                </div>
+              </div>
             </div>
+
           </div>
 
           <!-- Coluna da Direita: Imagem de Coleta Domiciliar Completa (Sem Cortes) -->
-          <div class="img-box" style="height: 100%; min-height: 380px; border-radius: 16px;">
+          <div class="img-box" style="height: 100%; min-height: 400px; border-radius: 16px;">
             <img src="coleta_domiciliar.jpg" alt="Coleta Domiciliar de Leite Materno na porta da residência em Marília" style="object-position: center 18%;">
             <div class="img-caption">
               <span>Coleta Domiciliar Ágil</span>
