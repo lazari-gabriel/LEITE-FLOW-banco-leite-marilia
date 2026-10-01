@@ -613,6 +613,150 @@
       color: var(--text-muted);
       margin-left: 6px;
     }
+
+    /* ==========================================================
+       RESPONSIVIDADE MOBILE & TABLETS (iOS / Android / Telas Pequenas)
+       ========================================================== */
+    @media (max-width: 900px) {
+      .slide {
+        padding: 70px 20px 85px 20px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+      }
+
+      .content-box {
+        max-height: none !important;
+        padding-bottom: 40px !important;
+        gap: 16px !important;
+        width: 100% !important;
+      }
+
+      /* Empilhar grids definidos via style inline */
+      div[style*="grid-template-columns: 1.35fr 1fr"],
+      div[style*="grid-template-columns: 1.25fr 1fr"],
+      div[style*="grid-template-columns: repeat(3, 1fr)"] {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+
+      /* Empilhar cabeçalho da capa */
+      .slide[data-index="0"] .content-box > div:first-child {
+        flex-direction: column !important;
+        gap: 16px !important;
+      }
+
+      .slide[data-index="0"] .img-box {
+        width: 100% !important;
+        height: 160px !important;
+      }
+
+      .grid-2, .grid-3 {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+      }
+
+      .team-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
+
+      .top-bar-controls {
+        top: 10px;
+        right: 12px;
+        gap: 6px;
+      }
+
+      .control-pill {
+        padding: 6px 12px;
+        font-size: 0.74rem;
+        min-height: 36px;
+      }
+
+      .nav-bar {
+        bottom: 10px;
+        padding: 6px 14px;
+        gap: 8px;
+        max-width: 96vw;
+      }
+
+      .nav-btn {
+        font-size: 0.82rem;
+        padding: 6px 10px;
+        min-height: 36px;
+      }
+
+      .dots-container {
+        gap: 5px;
+      }
+
+      .slide-dot {
+        width: 8px;
+        height: 8px;
+      }
+
+      .slide-dot.active {
+        width: 18px;
+      }
+
+      .action-banner {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 14px !important;
+      }
+
+      .action-banner > div:last-child {
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 8px !important;
+      }
+
+      .action-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 12px 16px !important;
+        font-size: 0.88rem !important;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .slide {
+        padding: 62px 14px 80px 14px !important;
+      }
+
+      h1 {
+        font-size: 2.1rem !important;
+      }
+
+      h2 {
+        font-size: 1.4rem !important;
+      }
+
+      p.subtitle {
+        font-size: 0.86rem !important;
+      }
+
+      .team-grid {
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+      }
+
+      .card {
+        padding: 14px 16px !important;
+        border-radius: 14px !important;
+      }
+
+      .stat-huge {
+        font-size: 1.8rem !important;
+      }
+
+      .img-box {
+        min-height: 220px !important;
+        max-height: 260px !important;
+        height: auto !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1407,6 +1551,41 @@
         updateSlide(parseInt(e.key) - 1);
       }
     });
+
+    // ==========================================
+    // SUPORTE A TOUCH SWIPE EM DISPOSITIVOS MÓVEIS (CELULARES E TABLETS)
+    // ==========================================
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+      handleSwipe();
+    }, { passive: true });
+
+    function handleSwipe() {
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+      
+      // Apenas trocar de slide se o gesto horizontal for dominante e maior que 45px
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
+        if (diffX < 0) {
+          // Deslizar para a esquerda -> Próximo slide
+          updateSlide(currentSlide + 1);
+        } else {
+          // Deslizar para a direita -> Slide anterior
+          updateSlide(currentSlide - 1);
+        }
+      }
+    }
 
     updateSlide(0);
   </script>
