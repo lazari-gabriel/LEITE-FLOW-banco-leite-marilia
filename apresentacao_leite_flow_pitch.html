@@ -811,70 +811,70 @@
           <span class="badge">Engenharia de Software</span>
           <span class="badge badge-cold">Decisões de Arquitetura</span>
         </div>
-        <h2>Explicação do Código & Algoritmos Chave</h2>
-        <p class="subtitle">Desenvolvimento em TypeScript estrito, modularidade e algoritmos determinísticos sem dependência externa.</p>
+        <h2>Como o Sistema Funciona por Baixo dos Panos</h2>
+        <p class="subtitle">Tecnologia simples, rápida e à prova de falhas desenvolvida especialmente para o trabalho de campo da van.</p>
 
         <div class="grid-2">
           <!-- Stack e Serviços -->
           <div class="card">
-            <h3 style="font-size: 1.15rem; color: var(--text-main); margin-bottom: 12px;">Stack Tecnológica Moderna</h3>
+            <h3 style="font-size: 1.15rem; color: var(--text-main); margin-bottom: 12px;">Tecnologias Utilizadas</h3>
             <ul class="pill-list">
               <li>
                 <div class="pill-dot cold">TS</div>
-                <span><strong>TypeScript Estrito:</strong> Tipagem rígida para entidades críticas (<span class="code-pill">Route</span>, <span class="code-pill">RouteStop</span>, <span class="code-pill">Bottle</span>) prevenindo inconsistências.</span>
+                <span><strong>TypeScript:</strong> Garante dados padronizados e sem erros no cadastro de rotas, doadoras e frascos.</span>
               </li>
               <li>
                 <div class="pill-dot cold">⚛</div>
-                <span><strong>React 18 + Vite:</strong> Carregamento quase instantâneo e alto desempenho no navegador móvel do coletor.</span>
+                <span><strong>React 18 + Vite:</strong> Interface ultra-rápida, leve e responsiva para rodar no tablet ou celular do coletor.</span>
               </li>
               <li>
                 <div class="pill-dot cold">🗺</div>
-                <span><strong>Leaflet Maps:</strong> Renderização vetorial fluida dos mapas urbanos de Marília e marcação de status das paradas.</span>
+                <span><strong>Mapas Interativos (Leaflet):</strong> Visualização clara das ruas e pontos de coleta divididos pelas zonas de Marília.</span>
               </li>
               <li>
                 <div class="pill-dot cold">🔄</div>
-                <span><strong>Context API & Hooks:</strong> Gerenciamento centralizado de rotas sincronizando o mapa e as etiquetas em tempo real.</span>
+                <span><strong>Sincronização Instantânea:</strong> Ao registrar uma coleta, o status da parada e os totais do dia atualizam na hora.</span>
               </li>
             </ul>
           </div>
 
           <!-- Algoritmos no Código -->
           <div class="card card-top-cold">
-            <h3 style="font-size: 1.15rem; color: var(--fleet-cold); margin-bottom: 12px;">Algoritmos & Engenharia de Dados</h3>
+            <h3 style="font-size: 1.15rem; color: var(--fleet-cold); margin-bottom: 12px;">Lógica & Inteligência do Sistema</h3>
             <ul class="pill-list">
               <li>
                 <div class="pill-dot cold">1</div>
                 <div>
-                  <strong>Fórmula de Haversine (<span class="code-pill">routeService.ts</span>):</strong>
+                  <strong>Cálculo Real de Distância:</strong>
                   <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1px;">
-                    Cálculo da curvatura esférica da Terra para medir distâncias geodésicas reais a partir do Materno Infantil.
+                    Mede a distância precisa em km entre o Hospital Materno Infantil e cada endereço usando coordenadas geográficas de GPS.
                   </p>
                 </div>
               </li>
               <li>
                 <div class="pill-dot cold">2</div>
                 <div>
-                  <strong>Nearest Neighbor TSP (Vizinho Mais Próximo):</strong>
+                  <strong>Organização Automática da Rota:</strong>
                   <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1px;">
-                    Heurística que reordena dinamicamente a sequência de casas para diminuir a quilometragem da van.
+                    O sistema ordena as casas da mais próxima para a mais distante (Vizinho Mais Próximo), diminuindo o trajeto da van.
                   </p>
                 </div>
               </li>
               <li>
                 <div class="pill-dot cold">3</div>
                 <div>
-                  <strong>Fator Viário de Marília ($1.35\times$):</strong>
+                  <strong>Previsão Realista de Tempo:</strong>
                   <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1px;">
-                    Compensação de malha viária real $+ 2.2\text{ min/km}$ de trânsito $+ 10\text{ min}$ de atendimento residencial.
+                    Calcula o tempo real no trânsito de Marília somado a 10 minutos de atendimento calmo na porta de cada doadora.
                   </p>
                 </div>
               </li>
               <li>
                 <div class="pill-dot cold">4</div>
                 <div>
-                  <strong>Renderizador Vetorial SVG Puro (<span class="code-pill">labelService.ts</span>):</strong>
+                  <strong>Etiquetas 100% Offline (Sem Internet):</strong>
                   <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1px;">
-                    Gera Code 128 e QR Code diretamente em SVG sem consumir internet, permitindo impressão térmica offline.
+                    O código de barras e o QR Code são gerados direto no aparelho em formato vetorial SVG, imprimindo rápido mesmo sem sinal 4G.
                   </p>
                 </div>
               </li>
