@@ -5,6 +5,7 @@
 [![Vite](https://img.shields.io/badge/Vite-5.4-646CFF.svg)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC.svg)](https://tailwindcss.com/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-199900.svg)](https://leafletjs.com/)
+[![Deploy with Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)](https://vercel.com)
 
 > Sistema corporativo e de campo para roteirização urbana, triagem clínica, coleta domiciliar e rastreabilidade total de frascos de leite materno em **Marília - SP** para o **Hospital Materno Infantil**.
 
