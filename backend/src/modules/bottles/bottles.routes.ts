@@ -35,6 +35,14 @@ const batchCollectionSchema = z.object({
     .max(20),
 });
 
+const bottleCollectionUpdateSchema = z.object({
+  volume: z.number().int().min(10).max(2000).optional(),
+  temp: z.number().min(-40).max(40).optional(),
+  classe: z.enum(['C', 'T', 'M']).optional(),
+  firstExpressionAt: z.string().min(8).optional(),
+  observacao: z.string().max(500).optional(),
+});
+
 const labUpdateSchema = z.object({
   acidezDornicNum: z.number().min(0).max(25),
   crematocritoKcal: z.number().int().min(100).max(1500),
@@ -420,6 +428,119 @@ export async function bottlesRoutes(app: FastifyInstance) {
       });
 
       return reply.status(201).send({ bottles: createdBottles.map(serializeBottle) });
+    }
+  );
+
+  // Editar dados da coleta do frasco ANTES da confirmação/impressão da etiqueta e da análise laboratorial
+  app.patch(
+    '/bottles/:id',
+    {
+      preHandler: [requireRoles('ADMIN', 'COORDENADOR_BLH', 'COLETOR_CAMPO')],
+      schema: {
+        tags: ['Frascos & Laboratório'],
+        summary: 'Editar dados da coleta do frasco antes da confirmação da etiqueta',
+      },
+    },
+    async (request, reply) => {
+      const id = Number((request.params as { id: string }).id);
+      if (!Number.isInteger(id) || id <= 0) {
+        return reply.status(400).send({ title: 'ID de frasco inválido', status: 400 });
+      }
+
+      const existing = await prisma.bottle.findUnique({
+        where: { id },
+        include: {
+          donor: { select: { parto: true } },
+          labelPrints: { where: { status: 'valid' }, select: { id: true } },
+        },
+      });
+      if (!existing) {
+        return reply.status(404).send({ title: 'Frasco não encontrado', status: 404 });
+      }
+      if (existing.statusPast !== 'Em Triagem') {
+        return reply.status(409).send({
+          title: 'Frasco já encaminhado ao laboratório',
+          status: 409,
+          detail: 'Os dados de coleta só podem ser editados enquanto o frasco está em triagem.',
+        });
+      }
+      if (existing.labelPrints.length > 0) {
+        return reply.status(409).send({
+          title: 'Etiqueta já emitida',
+          status: 409,
+          detail: 'Anule a etiqueta impressa antes de alterar os dados do frasco.',
+        });
+      }
+
+      const parsed = bottleCollectionUpdateSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          title: 'Dados inválidos para edição do frasco',
+          status: 400,
+          errors: parsed.error.flatten().fieldErrors,
+        });
+      }
+
+      const data = parsed.data;
+      let nextFirstExpr: Date | undefined;
+      let nextExpiryFormatted: string | undefined;
+      let nextRawExpiresAt: Date | undefined;
+
+      if (data.firstExpressionAt) {
+        const parsedDate = new Date(
+          data.firstExpressionAt.includes('T')
+            ? data.firstExpressionAt
+            : `${data.firstExpressionAt}T12:00:00`
+        );
+        if (isNaN(parsedDate.getTime())) {
+          return reply.status(400).send({
+            title: 'Data da 1ª ordenha inválida',
+            status: 400,
+          });
+        }
+        nextFirstExpr = parsedDate;
+        const expiry = calculateRawMilkExpiryDate(parsedDate);
+        nextExpiryFormatted = expiry.formatted;
+        nextRawExpiresAt = expiry.date;
+      }
+
+      const updated = await prisma.bottle.update({
+        where: { id },
+        data: {
+          ...(data.volume !== undefined ? { volume: data.volume } : {}),
+          ...(data.temp !== undefined ? { temp: data.temp } : {}),
+          ...(data.classe !== undefined ? { classe: data.classe } : {}),
+          ...(nextFirstExpr !== undefined ? { firstExpressionAt: nextFirstExpr } : {}),
+          ...(nextExpiryFormatted !== undefined ? { validadeCru: nextExpiryFormatted } : {}),
+          ...(nextRawExpiresAt !== undefined ? { rawExpiresAt: nextRawExpiresAt } : {}),
+          ...(data.observacao !== undefined ? { observacao: data.observacao.trim() || null } : {}),
+        },
+        include: { donor: { select: { parto: true } } },
+      });
+
+      await recordAudit({
+        request,
+        action: 'BOTTLE_EDITED_BEFORE_CONFIRMATION',
+        entity: 'Bottle',
+        entityId: String(updated.id),
+        details: {
+          codigo: updated.codigo,
+          before: {
+            volume: existing.volume,
+            temp: existing.temp,
+            classe: existing.classe,
+            validadeCru: existing.validadeCru,
+          },
+          after: {
+            volume: updated.volume,
+            temp: updated.temp,
+            classe: updated.classe,
+            validadeCru: updated.validadeCru,
+          },
+        },
+      });
+
+      return reply.send({ bottle: serializeBottle(updated) });
     }
   );
 

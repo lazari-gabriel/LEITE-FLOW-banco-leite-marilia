@@ -10,12 +10,18 @@ import {
   Ban,
   CheckSquare,
   Square,
+  Edit3,
+  Calendar,
+  AlertCircle,
+  Save,
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApp } from '../../../hooks/useApp';
 import { useAuth } from '../../../context/AuthContext';
-import { LabelFormat, LabelPrintLogItem, LabelType } from '../../../types/bottle';
+import { Bottle, LabelFormat, LabelPrintLogItem, LabelType } from '../../../types/bottle';
+import { MilkClass } from '../../../types/donor';
 import { canEmitLabelType, generateZplLabel } from '../../../services/labelService';
+import { calculateRawMilkExpiry } from '../../../services/bottleService';
 import { apiFetch, ApiError } from '../../../services/apiClient';
 import { ThermalLabelPreview } from './ThermalLabelPreview';
 import { Button } from '../../ui/Button';
@@ -47,6 +53,18 @@ export const EtiquetasView: React.FC = () => {
   const [voidingLog, setVoidingLog] = useState<LabelPrintLogItem | null>(null);
   const [voidReason, setVoidReason] = useState('');
 
+  // Edição controlada antes de confirmar/imprimir a etiqueta
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editVolume, setEditVolume] = useState(150);
+  const [editTemp, setEditTemp] = useState(-16.5);
+  const [editClasse, setEditClasse] = useState<MilkClass>('M');
+  const [editFirstExpr, setEditFirstExpr] = useState(() => new Date().toISOString().split('T')[0]);
+  const [editObservacao, setEditObservacao] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const todayIso = new Date().toISOString().split('T')[0];
+  const quickVolumes = [100, 150, 200, 250, 300];
+
   // Corrige bug: reseta confirmação local sempre que mudar de frasco selecionado
   useEffect(() => {
     setIsLabelConfirmed(activeFlowStep === 'completed');
@@ -64,6 +82,71 @@ export const EtiquetasView: React.FC = () => {
   const validCopiesForType = printLogs.filter(
     (l) => l.labelType === activeLabelType && l.status === 'valid'
   ).length;
+  const totalValidPrints = printLogs.filter((l) => l.status === 'valid').length;
+  const canEditBottle = Boolean(
+    selectedBottle &&
+      hasRole('ADMIN', 'COORDENADOR_BLH', 'COLETOR_CAMPO') &&
+      selectedBottle.statusPast === 'Em Triagem' &&
+      totalValidPrints === 0 &&
+      !isLabelConfirmed
+  );
+
+  const openEditModal = () => {
+    if (!selectedBottle) return;
+    setEditVolume(selectedBottle.volume);
+    setEditTemp(selectedBottle.temp);
+    setEditClasse(selectedBottle.classe);
+    setEditFirstExpr(
+      selectedBottle.firstExpressionAt
+        ? selectedBottle.firstExpressionAt.split('T')[0]
+        : todayIso
+    );
+    setEditObservacao(selectedBottle.observacao || '');
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEditBottle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedBottle) return;
+    setSavingEdit(true);
+    try {
+      await apiFetch<{ bottle: Bottle }>(`/bottles/${selectedBottle.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          volume: Number(editVolume),
+          temp: Number(editTemp),
+          classe: editClasse,
+          firstExpressionAt: editFirstExpr,
+          observacao: editObservacao.trim(),
+        }),
+      });
+      await queryClient.invalidateQueries({ queryKey: ['bottles'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      addToast({
+        type: 'success',
+        title: 'Dados do frasco atualizados',
+        description: `A etiqueta de ${selectedBottle.codigo} foi atualizada. Confira os dados e clique em Confirmar Etiqueta.`,
+      });
+      setIsEditModalOpen(false);
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Não foi possível editar o frasco',
+        description: err instanceof ApiError ? err.message : 'Verifique os valores informados.',
+      });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const editExpiryPreview = useMemo(() => {
+    const parsed = new Date(`${editFirstExpr}T12:00:00`);
+    const valid = isNaN(parsed.getTime()) ? new Date() : parsed;
+    const expiryDate = new Date(valid);
+    expiryDate.setDate(expiryDate.getDate() + 15);
+    const daysLeft = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return { label: calculateRawMilkExpiry(valid), daysLeft };
+  }, [editFirstExpr]);
 
   const labelGate = selectedBottle
     ? canEmitLabelType(selectedBottle, activeLabelType)
@@ -221,6 +304,16 @@ export const EtiquetasView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {canEditBottle && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={openEditModal}
+              leftIcon={<Edit3 className="w-4 h-4" />}
+            >
+              Editar Frasco
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
@@ -260,16 +353,29 @@ export const EtiquetasView: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             {!isLabelConfirmed ? (
-              <Button
-                size="sm"
-                onClick={handleConfirmEtiqueta}
-                className="font-bold shadow-md bg-emerald-700 hover:bg-emerald-800"
-                rightIcon={<CheckCircle2 className="w-4 h-4" />}
-              >
-                Confirmar Etiqueta
-              </Button>
+              <>
+                {canEditBottle && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={openEditModal}
+                    leftIcon={<Edit3 className="w-4 h-4" />}
+                    className="bg-white border-emerald-300 text-emerald-900 hover:bg-emerald-100/70 font-semibold"
+                  >
+                    Editar Dados
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  onClick={handleConfirmEtiqueta}
+                  className="font-bold shadow-md bg-emerald-700 hover:bg-emerald-800"
+                  rightIcon={<CheckCircle2 className="w-4 h-4" />}
+                >
+                  Confirmar Etiqueta
+                </Button>
+              </>
             ) : (
               <Button
                 size="sm"
@@ -550,6 +656,151 @@ export const EtiquetasView: React.FC = () => {
             </Button>
           </div>
         </div>
+      </Modal>
+
+          {/* Modal de Edição antes da Confirmação da Etiqueta */}
+      <Modal
+        isOpen={isEditModalOpen && !!selectedBottle}
+        onClose={() => setIsEditModalOpen(false)}
+        title={selectedBottle ? `Editar Dados — ${selectedBottle.codigo}` : 'Editar Frasco'}
+        subtitle={
+          selectedBottle
+            ? `Doadora: ${selectedBottle.doadoraNome} • Correção permitida antes da confirmação da etiqueta`
+            : undefined
+        }
+        maxWidth="md"
+      >
+        <form onSubmit={(e) => void handleSaveEditBottle(e)} className="space-y-4">
+          {/* Volume rápido + numérico */}
+          <div>
+            <label htmlFor="edit-bottle-volume" className="block text-xs font-bold text-blh-slate-700 mb-1.5">
+              Volume Coletado (mL) *
+            </label>
+            <div className="flex items-center gap-1.5 mb-2">
+              {quickVolumes.map((vol) => (
+                <button
+                  key={vol}
+                  type="button"
+                  onClick={() => setEditVolume(vol)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                    editVolume === vol
+                      ? 'bg-blh-primary text-white border-blh-primary shadow-sm'
+                      : 'bg-white text-blh-slate-700 border-blh-slate-300 hover:bg-blh-slate-50'
+                  }`}
+                >
+                  {vol}
+                </button>
+              ))}
+            </div>
+            <input
+              id="edit-bottle-volume"
+              type="number"
+              min="10"
+              max="2000"
+              step="5"
+              required
+              value={editVolume}
+              onChange={(e) => setEditVolume(Number(e.target.value))}
+              className="w-full h-10 text-sm font-bold font-mono px-3 rounded-lg border border-blh-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
+            />
+          </div>
+
+          {/* Data 1ª Ordenha + Temperatura */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+            <div>
+              <label htmlFor="edit-bottle-date" className="text-xs font-bold text-blh-slate-700 mb-1.5 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-blh-primary shrink-0" />
+                Data da 1ª Ordenha *
+              </label>
+              <input
+                id="edit-bottle-date"
+                type="date"
+                required
+                max={todayIso}
+                value={editFirstExpr}
+                onChange={(e) => setEditFirstExpr(e.target.value)}
+                className="w-full h-10 text-xs px-3 rounded-lg border border-blh-slate-300 bg-white font-mono focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
+              />
+              <span
+                className={`text-[11px] font-semibold mt-1 block ${
+                  editExpiryPreview.daysLeft <= 0
+                    ? 'text-rose-700'
+                    : editExpiryPreview.daysLeft <= 3
+                    ? 'text-amber-700'
+                    : 'text-emerald-700'
+                }`}
+              >
+                Nova Validade (15d): {editExpiryPreview.label}
+              </span>
+            </div>
+
+            <div>
+              <label htmlFor="edit-bottle-temp" className="block text-xs font-bold text-blh-slate-700 mb-1.5">
+                Temperatura Caixa (°C) * <span className="font-normal text-emerald-700">≤ -10°C</span>
+              </label>
+              <input
+                id="edit-bottle-temp"
+                type="number"
+                step="0.1"
+                required
+                value={editTemp}
+                onChange={(e) => setEditTemp(Number(e.target.value))}
+                className="w-full h-10 text-sm font-bold font-mono px-3 rounded-lg border border-blh-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
+              />
+              {editTemp > -10 && (
+                <span className="text-[11px] font-bold text-rose-700 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Acima de -10°C (desvio térmico)
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Classe do Leite */}
+          <div>
+            <label htmlFor="edit-bottle-class" className="block text-xs font-bold text-blh-slate-700 mb-1.5">
+              Classe Biológica do Leite *
+            </label>
+            <select
+              id="edit-bottle-class"
+              value={editClasse}
+              onChange={(e) => setEditClasse(e.target.value as MilkClass)}
+              className="w-full h-10 text-xs px-3 rounded-lg border border-blh-slate-300 bg-white font-semibold text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
+            >
+              <option value="C">Colostro (C) — até 7 dias pós-parto</option>
+              <option value="T">Transição (T) — 8 a 14 dias pós-parto</option>
+              <option value="M">Maduro (M) — acima de 14 dias pós-parto</option>
+            </select>
+          </div>
+
+          {/* Observação */}
+          <div>
+            <label htmlFor="edit-bottle-obs" className="block text-xs font-bold text-blh-slate-700 mb-1.5">
+              Observações da Coleta (Opcional)
+            </label>
+            <input
+              id="edit-bottle-obs"
+              type="text"
+              value={editObservacao}
+              onChange={(e) => setEditObservacao(e.target.value)}
+              placeholder="Ex.: Correção de volume aferido na entrega..."
+              className="w-full h-10 text-xs px-3 rounded-lg border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
+            />
+          </div>
+
+          <div className="pt-2 border-t border-blh-line flex items-center justify-end gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              isLoading={savingEdit}
+              leftIcon={<Save className="w-4 h-4" />}
+            >
+              Salvar e Atualizar Etiqueta
+            </Button>
+          </div>
+        </form>
       </Modal>
 
       {/* Modal de Anulação de Etiqueta */}
