@@ -1,7 +1,9 @@
 import { buildApp } from './app.js';
 import { env } from './config/env.js';
+import { ensureInitialBootstrapData } from './lib/bootstrapSeed.js';
 
 async function main() {
+  await ensureInitialBootstrapData();
   const app = await buildApp();
   try {
     await app.listen({ port: env.PORT, host: env.HOST });

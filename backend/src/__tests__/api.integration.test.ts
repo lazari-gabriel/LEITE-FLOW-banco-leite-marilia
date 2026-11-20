@@ -22,12 +22,14 @@ describe('LEITE FLOW Backend — Integração API, Auth, RBAC e Cadeia de Custó
 
     // Limpa eventuais restos de execuções anteriores deste teste (respeitando FKs)
     await prisma.bottle.deleteMany({ where: { donor: { susNormalized: '898003377889908' } } });
+    await prisma.collectionVisit.deleteMany({ where: { donor: { susNormalized: '898003377889908' } } });
     await prisma.route.deleteMany({ where: { name: { contains: '[TESTE-INT]' } } });
     await prisma.donor.deleteMany({ where: { susNormalized: '898003377889908' } });
   });
 
   afterAll(async () => {
     await prisma.bottle.deleteMany({ where: { donor: { susNormalized: '898003377889908' } } });
+    await prisma.collectionVisit.deleteMany({ where: { donor: { susNormalized: '898003377889908' } } });
     await prisma.route.deleteMany({ where: { name: { contains: '[TESTE-INT]' } } });
     await prisma.donor.deleteMany({ where: { susNormalized: '898003377889908' } });
     await app.close();
