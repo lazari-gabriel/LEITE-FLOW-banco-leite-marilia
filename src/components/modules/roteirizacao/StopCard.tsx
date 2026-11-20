@@ -4,6 +4,7 @@ import { RouteStop } from '../../../types/route';
 import { useApp } from '../../../hooks/useApp';
 import { Button } from '../../ui/Button';
 import { buildGoogleMapsSingleStopUrl, buildWhatsAppUrl } from '../../../services/routeService';
+import { openExternalUrlSafely } from '../../../utils/sanitize';
 
 interface StopCardProps {
   stop: RouteStop;
@@ -17,7 +18,7 @@ export const StopCard: React.FC<StopCardProps> = ({ stop, onOpenColeta, onOpenSk
   const handleNavigateToStop = (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = buildGoogleMapsSingleStopUrl(stop.lat, stop.lng, stop.address);
-    window.open(url, '_blank');
+    openExternalUrlSafely(url);
   };
 
   const handleViewLabel = (e: React.MouseEvent) => {
@@ -60,7 +61,7 @@ export const StopCard: React.FC<StopCardProps> = ({ stop, onOpenColeta, onOpenSk
         <div className="flex items-start gap-3 min-w-0">
           {/* Número e Estado da Parada */}
           <div
-            className={`w-9 h-9 rounded-full flex items-center justify-center font-mono font-bold text-sm shrink-0 shadow-xs ${
+            className={`w-9 h-9 rounded-full flex items-center justify-center font-mono font-bold text-sm shrink-0 shadow-sm ${
               isCompleted
                 ? 'bg-emerald-600 text-white'
                 : isSkipped
@@ -117,7 +118,7 @@ export const StopCard: React.FC<StopCardProps> = ({ stop, onOpenColeta, onOpenSk
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[38px] rounded-lg bg-emerald-100/80 text-emerald-950 hover:bg-emerald-200/90 border border-emerald-300 text-xs font-bold transition-colors shrink-0 shadow-xs"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 min-h-[38px] rounded-lg bg-emerald-100/80 text-emerald-950 hover:bg-emerald-200/90 border border-emerald-300 text-xs font-bold transition-colors shrink-0 shadow-sm"
           title="Avisar mãe no WhatsApp"
         >
           <MessageCircle className="w-4 h-4 text-emerald-700 shrink-0" />

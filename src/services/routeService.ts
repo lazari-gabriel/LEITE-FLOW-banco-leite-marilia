@@ -19,26 +19,16 @@ export function calculateHaversineKm(lat1: number, lon1: number, lat2: number, l
 }
 
 /**
- * Calcula métricas logísticas da rota (distância urbana com fator viário de Marília 1.35x e tempo estimado)
+ * Calcula distância total estimada (ida + retorno ao Hospital Materno Infantil) com fator viário 1.35x.
+ * Fonte única da verdade usada por RouteFleetManager, RouteDispatcher e InteractiveMapView.
  */
-export function calculateRouteMetrics(stops: RouteStop[]): RouteMetrics {
-  const completedStops = stops.filter((s) => s.status === 'completed' || s.collected || s.status === 'skipped' || s.skipped).length;
-  const pendingStops = stops.length - completedStops;
-
-  if (stops.length === 0) {
-    return {
-      totalStops: 0,
-      completedStops: 0,
-      pendingStops: 0,
-      distanceKm: 0,
-      estimatedMinutes: 0
-    };
-  }
+export function calculateTourDistanceKm(points: { lat: number; lng: number }[]): number {
+  if (points.length === 0) return 0;
 
   const waypoints: [number, number][] = [
     LEITE_FLOW.coords,
-    ...stops.map((s) => [s.lat, s.lng] as [number, number]),
-    LEITE_FLOW.coords
+    ...points.map((p) => [p.lat, p.lng] as [number, number]),
+    LEITE_FLOW.coords,
   ];
 
   let rawDistance = 0;
@@ -50,24 +40,44 @@ export function calculateRouteMetrics(stops: RouteStop[]): RouteMetrics {
       waypoints[i + 1][1]
     );
   }
+  return Number((rawDistance * 1.35).toFixed(1));
+}
 
-  // Fator viário urbano de Marília (1.35x da distância euclidiana/geodésica)
-  const distanceKm = Number((rawDistance * 1.35).toFixed(1));
-  // 2.2 minutos por km em trânsito urbano + 10 minutos de atendimento em cada parada
+/**
+ * Calcula métricas logísticas da rota separando concluídas (coletadas) de não realizadas (skipped).
+ */
+export function calculateRouteMetrics(stops: RouteStop[]): RouteMetrics {
+  const completedStops = stops.filter((s) => s.status === 'completed' || s.collected).length;
+  const skippedStops = stops.filter((s) => s.status === 'skipped' || s.skipped).length;
+  const pendingStops = Math.max(0, stops.length - completedStops - skippedStops);
+
+  if (stops.length === 0) {
+    return {
+      totalStops: 0,
+      completedStops: 0,
+      skippedStops: 0,
+      pendingStops: 0,
+      distanceKm: 0,
+      estimatedMinutes: 0,
+    };
+  }
+
+  const distanceKm = calculateTourDistanceKm(stops);
   const estimatedMinutes = Math.round(distanceKm * 2.2 + stops.length * 10);
 
   return {
     totalStops: stops.length,
     completedStops,
+    skippedStops,
     pendingStops,
     distanceKm,
-    estimatedMinutes
+    estimatedMinutes,
   };
 }
 
 /**
- * Algoritmo de Otimização do Vizinho Mais Próximo para IDs de doadoras
- * Inicia na sede do BLH (Hospital Materno Infantil) e ordena por proximidade geográfica
+ * Algoritmo Nearest Neighbor + Refinamento Local 2-opt (elimina cruzamentos no trajeto urbano).
+ * Inicia e retorna na sede do BLH (Hospital Materno Infantil de Marília).
  */
 export function optimizeDonorIdsNearestNeighbor(
   donorsList: { id: number; lat: number; lng: number }[],
@@ -77,7 +87,7 @@ export function optimizeDonorIdsNearestNeighbor(
 
   let currentPoint = startCoords;
   const pool = [...donorsList];
-  const orderedIds: number[] = [];
+  const ordered: { id: number; lat: number; lng: number }[] = [];
 
   while (pool.length > 0) {
     let closestIndex = 0;
@@ -97,11 +107,45 @@ export function optimizeDonorIdsNearestNeighbor(
     }
 
     const nextDonor = pool.splice(closestIndex, 1)[0];
-    orderedIds.push(nextDonor.id);
+    ordered.push(nextDonor);
     currentPoint = [nextDonor.lat, nextDonor.lng];
   }
 
-  return orderedIds;
+  if (ordered.length <= 2) return ordered.map((d) => d.id);
+
+  // Refinamento 2-opt considerando saída e retorno ao BLH
+  const tourDist = (arr: typeof ordered) => {
+    let sum = calculateHaversineKm(startCoords[0], startCoords[1], arr[0].lat, arr[0].lng);
+    for (let i = 0; i < arr.length - 1; i++) {
+      sum += calculateHaversineKm(arr[i].lat, arr[i].lng, arr[i + 1].lat, arr[i + 1].lng);
+    }
+    sum += calculateHaversineKm(arr[arr.length - 1].lat, arr[arr.length - 1].lng, startCoords[0], startCoords[1]);
+    return sum;
+  };
+
+  let bestDistance = tourDist(ordered);
+  let improved = true;
+
+  while (improved) {
+    improved = false;
+    for (let i = 0; i < ordered.length - 1; i++) {
+      for (let k = i + 1; k < ordered.length; k++) {
+        const candidate = [
+          ...ordered.slice(0, i),
+          ...ordered.slice(i, k + 1).reverse(),
+          ...ordered.slice(k + 1),
+        ];
+        const candDistance = tourDist(candidate);
+        if (candDistance + 0.001 < bestDistance) {
+          ordered.splice(0, ordered.length, ...candidate);
+          bestDistance = candDistance;
+          improved = true;
+        }
+      }
+    }
+  }
+
+  return ordered.map((d) => d.id);
 }
 
 /**
@@ -170,10 +214,20 @@ export function buildGoogleMapsUrl(stops: RouteStop[]): string {
 }
 
 /**
- * Gera URL para navegar diretamente até uma parada específica
+ * Gera URL para navegar diretamente até uma parada específica.
+ * Usa endereço textual como destino quando coordenadas não forem verificadas (evita ponto aproximado).
  */
-export function buildGoogleMapsSingleStopUrl(lat: number, lng: number, address: string): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=&travelmode=driving`;
+export function buildGoogleMapsSingleStopUrl(
+  lat: number,
+  lng: number,
+  address: string,
+  useVerifiedCoords = false
+): string {
+  const destination =
+    useVerifiedCoords && lat && lng
+      ? `${lat},${lng}`
+      : encodeURIComponent(`${address}, Marília - SP, Brasil`);
+  return `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
 }
 
 /**

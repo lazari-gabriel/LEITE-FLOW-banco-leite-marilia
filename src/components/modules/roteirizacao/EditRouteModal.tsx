@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Truck, User, Edit3, AlertCircle, Save } from 'lucide-react';
+import { Truck, User, Save } from 'lucide-react';
 import { useApp } from '../../../hooks/useApp';
 import { RouteAssignment, RouteShift, RouteStatus } from '../../../types/route';
-import { FLEET_VEHICLES, FLEET_DRIVERS, FLEET_COLLECTORS } from '../../../data/initialRoutes';
+import { FLEET_DRIVERS, FLEET_COLLECTORS } from '../../../data/initialRoutes';
 import { Button } from '../../ui/Button';
+import { Modal } from '../../ui/Modal';
 
 interface EditRouteModalProps {
   isOpen: boolean;
@@ -17,7 +17,7 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
   onClose,
   route
 }) => {
-  const { updateRoute } = useApp();
+  const { updateRoute, addToast } = useApp();
 
   const [name, setName] = useState('');
   const [shift, setShift] = useState<RouteShift>('Manhã');
@@ -46,11 +46,11 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!vehicleName.trim()) {
-      alert('Informe o veículo.');
+      addToast({ type: 'warning', title: 'Veículo obrigatório', description: 'Informe o veículo.' });
       return;
     }
     if (!driverName.trim()) {
-      alert('Informe o Motorista / Condutor.');
+      addToast({ type: 'warning', title: 'Condutor obrigatório', description: 'Informe o Motorista / Condutor.' });
       return;
     }
 
@@ -61,46 +61,22 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
       vehiclePlate: vehiclePlate.trim(),
       driverName: driverName.trim(),
       collectorName: collectorName.trim() || 'Equipe BLH',
-      status,
       notes: notes.trim()
     });
 
     onClose();
   };
 
-  return createPortal(
-    <div className="fixed inset-0 bg-blh-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-3 sm:p-4 animate-fadeIn overflow-y-auto">
-      <div 
-        className="bg-white rounded-2xl shadow-elevation w-full max-w-xl overflow-hidden border border-blh-slate-200 my-auto animate-scaleIn"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Cabeçalho */}
-        <div className="px-6 py-4 bg-blh-primary text-white flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-              <Edit3 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-white/20 text-xs font-mono font-bold">
-                  {route.code}
-                </span>
-                <h3 className="text-base font-bold text-white">Editar Dados da Rota</h3>
-              </div>
-              <p className="text-xs text-emerald-100">Atualização de veículo, tripulação e turno operacional</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Editar Dados da Rota (${route.code})`}
+      subtitle="Atualização de veículo, tripulação e turno operacional"
+      maxWidth="xl"
+    >
         {/* Formulário */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[82vh] overflow-y-auto text-left">
+        <form onSubmit={handleSubmit} className="space-y-4 text-left">
           {/* Nome da Rota */}
           <div>
             <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
@@ -134,18 +110,17 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
 
             <div>
               <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
-                Status da Rota
+                Status Atual (Máquina de Estados)
               </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as RouteStatus)}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary outline-none bg-white font-medium"
-              >
-                <option value="planning">Planejamento</option>
-                <option value="active">Em Trânsito (Ativa)</option>
-                <option value="completed">Concluída</option>
-                <option value="canceled">Cancelada</option>
-              </select>
+              <div className="w-full text-xs px-3 py-2.5 rounded-lg border border-blh-slate-200 bg-blh-slate-50 font-bold text-blh-slate-700">
+                {status === 'planning'
+                  ? 'Planejamento (use Iniciar Rota)'
+                  : status === 'active'
+                  ? 'Em Trânsito (use Finalizar Rota)'
+                  : status === 'completed'
+                  ? 'Concluída (Somente leitura)'
+                  : 'Cancelada'}
+              </div>
             </div>
           </div>
 
@@ -261,8 +236,6 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
             </Button>
           </div>
         </form>
-      </div>
-    </div>,
-    document.body
+    </Modal>
   );
 };

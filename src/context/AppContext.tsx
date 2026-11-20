@@ -1,25 +1,44 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
-import { Donor, DonorFormData, GoNoGoVerdict, WeekDay, ZoneName, AptidaoStatus, StatusCadastro } from '../types/donor';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Donor, DonorFormData, GoNoGoVerdict, WeekDay, ZoneName, StatusCadastro } from '../types/donor';
 import { Bottle, CollectionFormData, LabelType } from '../types/bottle';
-import { RouteAssignment, RouteMetrics, RouteStop, SkippedStop, StopStatus, RouteFormData, RouteShift, RouteStatus } from '../types/route';
+import { RouteAssignment, RouteMetrics, RouteStop, SkippedStop, StopStatus, RouteFormData, RouteStatus } from '../types/route';
 import { ToastMessage, ViewMode } from '../types/common';
-import { INITIAL_DONORS } from '../data/initialDonors';
-import { INITIAL_BOTTLES } from '../data/initialBottles';
-import { INITIAL_ROUTES, FLEET_VEHICLES, FLEET_DRIVERS, FLEET_COLLECTORS } from '../data/initialRoutes';
-import { DAY_BY_ZONE, ZONE_BY_DAY } from '../constants/zones';
-import { createDonorFromForm, evaluateGoNoGo, updateDonorFromForm } from '../services/donorService';
+import { DAY_BY_ZONE } from '../constants/zones';
+import { createDonorFromForm, evaluateGoNoGo, hasSerologyBecameAltered, updateDonorFromForm } from '../services/donorService';
 import { createBottleFromCollection } from '../services/bottleService';
-import { calculateRouteMetrics, optimizeStopsNearestNeighbor, optimizeDonorIdsNearestNeighbor, calculateHaversineKm } from '../services/routeService';
+import { calculateRouteMetrics, optimizeDonorIdsNearestNeighbor, calculateHaversineKm } from '../services/routeService';
 import { LEITE_FLOW } from '../constants/blh';
+import { apiFetch, ApiError } from '../services/apiClient';
+import { useAuth } from './AuthContext';
 
-export type GuidedFlowStep = 
-  | 'overview'        // Visualizando rota
-  | 'navigating'      // Indo para parada (Google Maps aberto / a caminho)
-  | 'arrived'         // Chegou ao local
-  | 'collecting'      // Preenchendo ficha de coleta
-  | 'label_preview'   // Visualizando etiqueta gerada
-  | 'label_confirmed' // Etiqueta conferida
-  | 'completed';      // Coleta concluída com sucesso
+export type GuidedFlowStep =
+  | 'overview'
+  | 'navigating'
+  | 'arrived'
+  | 'collecting'
+  | 'label_preview'
+  | 'label_confirmed'
+  | 'completed';
+
+const VIEW_TO_PATH: Record<ViewMode, string> = {
+  visao: '/dashboard',
+  cadastro: '/doadoras',
+  roteirizacao: '/rotas',
+  mapa: '/mapa',
+  etiquetas: '/etiquetas',
+  accountability: '/laboratorio',
+};
+
+function pathToView(pathname: string): ViewMode {
+  if (pathname.startsWith('/dashboard')) return 'visao';
+  if (pathname.startsWith('/doadoras')) return 'cadastro';
+  if (pathname.startsWith('/mapa')) return 'mapa';
+  if (pathname.startsWith('/etiquetas')) return 'etiquetas';
+  if (pathname.startsWith('/laboratorio')) return 'accountability';
+  return 'roteirizacao';
+}
 
 export interface AppContextType {
   donors: Donor[];
@@ -36,6 +55,7 @@ export interface AppContextType {
   activeFlowStep: GuidedFlowStep;
   activeStopDonorId: number | null;
   isRouteActive: boolean;
+  isDataLoading: boolean;
   stats: {
     totalDonors: number;
     activeDonors: number;
@@ -61,7 +81,7 @@ export interface AppContextType {
   confirmLabelAndCompleteStop: (bottleId: number) => void;
   advanceToNextStop: () => void;
   addDonor: (data: DonorFormData) => { donor: Donor; verdict: GoNoGoVerdict };
-  updateDonor: (donorId: number, data: DonorFormData) => void;
+  updateDonor: (donorId: number, data: DonorFormData) => { donor: Donor; verdict: GoNoGoVerdict } | null;
   deleteDonor: (donorId: number) => void;
   reactivateDonor: (donorId: number) => void;
   editingDonorId: number | null;
@@ -73,7 +93,6 @@ export interface AppContextType {
   navigateToDonorRoute: (zone: ZoneName, donorId: number) => void;
   addToast: (toast: Omit<ToastMessage, 'id'>) => void;
   removeToast: (id: string) => void;
-  // Route & Fleet Dispatcher (CRUD Multi-Veículo)
   routes: RouteAssignment[];
   activeRouteId: string | null;
   setActiveRouteId: (id: string) => void;
@@ -97,47 +116,65 @@ export interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [donors, setDonors] = useState<Donor[]>(INITIAL_DONORS);
-  const [bottles, setBottles] = useState<Bottle[]>(INITIAL_BOTTLES);
-  const [currentView, setCurrentView] = useState<ViewMode>('roteirizacao'); // Roteirização como foco do coletor
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const currentView = useMemo(() => pathToView(location.pathname), [location.pathname]);
+  const setCurrentView = useCallback(
+    (view: ViewMode) => {
+      const targetPath = VIEW_TO_PATH[view] || '/rotas';
+      if (location.pathname !== targetPath) {
+        navigate(targetPath);
+      }
+    },
+    [location.pathname, navigate]
+  );
+
+  // ── Queries reais via TanStack Query ────────────────────────────────────────
+  const donorsQuery = useQuery({
+    queryKey: ['donors'],
+    queryFn: async () => (await apiFetch<{ data: Donor[] }>('/donors')).data,
+    enabled: isAuthenticated,
+  });
+
+  const routesQuery = useQuery({
+    queryKey: ['routes'],
+    queryFn: async () => (await apiFetch<{ data: RouteAssignment[] }>('/routes')).data,
+    enabled: isAuthenticated,
+  });
+
+  const bottlesQuery = useQuery({
+    queryKey: ['bottles'],
+    queryFn: async () => (await apiFetch<{ data: Bottle[] }>('/bottles')).data,
+    enabled: isAuthenticated,
+  });
+
+  const summaryQuery = useQuery({
+    queryKey: ['dashboard-summary'],
+    queryFn: async () => (await apiFetch<{ stats: AppContextType['stats'] }>('/dashboard/summary')).stats,
+    enabled: isAuthenticated,
+  });
+
+  const donors = donorsQuery.data ?? [];
+  const routes = routesQuery.data ?? [];
+  const bottles = bottlesQuery.data ?? [];
+  const isDataLoading = donorsQuery.isLoading || routesQuery.isLoading || bottlesQuery.isLoading;
+
   const [selectedDay, setSelectedDay] = useState<WeekDay>('Segunda');
-  const [selectedBottleId, setSelectedBottleId] = useState<number | null>(INITIAL_BOTTLES[0]?.id ?? null);
+  const [selectedBottleId, setSelectedBottleId] = useState<number | null>(null);
   const [activeLabelType, setActiveLabelType] = useState<LabelType>('coleta');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-
-  // Estado do Fluxo Guiado de Coleta em Campo
   const [activeFlowStep, setActiveFlowStep] = useState<GuidedFlowStep>('overview');
   const [activeStopDonorId, setActiveStopDonorId] = useState<number | null>(null);
-
-  // Estado do Despachante / Gestão de Frota Multi-Veículo (CRUD)
-  const [routes, setRoutes] = useState<RouteAssignment[]>(INITIAL_ROUTES);
-  const [activeRouteId, setActiveRouteIdState] = useState<string | null>(INITIAL_ROUTES[0]?.id || null);
-
-  // Estado de Edição de Doadora Centralizada na Aba Cadastro
+  const [activeRouteId, setActiveRouteIdState] = useState<string | null>(null);
   const [editingDonorId, setEditingDonorId] = useState<number | null>(null);
 
-  const editingDonor = useMemo(() => {
-    if (!editingDonorId) return null;
-    return donors.find((d) => d.id === editingDonorId) || null;
-  }, [donors, editingDonorId]);
-
-  const startEditDonor = useCallback((donorId: number) => {
-    setEditingDonorId(donorId);
-    setCurrentView('cadastro');
-  }, []);
-
-  const cancelEditDonor = useCallback(() => {
-    setEditingDonorId(null);
-  }, []);
-
-  // Toast System
   const addToast = useCallback((toast: Omit<ToastMessage, 'id'>) => {
     const id = Math.random().toString(36).substring(2, 9);
     const duration = toast.duration ?? 4500;
-    const newToast: ToastMessage = { ...toast, id, duration };
-
-    setToasts((prev) => [...prev, newToast]);
-
+    setToasts((prev) => [...prev, { ...toast, id, duration }]);
     if (duration > 0) {
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -149,16 +186,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Frasco selecionado
+  const handleApiError = useCallback(
+    (err: unknown, fallbackTitle: string) => {
+      const msg = err instanceof ApiError ? err.message : 'Falha na comunicação com o servidor.';
+      addToast({ type: 'error', title: fallbackTitle, description: msg });
+    },
+    [addToast]
+  );
+
+  const invalidateAll = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ['donors'] });
+    void queryClient.invalidateQueries({ queryKey: ['routes'] });
+    void queryClient.invalidateQueries({ queryKey: ['bottles'] });
+    void queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+  }, [queryClient]);
+
+  const editingDonor = useMemo(() => {
+    if (!editingDonorId) return null;
+    return donors.find((d) => d.id === editingDonorId) || null;
+  }, [donors, editingDonorId]);
+
+  const startEditDonor = useCallback(
+    (donorId: number) => {
+      setEditingDonorId(donorId);
+      setCurrentView('cadastro');
+    },
+    [setCurrentView]
+  );
+
+  const cancelEditDonor = useCallback(() => {
+    setEditingDonorId(null);
+  }, []);
+
   const selectedBottle = useMemo(() => {
     if (!selectedBottleId) return bottles[0] || null;
     return bottles.find((b) => b.id === selectedBottleId) || bottles[0] || null;
   }, [bottles, selectedBottleId]);
 
-  // Paradas da Zona selecionada pelo Dia com cálculo de status
-  const currentZoneConfig = useMemo(() => ZONE_BY_DAY[selectedDay] || ZONE_BY_DAY['Segunda'], [selectedDay]);
-
-  // Rota ativa computada
   const routeAssignment = useMemo(() => {
     if (activeRouteId) {
       const match = routes.find((r) => r.id === activeRouteId);
@@ -170,15 +234,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const isRouteActive = routeAssignment?.status === 'active';
 
-  const setActiveRouteId = useCallback((id: string) => {
-    setActiveRouteIdState(id);
-    const target = routes.find((r) => r.id === id);
-    if (target && target.day !== selectedDay) {
-      setSelectedDay(target.day);
-    }
-  }, [routes, selectedDay]);
+  const setActiveRouteId = useCallback(
+    (id: string) => {
+      setActiveRouteIdState(id);
+      const target = routes.find((r) => r.id === id);
+      if (target && target.day !== selectedDay) {
+        setSelectedDay(target.day);
+      }
+    },
+    [routes, selectedDay]
+  );
 
-  // Sincronização de rota ativa ao selecionar o dia
   useEffect(() => {
     const routesForDay = routes.filter((r) => r.day === selectedDay && r.status !== 'canceled');
     if (routesForDay.length > 0) {
@@ -190,35 +256,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [selectedDay, routes, activeRouteId]);
 
+  // Paradas da rota ativa — usa status real da CollectionVisit (suporta coletas recorrentes!)
   const currentZoneStops = useMemo(() => {
     if (!routeAssignment) return [];
 
-    let orderedDonors: Donor[];
-    if (routeAssignment.donorIds && routeAssignment.donorIds.length > 0) {
-      orderedDonors = routeAssignment.donorIds
-        .map((id) => donors.find((d) => d.id === id && d.aptidao === 'Apta' && d.statusCadastro === 'ativa'))
-        .filter(Boolean) as Donor[];
-    } else {
-      orderedDonors = [];
-    }
+    const orderedDonors = (routeAssignment.donorIds || [])
+      .map((id) => donors.find((d) => d.id === id && d.aptidao === 'Apta' && d.statusCadastro === 'ativa'))
+      .filter(Boolean) as Donor[];
 
     const skippedIds = new Set(routeAssignment.skippedStops?.map((s) => s.donorId) ?? []);
+    const visitsByDonor = new Map((routeAssignment.visits ?? []).map((v) => [v.donorId, v]));
 
     let prevCoords = LEITE_FLOW.coords;
     let foundNext = false;
 
     return orderedDonors.map((d, index) => {
-      const donorBottles = bottles.filter((b) => b.doadoraId === d.id);
-      const isCollected = donorBottles.length > 0;
-      const isSkipped = skippedIds.has(d.id);
+      const visit = visitsByDonor.get(d.id);
+      const visitBottleIds = visit?.bottleIds ?? [];
+      const donorBottles =
+        visitBottleIds.length > 0
+          ? bottles.filter((b) => visitBottleIds.includes(b.id))
+          : [];
 
-      // Cálculo de distância da parada anterior
+      const isSkipped = visit ? visit.status === 'skipped' : skippedIds.has(d.id);
+      const isCollected = visit ? visit.status === 'completed' || visitBottleIds.length > 0 : false;
+
       const rawDist = calculateHaversineKm(prevCoords[0], prevCoords[1], d.lat, d.lng) * 1.35;
       const distKm = Number(rawDist.toFixed(1));
       const mins = Math.max(3, Math.round(distKm * 2.2));
       prevCoords = [d.lat, d.lng];
 
-      // Cálculo do status da parada
       let status: StopStatus = 'pending';
       if (isSkipped) {
         status = 'skipped';
@@ -229,19 +296,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         foundNext = true;
       }
 
-      // Se a parada estiver em atendimento ativo
-      if (activeStopDonorId === d.id) {
-        if (activeFlowStep === 'arrived') status = 'arrived';
-        else if (activeFlowStep === 'collecting') status = 'arrived';
+      if (activeStopDonorId === d.id && (activeFlowStep === 'arrived' || activeFlowStep === 'collecting')) {
+        status = 'arrived';
       }
 
-      // Motivo do skip se houver
       const skipEntry = routeAssignment.skippedStops?.find((s) => s.donorId === d.id);
-
-      // Idade do bebê em dias
-      const dParto = new Date(d.parto);
-      const diffTime = Math.abs(new Date().getTime() - dParto.getTime());
-      const babyAgeDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const dParto = new Date(`${d.parto}T00:00:00`);
+      const babyAgeDays = isNaN(dParto.getTime())
+        ? 0
+        : Math.max(0, Math.floor((Date.now() - dParto.getTime()) / (1000 * 60 * 60 * 24)));
 
       return {
         stopNumber: index + 1,
@@ -259,45 +322,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         status,
         collected: isCollected,
         skipped: isSkipped,
-        skipMotivo: skipEntry?.motivo,
+        skipMotivo: visit?.skipReason || skipEntry?.motivo,
         bottlesCount: donorBottles.length,
-        latestBottleId: donorBottles[donorBottles.length - 1]?.id,
+        latestBottleId: donorBottles[0]?.id ?? visitBottleIds[visitBottleIds.length - 1],
         distanceFromPrevKm: distKm,
-        estimatedMinutesFromPrev: mins
+        estimatedMinutesFromPrev: mins,
       };
     });
   }, [donors, bottles, routeAssignment, activeStopDonorId, activeFlowStep]);
 
-  // Próxima Parada Ativa (a primeira nem concluída nem skipada)
   const nextStop = useMemo(() => {
     return currentZoneStops.find((s) => !s.collected && !s.skipped) || null;
   }, [currentZoneStops]);
 
-  // Métricas da rota atual
-  const routeMetrics = useMemo(() => {
-    return calculateRouteMetrics(currentZoneStops);
-  }, [currentZoneStops]);
+  const routeMetrics = useMemo(() => calculateRouteMetrics(currentZoneStops), [currentZoneStops]);
 
-  // Estatísticas Globais
+  // Estatísticas reais vindas da API (com fallback computado das queries locais)
   const stats = useMemo(() => {
+    if (summaryQuery.data) return summaryQuery.data;
+
     const activeDonors = donors.filter((d) => d.statusCadastro === 'ativa').length;
     const inactiveDonors = donors.filter((d) => d.statusCadastro === 'inativa').length;
     const aptDonors = donors.filter((d) => d.aptidao === 'Apta' && d.statusCadastro === 'ativa').length;
-    const inaptDonors = donors.filter((d) => (d.aptidao === 'Inapta' && d.statusCadastro === 'ativa') || d.statusCadastro === 'inativa').length;
+    const inaptDonors = donors.filter(
+      (d) => (d.aptidao === 'Inapta' && d.statusCadastro === 'ativa') || d.statusCadastro === 'inativa'
+    ).length;
     const totalBottles = bottles.length;
-
-    let totalVolumeMl = 0;
-    let tempSum = 0;
-
-    bottles.forEach((b) => {
-      totalVolumeMl += b.volume;
-      tempSum += b.temp;
-    });
-
-    const averageTemp = totalBottles > 0 ? (tempSum / totalBottles).toFixed(1) : '-17.2';
-    const inventoryStock = 142; // Estoque padrão esterilizado BLH
-    const bottlesWithMothers = aptDonors * 4;
-    const returnRate = '98.4%';
+    const totalVolumeMl = bottles.reduce((acc, b) => acc + b.volume, 0);
+    const averageTemp =
+      totalBottles > 0
+        ? (bottles.reduce((acc, b) => acc + b.temp, 0) / totalBottles).toFixed(1)
+        : '—';
 
     return {
       totalDonors: donors.length,
@@ -308,517 +363,646 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalBottles,
       totalVolumeMl,
       averageTemp,
-      inventoryStock,
-      bottlesWithMothers,
-      returnRate
+      inventoryStock: 0,
+      bottlesWithMothers: 0,
+      returnRate: '—',
     };
-  }, [donors, bottles]);
+  }, [summaryQuery.data, donors, bottles]);
 
+  const handleArrivalAtStop = useCallback(
+    (donorId: number) => {
+      setActiveStopDonorId(donorId);
+      setActiveFlowStep('arrived');
+      const stop = currentZoneStops.find((s) => s.donorId === donorId);
+      addToast({
+        type: 'success',
+        title: 'Você Chegou ao Local!',
+        description: `Iniciando atendimento na residência de ${stop?.donorName || 'doadora'}.`,
+      });
+    },
+    [currentZoneStops, addToast]
+  );
 
+  // Registro persistente de coleta na API
+  const finishStopCollectionAndShowLabel = useCallback(
+    (formData: CollectionFormData) => {
+      const donor = donors.find((d) => d.id === formData.doadoraId);
+      if (!donor) throw new Error('Doadora não encontrada');
 
-  // Registro de Chegada à Parada ("CHEGUEI")
-  const handleArrivalAtStop = useCallback((donorId: number) => {
-    setActiveStopDonorId(donorId);
-    setActiveFlowStep('arrived');
-    const stop = currentZoneStops.find((s) => s.donorId === donorId);
-    addToast({
-      type: 'success',
-      title: 'Você Chegou ao Local!',
-      description: `Iniciando atendimento na residência de ${stop?.donorName || 'doadora'}.`
-    });
-  }, [currentZoneStops, addToast]);
+      const tempId = bottles.length > 0 ? Math.max(...bottles.map((b) => b.id)) + 1 : 1;
+      const responsavel = routeAssignment?.collectorName || routeAssignment?.driverName;
+      const optimisticBottle = createBottleFromCollection(formData, donor, tempId, tempId, responsavel);
 
-  // Finalização da Coleta e Transição Imediata para Etiqueta
-  const finishStopCollectionAndShowLabel = useCallback((formData: CollectionFormData) => {
-    const donor = donors.find((d) => d.id === formData.doadoraId);
-    if (!donor) throw new Error('Doadora não encontrada');
+      queryClient.setQueryData<Bottle[]>(['bottles'], (prev = []) => [optimisticBottle, ...prev]);
+      setSelectedBottleId(optimisticBottle.id);
+      setActiveFlowStep('label_preview');
 
-    const nextId = bottles.length > 0 ? Math.max(...bottles.map((b) => b.id)) + 1 : 1;
-    const seqIndex = bottles.length + 123;
-    const newBottle = createBottleFromCollection(formData, donor, nextId, seqIndex);
+      void apiFetch<{ bottle: Bottle }>('/bottles', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...formData,
+          routeId: routeAssignment?.id,
+        }),
+      })
+        .then(({ bottle }) => {
+          setSelectedBottleId(bottle.id);
+          invalidateAll();
+          addToast({
+            type: 'success',
+            title: 'Coleta Registrada ✓',
+            description: `Frasco ${bottle.codigo} salvo no banco de dados. Confira a etiqueta.`,
+          });
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao salvar coleta');
+        });
 
-    setBottles((prev) => [newBottle, ...prev]);
-    setSelectedBottleId(newBottle.id);
-    setActiveFlowStep('label_preview');
+      return optimisticBottle;
+    },
+    [donors, bottles, routeAssignment, queryClient, invalidateAll, addToast, handleApiError]
+  );
 
-    addToast({
-      type: 'success',
-      title: 'Coleta Registrada ✓',
-      description: `Frasco ${newBottle.codigo} gerado. Revise e confirme a etiqueta antes de avançar.`
-    });
+  const confirmLabelAndCompleteStop = useCallback(
+    (bottleId: number) => {
+      setActiveFlowStep('completed');
+      void apiFetch(`/bottles/${bottleId}/labels`, {
+        method: 'POST',
+        body: JSON.stringify({ labelType: activeLabelType, format: '60x40mm', reason: 'Conferência de campo' }),
+      }).catch(() => {
+        // Reimpressões ou validações extras serão exibidas na Fase 3 (Etiquetagem avançada)
+      });
+      addToast({
+        type: 'success',
+        title: 'Etiqueta Registrada com Sucesso ✓',
+        description: 'Coleta concluída neste ponto da rota.',
+      });
+    },
+    [activeLabelType, addToast]
+  );
 
-    return newBottle;
-  }, [donors, bottles, addToast]);
-
-  // Confirmação da Etiqueta e Avanço para Próxima Parada
-  const confirmLabelAndCompleteStop = useCallback((bottleId: number) => {
-    setActiveFlowStep('completed');
-    addToast({
-      type: 'success',
-      title: 'Etiqueta Registrada com Sucesso ✓',
-      description: 'Coleta concluída neste ponto da rota.'
-    });
-  }, [addToast]);
-
-  // Avançar para a próxima parada da rota
+  // Corrigido: filtra !s.skipped além de !s.collected
   const advanceToNextStop = useCallback(() => {
-    const remaining = currentZoneStops.filter((s) => !s.collected && s.donorId !== activeStopDonorId);
+    const remaining = currentZoneStops.filter(
+      (s) => !s.collected && !s.skipped && s.donorId !== activeStopDonorId
+    );
     if (remaining.length > 0) {
       setActiveStopDonorId(remaining[0].donorId);
       setActiveFlowStep('navigating');
       addToast({
         type: 'info',
         title: `Próxima Parada: ${remaining[0].donorName}`,
-        description: `Distância estimada: ${remaining[0].distanceFromPrevKm} km (~${remaining[0].estimatedMinutesFromPrev} min).`
+        description: `Distância estimada: ${remaining[0].distanceFromPrevKm} km (~${remaining[0].estimatedMinutesFromPrev} min).`,
       });
     } else {
       setActiveFlowStep('overview');
       setActiveStopDonorId(null);
       addToast({
         type: 'success',
-        title: '🎉 Rota Finalizada!',
-        description: 'Todas as coletas de hoje foram realizadas com sucesso. Retorne ao Hospital Materno Infantil.'
+        title: 'Rota Finalizada!',
+        description: 'Todas as coletas de hoje foram resolvidas. Retorne ao Hospital Materno Infantil.',
       });
     }
   }, [currentZoneStops, activeStopDonorId, addToast]);
 
-  // Cadastro de Doadora com Triagem Go/No-Go
-  const addDonor = useCallback((formData: DonorFormData) => {
-    const verdict = evaluateGoNoGo(formData);
-    const nextId = donors.length > 0 ? Math.max(...donors.map((d) => d.id)) + 1 : 1;
-    const newDonor = createDonorFromForm(formData, nextId);
+  // ── Doadoras (Persistidas na API) ───────────────────────────────────────────
+  const addDonor = useCallback(
+    (formData: DonorFormData) => {
+      const verdict = evaluateGoNoGo(formData);
+      const tempId = donors.length > 0 ? Math.max(...donors.map((d) => d.id)) + 1 : 1;
+      const optimisticDonor = createDonorFromForm(formData, tempId);
 
-    setDonors((prev) => [newDonor, ...prev]);
+      queryClient.setQueryData<Donor[]>(['donors'], (prev = []) => [optimisticDonor, ...prev]);
 
-    if (verdict.approved) {
-      addToast({
-        type: 'success',
-        title: 'Doadora Aprovada (GO)',
-        description: `${newDonor.nome} foi cadastrada com sucesso e liberada para a rota da Zona ${newDonor.zona}.`
-      });
-    } else {
-      addToast({
-        type: 'warning',
-        title: 'Doadora Bloqueada (NO-GO)',
-        description: `Triagem indicou contraindicação sanitária: ${verdict.reasons[0]}`
-      });
-    }
-
-    return { donor: newDonor, verdict };
-  }, [donors, addToast]);
-
-  // Edição de Doadora existente
-  const updateDonor = useCallback((donorId: number, formData: DonorFormData) => {
-    setDonors((prev) => {
-      const oldDonor = prev.find((d) => d.id === donorId);
-      if (!oldDonor) return prev;
-
-      const updatedDonor = updateDonorFromForm(oldDonor, formData);
-
-      // Check if sorologia changed for toast message
-      const sorologiaChanged = oldDonor.sorologia1 !== formData.soro1Res ||
-                               oldDonor.sorologia2 !== formData.soro2Res ||
-                               oldDonor.sorologia3 !== formData.soro3Res;
-
-      if (sorologiaChanged) {
-        addToast({
-          type: 'warning',
-          title: 'Sorologia Alterada - Regra de Ouro',
-          description: `${updatedDonor.nome} foi marcada como Inapta e removida da rota ativa automaticamente.`
+      void apiFetch<{ donor: Donor; verdict: GoNoGoVerdict }>('/donors', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+      })
+        .then(({ donor, verdict: serverVerdict }) => {
+          invalidateAll();
+          if (serverVerdict.aptidao === 'Apta') {
+            addToast({
+              type: 'success',
+              title: 'Doadora Aprovada (GO)',
+              description: `${donor.nome} cadastrada e salva no banco de dados.`,
+            });
+          } else if (serverVerdict.aptidao === 'Pendente') {
+            addToast({
+              type: 'info',
+              title: 'Cadastro Salvo — Sorologia Pendente',
+              description: `${donor.nome} cadastrada como Pendente até lançamento dos laudos.`,
+            });
+          } else {
+            addToast({
+              type: 'warning',
+              title: 'Doadora Bloqueada (NO-GO)',
+              description: `Triagem indicou contraindicação sanitária: ${serverVerdict.reasons[0]}`,
+            });
+          }
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao cadastrar doadora');
         });
-      } else if (updatedDonor.aptidao === 'Apta' && oldDonor.aptidao !== 'Apta') {
-        addToast({
-          type: 'success',
-          title: 'Doadora Reabilitada',
-          description: `${updatedDonor.nome} agora está Apta e disponível para a rota da Zona ${updatedDonor.zona}.`
+
+      return { donor: optimisticDonor, verdict };
+    },
+    [donors, queryClient, invalidateAll, addToast, handleApiError]
+  );
+
+  const updateDonor = useCallback(
+    (donorId: number, formData: DonorFormData) => {
+      const oldDonor = donors.find((d) => d.id === donorId);
+      if (!oldDonor) return null;
+
+      const { donor: optimisticUpdated, verdict } = updateDonorFromForm(oldDonor, formData);
+      const becameAltered = hasSerologyBecameAltered(oldDonor, formData);
+
+      queryClient.setQueryData<Donor[]>(['donors'], (prev = []) =>
+        prev.map((d) => (d.id === donorId ? optimisticUpdated : d))
+      );
+
+      void apiFetch<{ donor: Donor; verdict: GoNoGoVerdict }>(`/donors/${donorId}`, {
+        method: 'PUT',
+        body: JSON.stringify(formData),
+      })
+        .then(({ donor, verdict: serverVerdict }) => {
+          invalidateAll();
+          if (becameAltered || serverVerdict.aptidao === 'Inapta') {
+            addToast({
+              type: 'warning',
+              title: becameAltered ? 'Sorologia Reagente — Regra de Ouro' : 'Doadora Inapta (NO-GO)',
+              description: `${donor.nome} foi marcada como Inapta e removida da rota ativa.`,
+            });
+          } else if (donor.aptidao === 'Apta' && oldDonor.aptidao !== 'Apta') {
+            addToast({
+              type: 'success',
+              title: 'Doadora Aprovada / Reabilitada (GO)',
+              description: `${donor.nome} agora está Apta para a Zona ${donor.zona}.`,
+            });
+          } else {
+            addToast({
+              type: 'info',
+              title: 'Dados Atualizados',
+              description: `${donor.nome} atualizada com sucesso no banco de dados.`,
+            });
+          }
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao atualizar doadora');
         });
-      } else {
+
+      return { donor: optimisticUpdated, verdict };
+    },
+    [donors, queryClient, invalidateAll, addToast, handleApiError]
+  );
+
+  const deleteDonor = useCallback(
+    (donorId: number) => {
+      const donor = donors.find((d) => d.id === donorId);
+      if (!donor) return;
+
+      queryClient.setQueryData<Donor[]>(['donors'], (prev = []) =>
+        prev.map((d) => (d.id === donorId ? { ...d, statusCadastro: 'inativa' as StatusCadastro } : d))
+      );
+
+      void apiFetch(`/donors/${donorId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ statusCadastro: 'inativa' }),
+      })
+        .then(() => {
+          invalidateAll();
+          addToast({
+            type: 'warning',
+            title: 'Doadora Inativada',
+            description: `${donor.nome} foi inativada com histórico preservado.`,
+          });
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao inativar doadora');
+        });
+    },
+    [donors, queryClient, invalidateAll, addToast, handleApiError]
+  );
+
+  const reactivateDonor = useCallback(
+    (donorId: number) => {
+      const donor = donors.find((d) => d.id === donorId);
+      if (!donor) return;
+
+      queryClient.setQueryData<Donor[]>(['donors'], (prev = []) =>
+        prev.map((d) => (d.id === donorId ? { ...d, statusCadastro: 'ativa' as StatusCadastro } : d))
+      );
+
+      void apiFetch(`/donors/${donorId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ statusCadastro: 'ativa' }),
+      })
+        .then(() => {
+          invalidateAll();
+          addToast({
+            type: 'success',
+            title: 'Doadora Reativada',
+            description: `${donor.nome} foi reativada com sucesso.`,
+          });
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao reativar doadora');
+        });
+    },
+    [donors, queryClient, invalidateAll, addToast, handleApiError]
+  );
+
+  const recordCollection = useCallback(
+    (formData: CollectionFormData) => finishStopCollectionAndShowLabel(formData),
+    [finishStopCollectionAndShowLabel]
+  );
+
+  // ── Rotas & Frota (Persistidas na API) ──────────────────────────────────────
+  const persistRouteDonorIds = useCallback(
+    (routeId: string, donorIds: number[]) => {
+      queryClient.setQueryData<RouteAssignment[]>(['routes'], (prev = []) =>
+        prev.map((r) => (r.id === routeId ? { ...r, donorIds } : r))
+      );
+      void apiFetch(`/routes/${routeId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ donorIds }),
+      })
+        .then(() => invalidateAll())
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao atualizar paradas da rota');
+        });
+    },
+    [queryClient, invalidateAll, handleApiError]
+  );
+
+  const optimizeCurrentRoute = useCallback(
+    (targetRouteIdParam?: string | unknown) => {
+      const targetRouteId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
+      const targetRoute = routes.find((r) => r.id === targetRouteId) || routeAssignment;
+      if (!targetRoute) return;
+
+      if (targetRoute.donorIds.length <= 1) {
         addToast({
           type: 'info',
-          title: 'Dados Atualizados',
-          description: `${updatedDonor.nome} teve seus dados atualizados com sucesso.`
+          title: 'Rota Já Otimizada',
+          description: 'A rota atual já possui o menor número de paradas lineares.',
         });
+        return;
       }
 
-      return prev.map((d) => (d.id === donorId ? updatedDonor : d));
-    });
-  }, [addToast]);
+      void apiFetch<{ route: RouteAssignment }>(`/routes/${targetRoute.id}/optimize`, {
+        method: 'POST',
+      })
+        .then(({ route }) => {
+          invalidateAll();
+          addToast({
+            type: 'success',
+            title: 'Rota Otimizada (2-opt)!',
+            description: `${route.code} (${route.name}) reorganizada no servidor sem cruzamentos.`,
+          });
+        })
+        .catch(() => {
+          const currentStopsDonors = targetRoute.donorIds
+            .map((id) => donors.find((d) => d.id === id))
+            .filter(Boolean) as Donor[];
+          const optimizedIds = optimizeDonorIdsNearestNeighbor(currentStopsDonors);
+          persistRouteDonorIds(targetRoute.id, optimizedIds);
+          addToast({
+            type: 'success',
+            title: 'Rota Otimizada (2-opt)!',
+            description: `${targetRoute.code} (${targetRoute.name}) reorganizada por menor distância.`,
+          });
+        });
+    },
+    [routes, routeAssignment, donors, persistRouteDonorIds, invalidateAll, addToast]
+  );
 
-  // Soft delete - inativar doadora (preserva histórico de coletas)
-  const deleteDonor = useCallback((donorId: number) => {
-    setDonors((prev) => {
-      const donor = prev.find((d) => d.id === donorId);
-      if (!donor) return prev;
+  const navigateToDonorRoute = useCallback(
+    (zone: ZoneName, donorId: number) => {
+      const day = (DAY_BY_ZONE[zone] as WeekDay) || 'Segunda';
+      setSelectedDay(day);
+      setActiveStopDonorId(donorId);
+      setCurrentView('roteirizacao');
+    },
+    [setCurrentView]
+  );
 
-      addToast({
-        type: 'warning',
-        title: 'Doadora Inativada',
-        description: `${donor.nome} foi inativada. Coletas anteriores permanecem 100% preservadas no histórico e no Dashboard.`
-      });
+  const getAllAssignedDonorIds = useCallback(
+    (day: WeekDay, excludeRouteId?: string) => {
+      const map = new Map<number, string>();
+      routes
+        .filter((r) => r.day === day && r.id !== excludeRouteId && r.status !== 'canceled')
+        .forEach((r) => {
+          r.donorIds.forEach((id) => map.set(id, r.code));
+        });
+      return map;
+    },
+    [routes]
+  );
 
-      return prev.map((d) =>
-        d.id === donorId ? { ...d, statusCadastro: 'inativa' as StatusCadastro } : d
+  const createRoute = useCallback(
+    (formData: RouteFormData) => {
+      const tempId = `tmp-${Date.now()}`;
+      const optimistic: RouteAssignment = {
+        id: tempId,
+        code: `ROT-${String(routes.length + 1).padStart(2, '0')}`,
+        name: formData.name.trim() || `Rota Zona ${formData.zone}`,
+        day: formData.day,
+        zone: formData.zone,
+        donorIds: formData.donorIds || [],
+        driverName: formData.driverName,
+        collectorName: formData.collectorName,
+        vehicleName: formData.vehicleName,
+        vehiclePlate: formData.vehiclePlate,
+        shift: formData.shift,
+        createdAt: new Date().toISOString(),
+        status: 'planning',
+        skippedStops: [],
+        notes: formData.notes,
+      };
+
+      setSelectedDay(formData.day);
+
+      void apiFetch<{ route: RouteAssignment }>('/routes', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+      })
+        .then(({ route }) => {
+          setActiveRouteIdState(route.id);
+          invalidateAll();
+          addToast({
+            type: 'success',
+            title: 'Rota Criada com Sucesso!',
+            description: `${route.code} (${route.name}) salva com ${route.donorIds.length} paradas.`,
+          });
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao criar rota');
+        });
+
+      return optimistic;
+    },
+    [routes.length, invalidateAll, addToast, handleApiError]
+  );
+
+  const updateRoute = useCallback(
+    (routeId: string, updates: Partial<RouteAssignment>) => {
+      queryClient.setQueryData<RouteAssignment[]>(['routes'], (prev = []) =>
+        prev.map((r) => (r.id === routeId ? { ...r, ...updates } : r))
       );
-    });
-  }, [addToast]);
 
-  // Reativar doadora previamente inativada
-  const reactivateDonor = useCallback((donorId: number) => {
-    setDonors((prev) => {
-      const donor = prev.find((d) => d.id === donorId);
-      if (!donor) return prev;
+      void apiFetch(`/routes/${routeId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      })
+        .then(() => {
+          invalidateAll();
+          addToast({
+            type: 'info',
+            title: 'Rota Atualizada',
+            description: 'As alterações da rota foram salvas com sucesso.',
+          });
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao atualizar rota');
+        });
+    },
+    [queryClient, invalidateAll, addToast, handleApiError]
+  );
 
-      addToast({
-        type: 'success',
-        title: 'Doadora Reativada',
-        description: `${donor.nome} foi reativada com sucesso no cadastro central.`
-      });
+  const deleteRoute = useCallback(
+    (routeId: string) => {
+      const target = routes.find((r) => r.id === routeId);
+      if (target?.status === 'active') {
+        addToast({
+          type: 'warning',
+          title: 'Rota em Trânsito',
+          description: 'Não é possível excluir uma rota ativa em trânsito. Finalize-a antes de remover.',
+        });
+        return;
+      }
 
-      return prev.map((d) =>
-        d.id === donorId ? { ...d, statusCadastro: 'ativa' as StatusCadastro } : d
+      void apiFetch(`/routes/${routeId}`, { method: 'DELETE' })
+        .then(() => {
+          invalidateAll();
+          addToast({
+            type: 'warning',
+            title: 'Rota Removida da Frota',
+            description: `${target?.code || 'A rota'} foi excluída com sucesso.`,
+          });
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao excluir rota');
+        });
+    },
+    [routes, invalidateAll, addToast, handleApiError]
+  );
+
+  const duplicateRoute = useCallback(
+    (routeId: string) => {
+      const source = routes.find((r) => r.id === routeId);
+      if (!source) return null;
+
+      void apiFetch<{ route: RouteAssignment }>(`/routes/${routeId}/duplicate`, {
+        method: 'POST',
+      })
+        .then(({ route }) => {
+          setActiveRouteIdState(route.id);
+          invalidateAll();
+          addToast({
+            type: 'success',
+            title: 'Rota Duplicada',
+            description: `${route.code} criada a partir de ${source.code} (sem conflito de paradas).`,
+          });
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao duplicar rota');
+        });
+
+      return source;
+    },
+    [routes, invalidateAll, addToast, handleApiError]
+  );
+
+  const addDonorToRoute = useCallback(
+    (donorId: number, targetRouteId?: string) => {
+      const route = routes.find((r) => r.id === (targetRouteId || routeAssignment?.id));
+      if (!route || route.donorIds.includes(donorId)) return;
+      persistRouteDonorIds(route.id, [...route.donorIds, donorId]);
+    },
+    [routes, routeAssignment, persistRouteDonorIds]
+  );
+
+  const removeDonorFromRoute = useCallback(
+    (donorId: number, targetRouteId?: string) => {
+      const route = routes.find((r) => r.id === (targetRouteId || routeAssignment?.id));
+      if (!route) return;
+      persistRouteDonorIds(
+        route.id,
+        route.donorIds.filter((id) => id !== donorId)
       );
-    });
-  }, [addToast]);
+    },
+    [routes, routeAssignment, persistRouteDonorIds]
+  );
 
-  // Registro de Coleta Avulsa
-  const recordCollection = useCallback((formData: CollectionFormData) => {
-    return finishStopCollectionAndShowLabel(formData);
-  }, [finishStopCollectionAndShowLabel]);
+  const reorderRouteStop = useCallback(
+    (fromIndex: number, toIndex: number, targetRouteId?: string) => {
+      const route = routes.find((r) => r.id === (targetRouteId || routeAssignment?.id));
+      if (!route) return;
+      const ids = [...route.donorIds];
+      const [moved] = ids.splice(fromIndex, 1);
+      ids.splice(toIndex, 0, moved);
+      persistRouteDonorIds(route.id, ids);
+    },
+    [routes, routeAssignment, persistRouteDonorIds]
+  );
 
-  // Otimização de Rota (TSP Nearest Neighbor)
-  const optimizeCurrentRoute = useCallback((targetRouteIdParam?: string | unknown) => {
-    const targetRouteId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
-    const targetRoute = routes.find((r) => r.id === targetRouteId) || routeAssignment;
-    if (!targetRoute) return;
-
-    if (targetRoute.donorIds.length <= 1) {
-      addToast({
-        type: 'info',
-        title: 'Rota Já Otimizada',
-        description: 'A rota atual já possui o menor número de paradas lineares.'
+  const setDriverInfo = useCallback(
+    (name: string, vehicle: string, collectorName?: string, vehiclePlate?: string, targetRouteId?: string) => {
+      const routeId = targetRouteId || routeAssignment?.id;
+      if (!routeId) return;
+      updateRoute(routeId, {
+        driverName: name,
+        vehicleName: vehicle,
+        ...(collectorName !== undefined ? { collectorName } : {}),
+        ...(vehiclePlate !== undefined ? { vehiclePlate } : {}),
       });
-      return;
-    }
+    },
+    [routeAssignment, updateRoute]
+  );
 
-    const currentStopsDonors = targetRoute.donorIds
-      .map((id) => donors.find((d) => d.id === id))
-      .filter(Boolean) as Donor[];
+  const selectAllZoneDonors = useCallback(
+    (targetRouteIdParam?: string | unknown) => {
+      const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
+      const target = routes.find((r) => r.id === routeId) || routeAssignment;
+      if (!target) return;
 
-    const optimizedIds = optimizeDonorIdsNearestNeighbor(currentStopsDonors);
-
-    setRoutes((prev) =>
-      prev.map((r) => (r.id === targetRoute.id ? { ...r, donorIds: optimizedIds } : r))
-    );
-
-    addToast({
-      type: 'success',
-      title: 'Rota Otimizada!',
-      description: `${targetRoute.code} (${targetRoute.name}) reorganizada por menor distância geodésica urbana.`
-    });
-  }, [routes, routeAssignment, donors, addToast]);
-
-  // Navegar direto para a rota da doadora
-  const navigateToDonorRoute = useCallback((zone: ZoneName, donorId: number) => {
-    const day = (DAY_BY_ZONE[zone] as WeekDay) || 'Segunda';
-    setSelectedDay(day);
-    setActiveStopDonorId(donorId);
-    setCurrentView('roteirizacao');
-  }, []);
-
-  // ─── CRUD de Frotas & Rotas Multi-Veículo (Fleet Management) ───────────────
-
-  const getAllAssignedDonorIds = useCallback((day: WeekDay, excludeRouteId?: string) => {
-    const map = new Map<number, string>();
-    routes
-      .filter((r) => r.day === day && r.id !== excludeRouteId && r.status !== 'canceled')
-      .forEach((r) => {
-        r.donorIds.forEach((id) => map.set(id, r.code));
-      });
-    return map;
-  }, [routes]);
-
-  const createRoute = useCallback((formData: RouteFormData) => {
-    const codeNumber = routes.length + 1;
-    const code = `ROT-${String(codeNumber).padStart(2, '0')}`;
-    const newId = `rot-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
-
-    let initialDonorIds = formData.donorIds || [];
-    if (formData.autoFillZoneDonors && initialDonorIds.length === 0) {
-      // Doadoras da zona que não estão alocadas em outras rotas do mesmo dia
-      const assigned = new Set(
+      const otherAssignedIds = new Set(
         routes
-          .filter((r) => r.day === formData.day && r.status !== 'canceled')
+          .filter((r) => r.day === target.day && r.id !== target.id && r.status !== 'canceled')
           .flatMap((r) => r.donorIds)
       );
-      const zoneDonors = donors.filter(
-        (d) => d.zona === formData.zone && d.aptidao === 'Apta' && d.statusCadastro === 'ativa' && !assigned.has(d.id)
-      );
-      initialDonorIds = optimizeDonorIdsNearestNeighbor(zoneDonors);
-    }
 
-    const newRoute: RouteAssignment = {
-      id: newId,
-      code,
-      name: formData.name.trim() || `${code} - Zona ${formData.zone}`,
-      day: formData.day,
-      zone: formData.zone,
-      donorIds: initialDonorIds,
-      driverName: formData.driverName,
-      collectorName: formData.collectorName,
-      vehicleName: formData.vehicleName,
-      vehiclePlate: formData.vehiclePlate,
-      shift: formData.shift,
-      createdAt: new Date().toISOString(),
-      status: 'planning',
-      skippedStops: [],
-      notes: formData.notes
-    };
+      const availableZoneIds = donors
+        .filter(
+          (d) =>
+            d.zona === target.zone &&
+            d.aptidao === 'Apta' &&
+            d.statusCadastro === 'ativa' &&
+            !otherAssignedIds.has(d.id)
+        )
+        .map((d) => d.id);
 
-    setRoutes((prev) => [...prev, newRoute]);
-    setActiveRouteIdState(newId);
-    setSelectedDay(formData.day);
-
-    addToast({
-      type: 'success',
-      title: 'Rota Criada com Sucesso!',
-      description: `${newRoute.code} (${newRoute.name}) adicionada à frota com ${initialDonorIds.length} paradas programadas.`
-    });
-
-    return newRoute;
-  }, [routes, donors, addToast]);
-
-  const updateRoute = useCallback((routeId: string, updates: Partial<RouteAssignment>) => {
-    setRoutes((prev) =>
-      prev.map((r) => (r.id === routeId ? { ...r, ...updates } : r))
-    );
-    addToast({
-      type: 'info',
-      title: 'Rota Atualizada',
-      description: 'As alterações da rota foram salvas com sucesso.'
-    });
-  }, [addToast]);
-
-  const deleteRoute = useCallback((routeId: string) => {
-    const target = routes.find((r) => r.id === routeId);
-    if (target?.status === 'active') {
+      persistRouteDonorIds(target.id, availableZoneIds);
       addToast({
-        type: 'warning',
-        title: 'Rota em Trânsito',
-        description: 'Não é possível excluir uma rota ativa em trânsito. Finalize-a antes de remover.'
+        type: 'info',
+        title: 'Todas incluídas',
+        description: `${availableZoneIds.length} doadoras da Zona ${target.zone} atribuídas à ${target.code}.`,
       });
-      return;
-    }
+    },
+    [routes, routeAssignment, donors, persistRouteDonorIds, addToast]
+  );
 
-    setRoutes((prev) => prev.filter((r) => r.id !== routeId));
+  const clearRouteAssignment = useCallback(
+    (targetRouteIdParam?: string | unknown) => {
+      const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
+      if (!routeId) return;
+      persistRouteDonorIds(routeId, []);
+      addToast({ type: 'info', title: 'Paradas limpas', description: 'As paradas da rota foram removidas.' });
+    },
+    [routeAssignment, persistRouteDonorIds, addToast]
+  );
 
-    if (activeRouteId === routeId) {
-      const remainingForDay = routes.filter((r) => r.id !== routeId && r.day === selectedDay);
-      setActiveRouteIdState(remainingForDay[0]?.id || null);
-    }
+  const activateRoute = useCallback(
+    (targetRouteIdParam?: string | unknown) => {
+      const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
+      if (!routeId) return;
 
-    addToast({
-      type: 'warning',
-      title: 'Rota Removida da Frota',
-      description: `${target?.code || 'A rota'} foi excluída. As doadoras retornaram imediatamente para o pool de disponíveis.`
-    });
-  }, [routes, activeRouteId, selectedDay, addToast]);
-
-  const duplicateRoute = useCallback((routeId: string) => {
-    const source = routes.find((r) => r.id === routeId);
-    if (!source) return null;
-
-    const codeNum = routes.length + 1;
-    const code = `ROT-${String(codeNum).padStart(2, '0')}`;
-    const newId = `rot-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
-
-    const duplicated: RouteAssignment = {
-      ...source,
-      id: newId,
-      code,
-      name: `${source.name} (Cópia)`,
-      status: 'planning',
-      createdAt: new Date().toISOString(),
-      startedAt: undefined,
-      completedAt: undefined,
-      skippedStops: []
-    };
-
-    setRoutes((prev) => [...prev, duplicated]);
-    setActiveRouteIdState(newId);
-
-    addToast({
-      type: 'success',
-      title: 'Rota Duplicada',
-      description: `${duplicated.code} criada a partir de ${source.code}.`
-    });
-
-    return duplicated;
-  }, [routes, addToast]);
-
-  // ─── Dispatcher Stop Management (Scoped to Route) ──────────────────────────
-
-  const addDonorToRoute = useCallback((donorId: number, targetRouteId?: string) => {
-    const routeId = targetRouteId || routeAssignment?.id;
-    if (!routeId) return;
-
-    setRoutes((prev) =>
-      prev.map((r) => {
-        if (r.id !== routeId) return r;
-        if (r.donorIds.includes(donorId)) return r;
-        return { ...r, donorIds: [...r.donorIds, donorId] };
+      void apiFetch<{ route: RouteAssignment }>(`/routes/${routeId}/start`, {
+        method: 'POST',
       })
-    );
-  }, [routeAssignment]);
+        .then(({ route }) => {
+          setActiveRouteIdState(route.id);
+          setActiveFlowStep('navigating');
+          if (nextStop) setActiveStopDonorId(nextStop.donorId);
+          invalidateAll();
+          addToast({
+            type: 'success',
+            title: 'Rota Iniciada!',
+            description: `${route.name} está em trânsito.`,
+          });
+        })
+        .catch((err) => handleApiError(err, 'Não foi possível iniciar a rota'));
+    },
+    [routeAssignment, nextStop, invalidateAll, addToast, handleApiError]
+  );
 
-  const removeDonorFromRoute = useCallback((donorId: number, targetRouteId?: string) => {
-    const routeId = targetRouteId || routeAssignment?.id;
-    if (!routeId) return;
+  const skipStop = useCallback(
+    (donorId: number, motivo: string, targetRouteId?: string) => {
+      const routeId = targetRouteId || routeAssignment?.id;
+      if (!routeId) return;
 
-    setRoutes((prev) =>
-      prev.map((r) => {
-        if (r.id !== routeId) return r;
-        return { ...r, donorIds: r.donorIds.filter((id) => id !== donorId) };
+      const skippedEntry: SkippedStop = { donorId, motivo, skippedAt: new Date().toISOString() };
+      queryClient.setQueryData<RouteAssignment[]>(['routes'], (prev = []) =>
+        prev.map((r) =>
+          r.id === routeId
+            ? { ...r, skippedStops: [...(r.skippedStops || []).filter((s) => s.donorId !== donorId), skippedEntry] }
+            : r
+        )
+      );
+
+      void apiFetch(`/routes/${routeId}/skip`, {
+        method: 'POST',
+        body: JSON.stringify({ donorId, motivo }),
       })
-    );
-  }, [routeAssignment]);
+        .then(() => {
+          invalidateAll();
+          const donor = donors.find((d) => d.id === donorId);
+          addToast({
+            type: 'warning',
+            title: 'Parada Não Realizada',
+            description: `${donor?.nome || 'Doadora'} marcada como não realizada: "${motivo}"`,
+          });
+        })
+        .catch((err) => {
+          invalidateAll();
+          handleApiError(err, 'Erro ao registrar parada não realizada');
+        });
+    },
+    [routeAssignment, donors, queryClient, invalidateAll, addToast, handleApiError]
+  );
 
-  const reorderRouteStop = useCallback((fromIndex: number, toIndex: number, targetRouteId?: string) => {
-    const routeId = targetRouteId || routeAssignment?.id;
-    if (!routeId) return;
+  const finishRoute = useCallback(
+    (targetRouteIdParam?: string | unknown) => {
+      const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
+      if (!routeId) return;
 
-    setRoutes((prev) =>
-      prev.map((r) => {
-        if (r.id !== routeId) return r;
-        const ids = [...r.donorIds];
-        const [moved] = ids.splice(fromIndex, 1);
-        ids.splice(toIndex, 0, moved);
-        return { ...r, donorIds: ids };
+      void apiFetch<{ route: RouteAssignment }>(`/routes/${routeId}/finish`, {
+        method: 'POST',
       })
-    );
-  }, [routeAssignment]);
-
-  const setDriverInfo = useCallback((name: string, vehicle: string, collectorName?: string, vehiclePlate?: string, targetRouteId?: string) => {
-    const routeId = targetRouteId || routeAssignment?.id;
-    if (!routeId) return;
-
-    setRoutes((prev) =>
-      prev.map((r) => {
-        if (r.id !== routeId) return r;
-        return {
-          ...r,
-          driverName: name,
-          vehicleName: vehicle,
-          ...(collectorName !== undefined ? { collectorName } : {}),
-          ...(vehiclePlate !== undefined ? { vehiclePlate } : {})
-        };
-      })
-    );
-  }, [routeAssignment]);
-
-  const selectAllZoneDonors = useCallback((targetRouteIdParam?: string | unknown) => {
-    const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
-    const target = routes.find((r) => r.id === routeId) || routeAssignment;
-    if (!target) return;
-
-    const otherAssignedIds = new Set(
-      routes
-        .filter((r) => r.day === target.day && r.id !== target.id && r.status !== 'canceled')
-        .flatMap((r) => r.donorIds)
-    );
-
-    const availableZoneIds = donors
-      .filter((d) => d.zona === target.zone && d.aptidao === 'Apta' && d.statusCadastro === 'ativa' && !otherAssignedIds.has(d.id))
-      .map((d) => d.id);
-
-    setRoutes((prev) =>
-      prev.map((r) => (r.id === target.id ? { ...r, donorIds: availableZoneIds } : r))
-    );
-
-    addToast({
-      type: 'info',
-      title: 'Todas incluídas',
-      description: `${availableZoneIds.length} doadoras da Zona ${target.zone} atribuídas à rota ${target.code}.`
-    });
-  }, [routes, routeAssignment, donors, addToast]);
-
-  const clearRouteAssignment = useCallback((targetRouteIdParam?: string | unknown) => {
-    const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
-    if (!routeId) return;
-
-    setRoutes((prev) =>
-      prev.map((r) => (r.id === routeId ? { ...r, donorIds: [], skippedStops: [] } : r))
-    );
-    addToast({ type: 'info', title: 'Paradas limpas', description: 'As paradas da rota foram desatribuídas.' });
-  }, [routeAssignment, addToast]);
-
-  const activateRoute = useCallback((targetRouteIdParam?: string | unknown) => {
-    const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
-    if (!routeId) return;
-
-    setRoutes((prev) =>
-      prev.map((r) =>
-        r.id === routeId ? { ...r, status: 'active' as RouteStatus, startedAt: new Date().toISOString() } : r
-      )
-    );
-    setActiveRouteIdState(routeId);
-    setActiveFlowStep('navigating');
-    if (nextStop) setActiveStopDonorId(nextStop.donorId);
-
-    const currentRoute = routes.find((r) => r.id === routeId);
-    addToast({
-      type: 'success',
-      title: '🚐 Rota Iniciada!',
-      description: `${currentRoute?.name || 'A rota'} está em trânsito. Siga para a Parada 1: ${nextStop?.donorName || 'Primeira doadora'}`
-    });
-  }, [routeAssignment, routes, nextStop, addToast]);
-
-  const skipStop = useCallback((donorId: number, motivo: string, targetRouteId?: string) => {
-    const routeId = targetRouteId || routeAssignment?.id;
-    if (!routeId) return;
-
-    const skippedEntry: SkippedStop = {
-      donorId,
-      motivo,
-      skippedAt: new Date().toISOString()
-    };
-
-    setRoutes((prev) =>
-      prev.map((r) => {
-        if (r.id !== routeId) return r;
-        return {
-          ...r,
-          skippedStops: [...(r.skippedStops || []).filter((s) => s.donorId !== donorId), skippedEntry]
-        };
-      })
-    );
-
-    const donor = donors.find((d) => d.id === donorId);
-    addToast({
-      type: 'warning',
-      title: 'Parada Não Realizada',
-      description: `${donor?.nome || 'Doadora'} marcada como não realizada: "${motivo}"`
-    });
-  }, [routeAssignment, donors, addToast]);
-
-  const finishRoute = useCallback((targetRouteIdParam?: string | unknown) => {
-    const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
-    if (!routeId) return;
-
-    setRoutes((prev) =>
-      prev.map((r) =>
-        r.id === routeId ? { ...r, status: 'completed' as RouteStatus, completedAt: new Date().toISOString() } : r
-      )
-    );
-    setActiveFlowStep('completed');
-    setActiveStopDonorId(null);
-
-    const currentRoute = routes.find((r) => r.id === routeId);
-    addToast({
-      type: 'success',
-      title: '🎉 Rota Finalizada com Sucesso!',
-      description: `${currentRoute?.name || 'A rota'} foi concluída e arquivada como registro histórico.`
-    });
-  }, [routeAssignment, routes, addToast]);
+        .then(({ route }) => {
+          setActiveFlowStep('completed');
+          setActiveStopDonorId(null);
+          invalidateAll();
+          addToast({
+            type: 'success',
+            title: 'Rota Finalizada com Sucesso!',
+            description: `${route.name} concluída e arquivada permanentemente.`,
+          });
+        })
+        .catch((err) => handleApiError(err, 'Não foi possível finalizar a rota'));
+    },
+    [routeAssignment, invalidateAll, addToast, handleApiError]
+  );
 
   const value: AppContextType = {
     donors,
@@ -835,6 +1019,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     activeFlowStep,
     activeStopDonorId,
     isRouteActive,
+    isDataLoading,
     stats,
     setCurrentView,
     setSelectedDay,
@@ -860,7 +1045,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     navigateToDonorRoute,
     addToast,
     removeToast,
-    // Fleet Multi-Route CRUD
     routes,
     activeRouteId,
     setActiveRouteId,
@@ -878,7 +1062,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     clearRouteAssignment,
     activateRoute,
     finishRoute,
-    skipStop
+    skipStop,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

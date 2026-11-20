@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -24,7 +24,12 @@ import { Badge } from '../../ui/Badge';
 import { Button } from '../../ui/Button';
 import { Modal } from '../../ui/Modal';
 import { EmptyState } from '../../ui/EmptyState';
-import { calculateMilkClass, getMilkClassDescription } from '../../../services/donorService';
+import { DonorProfileModal } from './DonorProfileModal';
+import {
+  calculateMilkClass,
+  getMilkClassDescription,
+  getConsolidatedSerologyStatus
+} from '../../../services/donorService';
 
 interface DoadorasTableProps {
   onEditDonor?: (donor: Donor) => void;
@@ -43,8 +48,14 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
   const [inspectDonor, setInspectDonor] = useState<Donor | null>(null);
+  const [profileDonor, setProfileDonor] = useState<Donor | null>(null);
   const [inactivatingDonor, setInactivatingDonor] = useState<Donor | null>(null);
   const [reactivatingDonor, setReactivatingDonor] = useState<Donor | null>(null);
+
+  // Reseta paginação sempre que filtros ou busca mudarem
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedZone, selectedStatus, selectedCadastroStatus]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -176,12 +187,6 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
         </div>
       </div>
 
-      {/* Indicador de rolagem lateral para celular */}
-      <div className="flex sm:hidden items-center justify-between text-[11px] text-blh-slate-500 pt-1">
-        <span>Tabela completa:</span>
-        <span className="font-semibold text-blh-primary">Deslize para o lado &rarr;</span>
-      </div>
-
       {/* Tabela de Dados */}
       {filteredDonors.length === 0 ? (
         <EmptyState
@@ -270,12 +275,44 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                     </div>
                     <div className="flex items-center justify-between text-[11px] pt-1 border-t border-blh-line/40">
                       <span>Classificação: <strong className="text-blh-slate-900">{milkDesc.name}</strong></span>
-                      <span>Sorologia: <strong className={d.sorologia1 === 'normal' ? 'text-emerald-700' : 'text-rose-700'}>{d.sorologia1 === 'normal' ? 'Não Reagente' : 'Alterada'}</strong></span>
+                      {(() => {
+                        const serologyStatus = getConsolidatedSerologyStatus(d);
+                        return (
+                          <span>
+                            Sorologia:{' '}
+                            <strong
+                              className={
+                                serologyStatus === 'normal'
+                                  ? 'text-emerald-700'
+                                  : serologyStatus === 'pendente'
+                                  ? 'text-amber-700'
+                                  : 'text-rose-700'
+                              }
+                            >
+                              {serologyStatus === 'normal'
+                                ? 'Não Reagente'
+                                : serologyStatus === 'pendente'
+                                ? 'Pendente'
+                                : 'Alterada'}
+                            </strong>
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
 
                   {/* Ações Mobile com toque ergonômico */}
-                  <div className="flex items-center justify-end gap-2 pt-1">
+                  <div className="flex items-center justify-end gap-2 pt-1 flex-wrap">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setProfileDonor(d)}
+                      leftIcon={<Eye className="w-3.5 h-3.5" />}
+                      className="text-xs min-h-[36px]"
+                    >
+                      Perfil
+                    </Button>
+
                     {!isApt && (
                       <Button
                         size="sm"
@@ -434,15 +471,26 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span
-                        className={`font-bold text-xs ${
-                          d.sorologia1 === 'normal'
-                            ? 'text-emerald-800'
-                            : 'text-rose-800'
-                        }`}
-                      >
-                        {d.sorologia1 === 'normal' ? 'Não Reagente' : 'Alterada'}
-                      </span>
+                      {(() => {
+                        const serologyStatus = getConsolidatedSerologyStatus(d);
+                        return (
+                          <span
+                            className={`font-bold text-xs ${
+                              serologyStatus === 'normal'
+                                ? 'text-emerald-800'
+                                : serologyStatus === 'pendente'
+                                ? 'text-amber-800'
+                                : 'text-rose-800'
+                            }`}
+                          >
+                            {serologyStatus === 'normal'
+                              ? 'Não Reagente'
+                              : serologyStatus === 'pendente'
+                              ? 'Pendente'
+                              : 'Alterada'}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3.5">
                       <Badge
@@ -464,7 +512,7 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                           }
                         }}
                         title={isActive ? "Cadastro Ativo. Clique para inativar (solicita confirmação)." : "Cadastro Inativo. Clique para reativar."}
-                        className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer shadow-xs ${
+                        className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer shadow-sm ${
                           isActive
                             ? 'bg-emerald-100/90 text-emerald-800 border border-emerald-300 hover:bg-emerald-200/90 hover:border-emerald-400'
                             : 'bg-blh-slate-100 text-blh-slate-600 border border-blh-slate-300 hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-300'
@@ -475,6 +523,18 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                     </td>
                     <td className="px-4 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {/* Perfil Completo 360° */}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setProfileDonor(d)}
+                          title="Ver Perfil 360° e Histórico de Coletas"
+                          className="p-2 min-h-[38px] min-w-[38px] rounded-lg text-blh-slate-700 hover:text-blh-primary hover:bg-blh-slate-100"
+                          aria-label="Ver Perfil Completo"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+
                         {/* Editar Cadastro na aba Cadastro de Doadora */}
                         {onEditDonor && (
                           <Button
@@ -536,7 +596,7 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-2.5 py-1.5 rounded-lg border border-blh-slate-200 text-blh-slate-700 hover:bg-blh-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs flex items-center gap-1"
+                  className="px-2.5 py-1.5 rounded-lg border border-blh-slate-200 text-blh-slate-700 hover:bg-blh-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1"
                   aria-label="Página anterior"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -551,7 +611,7 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                       onClick={() => setCurrentPage(page)}
                       className={`w-8 h-8 rounded-lg font-bold text-xs transition-all ${
                         currentPage === page
-                          ? 'bg-blh-primary text-white shadow-xs'
+                          ? 'bg-blh-primary text-white shadow-sm'
                           : 'border border-blh-slate-200 text-blh-slate-700 hover:bg-blh-slate-100'
                       }`}
                     >
@@ -564,7 +624,7 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-2.5 py-1.5 rounded-lg border border-blh-slate-200 text-blh-slate-700 hover:bg-blh-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs flex items-center gap-1"
+                  className="px-2.5 py-1.5 rounded-lg border border-blh-slate-200 text-blh-slate-700 hover:bg-blh-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-1"
                   aria-label="Próxima página"
                 >
                   <span className="hidden sm:inline">Próxima</span>
@@ -576,6 +636,13 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
         </div>
         </>
       )}
+
+      {/* Perfil Completo 360° da Doadora */}
+      <DonorProfileModal
+        donor={profileDonor}
+        onClose={() => setProfileDonor(null)}
+        onEdit={onEditDonor}
+      />
 
       {/* Modal de Laudo / Motivo da Reprovação */}
       {inspectDonor && (
@@ -602,16 +669,24 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
 
             <div className="text-xs space-y-2 text-blh-slate-600 bg-blh-slate-50 p-3.5 rounded-lg border border-blh-line">
               <div className="flex justify-between">
-                <span>Sorologia 1ª Amostra:</span>
-                <strong className="text-blh-slate-900">{inspectDonor.sorologia1 === 'normal' ? 'Normal' : 'Alterada'}</strong>
+                <span>Sorologias (1ª / 2ª / 3ª):</span>
+                <strong className="text-blh-slate-900">
+                  {[inspectDonor.sorologia1, inspectDonor.sorologia2, inspectDonor.sorologia3]
+                    .map((s) => (s === 'normal' ? 'Normal' : s === 'pendente' ? 'Pendente' : 'Alterada'))
+                    .join(' · ')}
+                </strong>
               </div>
               <div className="flex justify-between">
                 <span>Tabagismo:</span>
                 <strong className="text-blh-slate-900">{inspectDonor.fumo === 'nao' ? 'Não' : 'Ativo / Ocasional'}</strong>
               </div>
               <div className="flex justify-between">
-                <span>Tatuagem / Piercing recente:</span>
-                <strong className="text-blh-slate-900">{inspectDonor.tatuagem}</strong>
+                <span>Tatuagem / Piercing:</span>
+                <strong className="text-blh-slate-900">{inspectDonor.tatuagemData || inspectDonor.tatuagem}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>Transfusão de Sangue:</span>
+                <strong className="text-blh-slate-900">{inspectDonor.transfusaoData || inspectDonor.transfusao}</strong>
               </div>
               <div className="flex justify-between">
                 <span>Saneamento (Água Encanada):</span>

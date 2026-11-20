@@ -20,7 +20,8 @@ import {
   UserPlus,
   AlertTriangle,
   GripVertical,
-  Route
+  Route,
+  Building2
 } from 'lucide-react';
 import { useApp } from '../../../hooks/useApp';
 import { ZONE_BY_DAY } from '../../../constants/zones';
@@ -205,7 +206,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             </div>
 
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="px-2.5 py-1 rounded-lg bg-blh-primary text-white font-mono font-bold text-sm tracking-wide shadow-xs shrink-0 transition-transform duration-200">
+              <span className="px-2.5 py-1 rounded-lg bg-blh-primary text-white font-mono font-bold text-sm tracking-wide shadow-sm shrink-0 transition-transform duration-200">
                 {routeAssignment.code}
               </span>
               <h1 className="text-xl sm:text-2xl font-bold text-blh-slate-900 tracking-tight truncate">
@@ -251,7 +252,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
               id="select-route-input"
               value={routeAssignment.id}
               onChange={(e) => setActiveRouteId(e.target.value)}
-              className="w-full text-xs font-bold px-3 py-2 rounded-lg border border-blh-slate-300 bg-white text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary focus:border-blh-primary shadow-xs cursor-pointer transition-all duration-200 hover:border-blh-slate-400"
+              className="w-full text-xs font-bold px-3 py-2 rounded-lg border border-blh-slate-300 bg-white text-blh-slate-800 focus:outline-none focus:ring-2 focus:ring-blh-primary focus:border-blh-primary shadow-sm cursor-pointer transition-all duration-200 hover:border-blh-slate-400"
             >
               {dayRoutes.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -272,13 +273,13 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                       onClick={() => setActiveRouteId(r.id)}
                       className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all duration-200 ease-out transform active:scale-95 ${
                         isCurrent
-                          ? 'bg-blh-primary text-white shadow-xs ring-2 ring-blh-primary/30 scale-[1.03]'
+                          ? 'bg-blh-primary text-white shadow-sm ring-2 ring-blh-primary/30 scale-[1.03]'
                           : 'bg-white hover:bg-blh-slate-100 text-blh-slate-700 border border-blh-slate-200 hover:border-blh-slate-300 hover:scale-[1.01]'
                       }`}
                       title={`${r.code} - ${r.vehicleName || r.name} (${r.donorIds.length} paradas)`}
                     >
                       <span className="font-mono">{r.code}</span>
-                      <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono transition-colors duration-200 ${
+                      <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono transition-colors duration-200 ${
                         isCurrent ? 'bg-white/20 text-white font-bold' : 'bg-blh-slate-100 text-blh-slate-600'
                       }`}>
                         {r.donorIds.length}
@@ -371,7 +372,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Card Motorista / Condutor */}
-            <div className="bg-white p-3.5 rounded-xl border border-blh-slate-200/90 shadow-xs flex items-center gap-3">
+            <div className="bg-white p-3.5 rounded-xl border border-blh-slate-200/90 shadow-sm flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center shrink-0">
                 <User className="w-5 h-5 text-blue-700" />
               </div>
@@ -390,7 +391,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             </div>
 
             {/* Card Pessoa que foi coletar (Coletor / Enfermagem) */}
-            <div className="bg-white p-3.5 rounded-xl border border-blh-slate-200/90 shadow-xs flex items-center gap-3">
+            <div className="bg-white p-3.5 rounded-xl border border-blh-slate-200/90 shadow-sm flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
                 <UserCheck className="w-5 h-5 text-emerald-700" />
               </div>
@@ -591,8 +592,8 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
               {/* Ponto de Partida: Hospital Materno Infantil */}
               <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
-                    🏥
+                  <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <Building2 className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider block">
@@ -625,11 +626,11 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                           ? 'opacity-40 bg-blh-slate-100 scale-[0.99] border-blh-line'
                           : dragOverIndex === index
                           ? 'border-t-2 border-blh-primary bg-blh-primary-soft/30'
-                          : 'bg-white hover:bg-blh-slate-50/60 border-blh-line hover:border-blh-line-strong hover:shadow-xs'
+                          : 'bg-white hover:bg-blh-slate-50/60 border-blh-line hover:border-blh-line-strong hover:shadow-sm'
                       } ${stop.collected || stop.skipped ? 'opacity-65 bg-blh-slate-50/40' : ''}`}
                     >
                       {/* Ponto indicador no timeline */}
-                      <span className="absolute -left-[23px] sm:-left-[31px] top-4 w-3.5 h-3.5 rounded-full border-2 border-white bg-emerald-600 shadow-xs" />
+                      <span className="absolute -left-[23px] sm:-left-[31px] top-4 w-3.5 h-3.5 rounded-full border-2 border-white bg-emerald-600 shadow-sm" />
 
                       <div className="flex items-center gap-3">
                         {/* Grip para arrastar */}
@@ -644,7 +645,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
 
                         {/* Número da parada */}
                         <div
-                          className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold font-mono tabular-nums shrink-0 shadow-xs ${
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold font-mono tabular-nums shrink-0 shadow-sm ${
                             stop.collected
                               ? 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300'
                               : stop.skipped
@@ -709,7 +710,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                               type="button"
                               onClick={() => reorderRouteStop(index, Math.max(0, index - 1))}
                               disabled={index === 0}
-                              className="w-8 h-8 rounded-lg border border-blh-slate-200 flex items-center justify-center text-blh-slate-700 hover:bg-blh-slate-100 hover:text-blh-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs"
+                              className="w-8 h-8 rounded-lg border border-blh-slate-200 flex items-center justify-center text-blh-slate-700 hover:bg-blh-slate-100 hover:text-blh-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
                               title="Mover para cima"
                               aria-label="Mover para cima"
                             >
@@ -719,7 +720,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                               type="button"
                               onClick={() => reorderRouteStop(index, Math.min(routeStops.length - 1, index + 1))}
                               disabled={index === routeStops.length - 1}
-                              className="w-8 h-8 rounded-lg border border-blh-slate-200 flex items-center justify-center text-blh-slate-700 hover:bg-blh-slate-100 hover:text-blh-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs"
+                              className="w-8 h-8 rounded-lg border border-blh-slate-200 flex items-center justify-center text-blh-slate-700 hover:bg-blh-slate-100 hover:text-blh-slate-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
                               title="Mover para baixo"
                               aria-label="Mover para baixo"
                             >
@@ -730,7 +731,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                             <button
                               type="button"
                               onClick={() => removeDonorFromRoute(stop.donorId)}
-                              className="w-8 h-8 rounded-lg border border-amber-300 bg-amber-50/50 flex items-center justify-center text-amber-800 hover:bg-amber-100 transition-all shadow-xs"
+                              className="w-8 h-8 rounded-lg border border-amber-300 bg-amber-50/50 flex items-center justify-center text-amber-800 hover:bg-amber-100 transition-all shadow-sm"
                               title="Tirar só desta rota (permanece ativa para futuras)"
                               aria-label="Tirar desta rota"
                             >
@@ -747,8 +748,8 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
               {/* Ponto de Retorno: Hospital Materno Infantil */}
               <div className="p-3.5 rounded-xl border border-blh-slate-200 bg-blh-slate-50 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blh-slate-700 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
-                    🏥
+                  <div className="w-8 h-8 rounded-lg bg-blh-slate-700 text-white flex items-center justify-center shadow-sm shrink-0">
+                    <Building2 className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-blh-slate-600 tracking-wider block">
@@ -776,7 +777,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                 Adicionando doadoras à rota: <strong className="text-blh-slate-900">{routeAssignment.code} — {routeAssignment.name}</strong> ({routeAssignment.vehicleName})
               </span>
             </div>
-            <span className="text-[11px] font-bold text-blh-slate-700 bg-white px-2.5 py-0.5 rounded border border-blh-slate-200 self-start sm:self-auto shadow-xs">
+            <span className="text-[11px] font-bold text-blh-slate-700 bg-white px-2.5 py-0.5 rounded border border-blh-slate-200 self-start sm:self-auto shadow-sm">
               {assignedIds.length} {assignedIds.length === 1 ? 'parada alocada' : 'paradas alocadas'}
             </span>
           </div>
@@ -891,7 +892,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                           addDonorToRoute(donor.id);
                           setActiveTab('rota');
                         }}
-                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blh-primary hover:bg-blh-primary-dark text-white text-xs font-bold transition-all shadow-xs"
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blh-primary hover:bg-blh-primary-dark text-white text-xs font-bold transition-all shadow-sm"
                         title={`Incluir ${donor.nome} na rota ${routeAssignment.code}`}
                       >
                         <Plus className="w-3.5 h-3.5" />

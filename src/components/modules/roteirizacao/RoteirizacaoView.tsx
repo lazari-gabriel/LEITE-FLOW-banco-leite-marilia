@@ -10,7 +10,8 @@ import {
   XCircle,
   AlertCircle,
   Flag,
-  Lock
+  Lock,
+  Building2
 } from 'lucide-react';
 import { useApp } from '../../../hooks/useApp';
 import { ZONE_BY_DAY } from '../../../constants/zones';
@@ -24,6 +25,7 @@ import { Button } from '../../ui/Button';
 import { EmptyState } from '../../ui/EmptyState';
 import { LEITE_FLOW } from '../../../constants/blh';
 import { buildGoogleMapsSingleStopUrl } from '../../../services/routeService';
+import { openExternalUrlSafely } from '../../../utils/sanitize';
 
 type MainTab = 'frota' | 'montar' | 'executar';
 
@@ -72,7 +74,7 @@ export const RoteirizacaoView: React.FC = () => {
 
   const handleNavigateToStop = (stop: typeof currentZoneStops[0]) => {
     const url = buildGoogleMapsSingleStopUrl(stop.lat, stop.lng, stop.address);
-    window.open(url, '_blank');
+    openExternalUrlSafely(url);
   };
 
   const handleArrivedAtNextStop = (stop: typeof currentZoneStops[0]) => {
@@ -175,7 +177,7 @@ export const RoteirizacaoView: React.FC = () => {
         <div key="tab-panel-executar" className="animate-routeSwap space-y-4">
           {/* Seletor Rápido de Veículo caso haja mais de 1 rota no dia */}
           {dayRoutes.length > 1 && (
-            <div className="p-3 bg-white rounded-xl border border-blh-slate-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+            <div className="p-3 bg-white rounded-xl border border-blh-slate-200 flex flex-wrap items-center justify-between gap-2 shadow-sm">
               <div className="flex items-center gap-2 text-xs font-bold text-blh-slate-700">
                 <Truck className="w-4 h-4 text-blh-primary" />
                 <span>Veículo em Execução:</span>
@@ -188,7 +190,7 @@ export const RoteirizacaoView: React.FC = () => {
                     onClick={() => setActiveRouteId(r.id)}
                     className={`text-xs px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1.5 ${
                       routeAssignment?.id === r.id
-                        ? 'bg-blh-primary text-white shadow-xs'
+                        ? 'bg-blh-primary text-white shadow-sm'
                         : 'bg-blh-slate-100 text-blh-slate-700 hover:bg-blh-slate-200'
                     }`}
                   >
@@ -474,8 +476,8 @@ export const RoteirizacaoView: React.FC = () => {
                 {/* PONTO DE SAÍDA: HOSPITAL */}
                 <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center text-sm font-bold shadow-xs shrink-0">
-                      🏥
+                    <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center shadow-sm shrink-0">
+                      <Building2 className="w-4 h-4" />
                     </div>
                     <div>
                       <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider block">
@@ -492,7 +494,7 @@ export const RoteirizacaoView: React.FC = () => {
                 <div className="relative border-l-2 border-dashed border-emerald-200 ml-4 pl-4 sm:pl-6 space-y-3 my-2">
                   {currentZoneStops.map((stop) => (
                     <div key={stop.donorId} className="relative">
-                      <span className="absolute -left-[23px] sm:-left-[31px] top-5 w-3.5 h-3.5 rounded-full border-2 border-white bg-emerald-600 shadow-xs" />
+                      <span className="absolute -left-[23px] sm:-left-[31px] top-5 w-3.5 h-3.5 rounded-full border-2 border-white bg-emerald-600 shadow-sm" />
                       <StopCard
                         stop={stop}
                         onOpenColeta={() => setActiveModalDonorId(stop.donorId)}
@@ -505,8 +507,8 @@ export const RoteirizacaoView: React.FC = () => {
                 {/* PONTO DE RETORNO: HOSPITAL */}
                 <div className="p-3.5 rounded-xl border border-blh-slate-200 bg-blh-slate-50 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blh-slate-700 text-white flex items-center justify-center text-sm font-bold shadow-xs shrink-0">
-                      🏥
+                    <div className="w-8 h-8 rounded-lg bg-blh-slate-700 text-white flex items-center justify-center shadow-sm shrink-0">
+                      <Building2 className="w-4 h-4" />
                     </div>
                     <div>
                       <span className="text-[10px] uppercase font-bold text-blh-slate-600 tracking-wider block">

@@ -1,0 +1,47 @@
+name: LEITE FLOW CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  frontend:
+    name: Frontend (Tests + TypeCheck + Build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  backend:
+    name: Backend (Prisma + Integration Tests + Build + Postgres Schema Check)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      NODE_ENV: test
+      DATABASE_URL: file:./ci-test.db
+      JWT_ACCESS_SECRET: ci-access-secret-key-min-32-chars-leiteflow
+      JWT_REFRESH_SECRET: ci-refresh-secret-key-min-32-chars-leiteflow
+      CORS_ORIGIN: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run db:setup
+      - run: npm test
+      - run: npm run build
+      - name: Validar geração Prisma para PostgreSQL (Produção Online)
+        run: npm run db:use:postgres && npm run prisma:generate

@@ -128,7 +128,7 @@
 
 /* Utilitários de Toque e Responsividade Mobile */
 .pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
 
 .touch-pan-y {
@@ -144,10 +144,6 @@
   scrollbar-width: none;
 }
 
-.pb-safe {
-  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
-}
-
 /* Respeito estrito à preferência do usuário por redução de movimento (Acessibilidade WCAG) */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
@@ -158,13 +154,25 @@
   }
 }
 
-/* Estilos Específicos para Impressão Térmica de Etiquetas (60x40mm) e Folha A4 */
+/* Estilos Específicos para Impressão Térmica de Etiquetas (60x40mm) e Folha A4 em Lote */
 @media print {
+  @page {
+    margin: 4mm;
+  }
+
+  body.print-thermal-60x40 {
+    width: 60mm;
+    height: 40mm;
+  }
+
   body * {
     visibility: hidden;
   }
 
-  .etiqueta-print-area, .etiqueta-print-area * {
+  .etiqueta-print-area,
+  .etiqueta-print-area *,
+  .etiquetas-batch-print,
+  .etiquetas-batch-print * {
     visibility: visible;
   }
 
@@ -172,15 +180,34 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 100% !important;
-    max-width: 100% !important;
-    border: 2px solid #000 !important;
+    width: 60mm !important;
+    max-width: 60mm !important;
+    min-height: 40mm !important;
+    border: 1.5px solid #000 !important;
     box-shadow: none !important;
     margin: 0 !important;
-    padding: 10px !important;
+    padding: 2.5mm !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
-  header, aside, button {
+  .etiquetas-batch-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6mm !important;
+  }
+
+  .etiquetas-batch-print .etiqueta-print-area {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  header, aside, nav, button {
     display: none !important;
   }
 }

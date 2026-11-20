@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
@@ -19,6 +19,7 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'lg'
 }) => {
+  const titleId = useId();
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -59,11 +60,12 @@ export const Modal: React.FC<ModalProps> = ({
         className={`relative w-full ${maxWidthStyles[maxWidth]} bg-white rounded-xl shadow-floating border border-blh-line overflow-hidden z-10 transition-all duration-200 transform scale-100 animate-slideUp my-auto`}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
       >
         {/* Header */}
         <div className="px-6 py-4 border-b border-blh-line flex items-center justify-between bg-blh-slate-50/50">
           <div>
-            <h3 className="text-base font-semibold text-blh-slate-900 font-serif">{title}</h3>
+            <h3 id={titleId} className="text-base font-semibold text-blh-slate-900 font-serif">{title}</h3>
             {subtitle && <p className="text-xs text-blh-slate-500 mt-0.5">{subtitle}</p>}
           </div>
           <button

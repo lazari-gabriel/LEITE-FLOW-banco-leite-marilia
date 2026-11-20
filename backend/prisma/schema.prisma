@@ -1,0 +1,265 @@
+// Schema único compatível com SQLite (desenvolvimento local) e PostgreSQL (produção online).
+// Para produção online (Neon/Supabase/Railway/Render): npm run db:use:postgres
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String          @id @default(cuid())
+  name         String
+  email        String          @unique
+  passwordHash String
+  role         String          @default("COLETOR_CAMPO") // ADMIN | COORDENADOR_BLH | COLETOR_CAMPO | LABORATORIO
+  active       Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  refreshTokens      RefreshToken[]
+  labelPrintLogs     LabelPrintLog[]
+  auditLogs          AuditLog[]
+  inventoryMovements GlassInventoryMovement[]
+
+  @@index([role, active])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Donor {
+  id                Int      @id @default(autoincrement())
+  code              String   @unique
+  nome              String
+  bebe              String
+  sus               String
+  susNormalized     String   @unique
+  cpf               String   @default("Não informado")
+  cpfNormalized     String?
+  nascimento        String   @default("")
+  parto             String
+  telefone          String
+  endereco          String
+  bairro            String   @default("Marília")
+  zona              String   // Norte | Sul | Oeste | Leste | Rural
+  lat               Float
+  lng               Float
+  geocodeStatus     String   @default("approximate") // verified | approximate | failed
+  vacinaFebre       Boolean  @default(true)
+  vacinaDtpa        Boolean  @default(true)
+  transfusao        String   @default("Não")
+  transfusaoData    String?
+  tatuagem          String   @default("Não")
+  tatuagemData      String?
+  fumo              String   @default("nao") // nao | sim_pouco | sim_ativo
+  alcool            String   @default("nao") // nao | raro | frequente
+  medicacao         String   @default("Nenhuma")
+  aguaPotavel       Boolean  @default(true)
+  redeEsgoto        Boolean  @default(true)
+  renda             String?
+  pesoBebe          String?
+  apgar             String?
+  malformacao       String   @default("nao")
+  intercorrencias   String   @default("{\"infeccao\":false,\"hipertensao\":false,\"diabetes\":false,\"hepatite\":false}")
+  equipamento       String   @default("Duplex")
+  extracao          String   @default("Ordenha Manual")
+  produtosJunto     Boolean  @default(false)
+  soro1Data         String?
+  sorologia1        String   @default("pendente") // normal | alterada | pendente
+  soro2Data         String?
+  sorologia2        String   @default("pendente")
+  soro3Data         String?
+  sorologia3        String   @default("pendente")
+  aptidao           String   @default("Pendente") // Apta | Inapta | Pendente
+  statusCadastro    String   @default("ativa") // ativa | inativa
+  motivoInapta      String?
+  consentAcceptedAt DateTime?
+  dataCadastro      String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  visits             CollectionVisit[]
+  bottles            Bottle[]
+  inventoryMovements GlassInventoryMovement[]
+
+  @@index([zona, aptidao, statusCadastro])
+  @@index([cpfNormalized])
+}
+
+model Vehicle {
+  id              String   @id @default(cuid())
+  name            String
+  plate           String   @unique
+  type            String
+  capacityBottles Int      @default(16)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model StaffMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String   // motorista | coletor
+  phone     String   @default("")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role, active])
+}
+
+model Route {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  name          String
+  scheduledDate String    // YYYY-MM-DD
+  day           String    // Segunda | Terça | Quarta | Quinta | Sexta
+  zone          String    // Norte | Sul | Oeste | Leste | Rural
+  shift         String    @default("Manhã") // Manhã | Tarde | Integral
+  vehicleName   String
+  vehiclePlate  String?
+  driverName    String
+  collectorName String?
+  status        String    @default("planning") // planning | active | completed | canceled
+  notes         String?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  visits CollectionVisit[]
+
+  @@index([day, status])
+  @@index([scheduledDate, status])
+}
+
+model CollectionVisit {
+  id                 String    @id @default(cuid())
+  routeId            String
+  route              Route     @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  donorId            Int
+  donor              Donor     @relation(fields: [donorId], references: [id])
+  stopOrder          Int
+  status             String    @default("pending") // pending | arrived | completed | skipped
+  arrivedAt          DateTime?
+  completedAt        DateTime?
+  skippedAt          DateTime?
+  skipReason         String?
+  emptyJarsDelivered Int       @default(0)
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  bottles            Bottle[]
+  inventoryMovements GlassInventoryMovement[]
+
+  @@unique([routeId, donorId])
+  @@index([routeId, stopOrder])
+  @@index([donorId])
+}
+
+model Bottle {
+  id                   Int              @id @default(autoincrement())
+  codigo               String           @unique
+  donorId              Int
+  donor                Donor            @relation(fields: [donorId], references: [id])
+  visitId              String?
+  visit                CollectionVisit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  doadoraNome          String
+  zona                 String
+  volume               Int
+  temp                 Float
+  classe               String           // C | T | M
+  extracao             String
+  equipamento          String
+  firstExpressionAt    DateTime?
+  dataHoraColeta       String
+  collectedAt          DateTime         @default(now())
+  validadeCru          String
+  rawExpiresAt         DateTime?
+  statusPast           String           @default("Em Triagem") // Em Triagem | Em Análise | Em Quarentena | Pasteurizado | Dispensado | Descartado
+  acidez               String?
+  acidezDornicNum      Float?
+  crematocrito         String?
+  crematocritoKcal     Int?
+  microbiologyPassed   Boolean?
+  pasteurizedAt        DateTime?
+  pasteurizedExpiresAt DateTime?
+  destinoUTI           String           @default("Aguardando Análise Laboratorial")
+  discardReason        String?
+  responsavel          String
+  frascosEntregues     Int?
+  observacao           String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  labelPrints LabelPrintLog[]
+
+  @@index([donorId, collectedAt])
+  @@index([statusPast])
+}
+
+model LabelPrintLog {
+  id              String   @id @default(cuid())
+  bottleId        Int
+  bottle          Bottle   @relation(fields: [bottleId], references: [id], onDelete: Cascade)
+  labelType       String   // coleta | estocagem | pasteurizacao
+  copyNumber      Int      @default(1)
+  format          String   @default("60x40mm") // 60x40mm | 100x50mm | A4_BATCH | ZPL
+  reason          String?
+  status          String   @default("valid") // valid | voided
+  voidReason      String?
+  printedByUserId String?
+  printedBy       User?    @relation(fields: [printedByUserId], references: [id], onDelete: SetNull)
+  printedAt       DateTime @default(now())
+
+  @@index([bottleId, printedAt])
+}
+
+model GlassInventoryMovement {
+  id        String           @id @default(cuid())
+  donorId   Int?
+  donor     Donor?           @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  visitId   String?
+  visit     CollectionVisit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  type      String           // INITIAL_STOCK | DELIVERED_TO_DONOR | COLLECTED_FROM_DONOR | RETURNED_EMPTY | BROKEN_LOST
+  quantity  Int
+  notes     String?
+  userId    String?
+  user      User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime         @default(now())
+
+  @@index([type, createdAt])
+  @@index([donorId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail   String?
+  userRole    String?
+  action      String
+  entity      String
+  entityId    String?
+  detailsJson String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}

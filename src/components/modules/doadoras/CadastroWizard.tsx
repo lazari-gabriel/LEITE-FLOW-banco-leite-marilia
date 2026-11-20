@@ -9,12 +9,22 @@ import {
   FileCheck2,
   Calendar,
   X,
-  Save
+  Save,
+  MapPin
 } from 'lucide-react';
 import { Donor, DonorFormData, GoNoGoVerdict } from '../../../types/donor';
 import { useApp } from '../../../hooks/useApp';
 import { Button } from '../../ui/Button';
-import { calculateMilkClass, getMilkClassDescription, evaluateGoNoGo } from '../../../services/donorService';
+import { apiFetch } from '../../../services/apiClient';
+import {
+  calculateMilkClass,
+  getMilkClassDescription,
+  isValidCNS,
+  isValidCPF,
+  isValidPhone,
+  validateDonorDates,
+  findDuplicateDonor
+} from '../../../services/donorService';
 
 interface CadastroWizardProps {
   onSubmitted: (result: { donor: Donor; verdict: GoNoGoVerdict }) => void;
@@ -35,7 +45,9 @@ const INITIAL_FORM_DATA: DonorFormData = {
   vacinaFebre: true,
   vacinaDtpa: true,
   transfusao: 'Não',
+  transfusaoData: '',
   tatuagem: 'Não',
+  tatuagemData: '',
   fumo: 'nao',
   alcool: 'nao',
   medicacao: '',
@@ -54,12 +66,12 @@ const INITIAL_FORM_DATA: DonorFormData = {
   equipamento: 'Duplex',
   extracao: 'Ordenha Manual',
   produtosJunto: false,
-  soro1Data: new Date().toISOString().split('T')[0],
-  soro1Res: 'normal',
-  soro2Data: new Date().toISOString().split('T')[0],
-  soro2Res: 'normal',
-  soro3Data: new Date().toISOString().split('T')[0],
-  soro3Res: 'normal',
+  soro1Data: '',
+  soro1Res: 'pendente',
+  soro2Data: '',
+  soro2Res: 'pendente',
+  soro3Data: '',
+  soro3Res: 'pendente',
   statusCadastro: 'ativa'
 };
 
@@ -68,51 +80,110 @@ function donorToFormData(donor: Donor): DonorFormData {
     nome: donor.nome,
     bebe: donor.bebe,
     sus: donor.sus,
-    cpf: donor.cpf,
+    cpf: donor.cpf === 'Não informado' ? '' : donor.cpf,
     nascimento: donor.nascimento,
     parto: donor.parto,
     telefone: donor.telefone,
     zona: donor.zona,
     endereco: donor.endereco,
+    lat: donor.lat,
+    lng: donor.lng,
+    geocodeStatus: donor.geocodeStatus,
     vacinaFebre: donor.vacinaFebre,
     vacinaDtpa: donor.vacinaDtpa,
     transfusao: donor.transfusao,
+    transfusaoData: donor.transfusaoData || '',
     tatuagem: donor.tatuagem,
+    tatuagemData: donor.tatuagemData || '',
     fumo: donor.fumo,
     alcool: donor.alcool,
-    medicacao: donor.medicacao,
+    medicacao: donor.medicacao === 'Nenhuma' ? '' : donor.medicacao,
     aguaPotavel: donor.aguaPotavel,
     redeEsgoto: donor.redeEsgoto,
-    renda: 'De 1 a 3 salários mínimos',
-    pesoBebe: '',
-    apgar: '',
-    malformacao: 'nao',
-    intercorrencias: {
-      infeccao: false,
-      hipertensao: false,
-      diabetes: false,
-      hepatite: false
-    },
+    renda: donor.renda || 'De 1 a 3 salários mínimos',
+    pesoBebe: donor.pesoBebe || '',
+    apgar: donor.apgar || '',
+    malformacao: donor.malformacao || 'nao',
+    intercorrencias: donor.intercorrencias
+      ? { ...donor.intercorrencias }
+      : {
+          infeccao: false,
+          hipertensao: false,
+          diabetes: false,
+          hepatite: false
+        },
     equipamento: donor.equipamento,
     extracao: donor.extracao,
     produtosJunto: donor.produtosJunto,
-    soro1Data: new Date().toISOString().split('T')[0],
+    soro1Data: donor.soro1Data || '',
     soro1Res: donor.sorologia1,
-    soro2Data: new Date().toISOString().split('T')[0],
+    soro2Data: donor.soro2Data || '',
     soro2Res: donor.sorologia2,
-    soro3Data: new Date().toISOString().split('T')[0],
+    soro3Data: donor.soro3Data || '',
     soro3Res: donor.sorologia3,
     statusCadastro: donor.statusCadastro || 'ativa'
   };
 }
 
 export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, editingDonor, onCancelEdit }) => {
-  const { addDonor, updateDonor, cancelEditDonor } = useApp();
+  const { donors, addDonor, updateDonor, cancelEditDonor, addToast } = useApp();
   const handleCancel = onCancelEdit || cancelEditDonor;
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<DonorFormData>(INITIAL_FORM_DATA);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const handleGeocodeAddress = async () => {
+    if (!formData.endereco.trim()) {
+      setErrorMsg('Digite o endereço antes de localizar no GPS.');
+      return;
+    }
+    setIsGeocoding(true);
+    setErrorMsg(null);
+    try {
+      const res = await apiFetch<{
+        found: boolean;
+        lat?: number;
+        lng?: number;
+        geocodeStatus: 'verified' | 'approximate' | 'failed';
+        displayName?: string;
+        detail?: string;
+      }>('/geo/geocode', {
+        method: 'POST',
+        body: JSON.stringify({ address: formData.endereco.trim() }),
+      });
+
+      if (res.found && typeof res.lat === 'number' && typeof res.lng === 'number') {
+        setFormData((prev) => ({
+          ...prev,
+          lat: res.lat,
+          lng: res.lng,
+          geocodeStatus: 'verified',
+        }));
+        addToast({
+          type: 'success',
+          title: 'Endereço Localizado (GPS Real)',
+          description: `Coordenadas verificadas: ${res.lat.toFixed(5)}, ${res.lng.toFixed(5)}`,
+        });
+      } else {
+        setFormData((prev) => ({ ...prev, geocodeStatus: 'approximate' }));
+        addToast({
+          type: 'warning',
+          title: 'Coordenada Aproximada',
+          description: res.detail || 'Endereço não encontrado com precisão; será usada referência da zona.',
+        });
+      }
+    } catch {
+      addToast({
+        type: 'warning',
+        title: 'Geocodificação indisponível',
+        description: 'O cadastro continuará normalmente usando referência da zona.',
+      });
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
 
   const steps = [
     { num: 1, label: 'Identificação' },
@@ -160,8 +231,8 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
     setFormData({
       nome: 'Renata Silveira Prado',
       bebe: 'Gabriel Silveira',
-      sus: '898 0033 7788 9900',
-      cpf: '365.112.449-80',
+      sus: '898 0033 7788 9908',
+      cpf: '529.982.247-25',
       nascimento: '1997-06-20',
       parto: dParto.toISOString().split('T')[0],
       telefone: '(14) 99844-3321',
@@ -170,7 +241,9 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
       vacinaFebre: true,
       vacinaDtpa: true,
       transfusao: 'Não',
+      transfusaoData: '',
       tatuagem: 'Não',
+      tatuagemData: '',
       fumo: 'nao',
       alcool: 'nao',
       medicacao: 'Polivitamínico pós-parto e Sulfato Ferroso',
@@ -203,9 +276,25 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
     if (!formData.nome.trim()) return 'Informe o nome completo da doadora.';
     if (!formData.bebe.trim()) return 'Informe o nome do recém-nascido.';
     if (!formData.sus.trim()) return 'Informe o número do Cartão SUS.';
-    if (!formData.parto) return 'Informe a data do parto para classificação biológica do leite.';
+    if (!isValidCNS(formData.sus)) {
+      return 'Cartão Nacional de Saúde (SUS) inválido. Informe os 15 dígitos oficiais.';
+    }
+    if (formData.cpf.trim() && !isValidCPF(formData.cpf)) {
+      return 'CPF inválido. Verifique os 11 dígitos informados ou deixe em branco.';
+    }
+    const dateError = validateDonorDates(formData.nascimento, formData.parto);
+    if (dateError) return dateError;
     if (!formData.telefone.trim()) return 'Informe o telefone/WhatsApp para contato na rota.';
+    if (!isValidPhone(formData.telefone)) {
+      return 'Telefone inválido. Informe DDD + número (10 ou 11 dígitos).';
+    }
     if (!formData.endereco.trim()) return 'Informe o endereço residencial em Marília.';
+
+    const duplicate = findDuplicateDonor(donors, formData.sus, formData.cpf, editingDonor?.id);
+    if (duplicate) {
+      const label = duplicate.field === 'sus' ? 'Cartão SUS' : 'CPF';
+      return `Já existe uma doadora cadastrada com este ${label}: ${duplicate.donor.nome} (DOAD-${String(duplicate.donor.id).padStart(3, '0')}).`;
+    }
     return null;
   };
 
@@ -224,9 +313,10 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
     } else {
       // Submissão do cadastro ou atualização
       if (isEditing && editingDonor) {
-        updateDonor(editingDonor.id, formData);
-        const verdict = evaluateGoNoGo(formData);
-        onSubmitted({ donor: editingDonor, verdict });
+        const result = updateDonor(editingDonor.id, formData);
+        if (result) {
+          onSubmitted(result);
+        }
       } else {
         const result = addDonor(formData);
         onSubmitted(result);
@@ -245,9 +335,10 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
       setErrorMsg(err);
       return;
     }
-    updateDonor(editingDonor.id, formData);
-    const verdict = evaluateGoNoGo(formData);
-    onSubmitted({ donor: editingDonor, verdict });
+    const result = updateDonor(editingDonor.id, formData);
+    if (result) {
+      onSubmitted(result);
+    }
     setFormData(INITIAL_FORM_DATA);
     setStep(1);
     setIsEditing(false);
@@ -499,15 +590,39 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-blh-slate-700 mb-1">
-                Endereço Completo em Marília *
-              </label>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <label className="block text-xs font-semibold text-blh-slate-700">
+                  Endereço Completo em Marília *
+                </label>
+                <div className="flex items-center gap-2">
+                  {formData.geocodeStatus === 'verified' && formData.lat && formData.lng && (
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300">
+                      GPS Verificado ({formData.lat.toFixed(4)}, {formData.lng.toFixed(4)})
+                    </span>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    isLoading={isGeocoding}
+                    onClick={() => void handleGeocodeAddress()}
+                    leftIcon={<MapPin className="w-3.5 h-3.5" />}
+                  >
+                    Localizar GPS
+                  </Button>
+                </div>
+              </div>
               <input
                 type="text"
                 required
                 placeholder="Ex: Rua Tomé de Souza, 245 — Bairro Palmital, Marília - SP"
                 value={formData.endereco}
-                onChange={(e) => handleInputChange('endereco', e.target.value)}
+                onChange={(e) => {
+                  handleInputChange('endereco', e.target.value);
+                  if (formData.geocodeStatus === 'verified') {
+                    handleInputChange('geocodeStatus', 'approximate');
+                  }
+                }}
                 className="w-full text-xs sm:text-sm px-3 py-2 rounded-md border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
               />
             </div>
@@ -561,26 +676,30 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-blh-slate-700 mb-1">
-                  Transfusão de Sangue <span className="text-blh-slate-400 font-normal">Mês/Ano se houver</span>
+                  Data da Última Transfusão de Sangue <span className="text-blh-slate-400 font-normal">Deixe vazio se não realizou</span>
                 </label>
                 <input
-                  type="text"
-                  placeholder="Ex: Não, ou 05/2023"
-                  value={formData.transfusao}
-                  onChange={(e) => handleInputChange('transfusao', e.target.value)}
+                  type="date"
+                  value={formData.transfusaoData || ''}
+                  onChange={(e) => {
+                    handleInputChange('transfusaoData', e.target.value);
+                    handleInputChange('transfusao', e.target.value || 'Não');
+                  }}
                   className="w-full text-xs sm:text-sm px-3 py-2 rounded-md border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-blh-slate-700 mb-1">
-                  Tatuagem / Piercing / Micropigmentação <span className="text-blh-slate-400 font-normal">Carência &lt; 12 meses</span>
+                  Data da Última Tatuagem / Piercing <span className="text-blh-slate-400 font-normal">Carência &lt; 12 meses</span>
                 </label>
                 <input
-                  type="text"
-                  placeholder="Ex: Não, ou 11/2025"
-                  value={formData.tatuagem}
-                  onChange={(e) => handleInputChange('tatuagem', e.target.value)}
+                  type="date"
+                  value={formData.tatuagemData || ''}
+                  onChange={(e) => {
+                    handleInputChange('tatuagemData', e.target.value);
+                    handleInputChange('tatuagem', e.target.value || 'Não');
+                  }}
                   className="w-full text-xs sm:text-sm px-3 py-2 rounded-md border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
                 />
               </div>
@@ -844,6 +963,7 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
                       onChange={(e) => handleInputChange(sample.resKey as keyof DonorFormData, e.target.value)}
                       className="w-full text-xs px-2.5 py-1.5 rounded border border-blh-slate-300 focus:outline-none focus:ring-1 focus:ring-blh-primary bg-white font-medium"
                     >
+                      <option value="pendente">Pendente (Aguardando laudo)</option>
                       <option value="normal">Não Reagente (Sem alterações)</option>
                       <option value="alterada">Reagente / Alterada (Inapta)</option>
                     </select>

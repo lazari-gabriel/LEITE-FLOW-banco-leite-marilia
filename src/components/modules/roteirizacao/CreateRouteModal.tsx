@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
-import { X, Truck, User, HeartHandshake, Calendar, Clock, Plus, AlertCircle, Sparkles } from 'lucide-react';
+import { Truck, User, Plus, Sparkles } from 'lucide-react';
 import { useApp } from '../../../hooks/useApp';
 import { WeekDay, ZoneName } from '../../../types/donor';
 import { RouteFormData, RouteShift } from '../../../types/route';
-import { ZONAS_SEMANA, DAY_BY_ZONE, ZONE_BY_DAY } from '../../../constants/zones';
+import { DAY_BY_ZONE, ZONE_BY_DAY } from '../../../constants/zones';
 import { FLEET_VEHICLES, FLEET_DRIVERS, FLEET_COLLECTORS } from '../../../data/initialRoutes';
 import { Button } from '../../ui/Button';
+import { Modal } from '../../ui/Modal';
 
 interface CreateRouteModalProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
   defaultDay = 'Segunda',
   onCreated
 }) => {
-  const { createRoute, donors, getAllAssignedDonorIds } = useApp();
+  const { createRoute, donors, getAllAssignedDonorIds, addToast } = useApp();
 
   const initialZone = (ZONE_BY_DAY[defaultDay]?.zona || 'Norte') as ZoneName;
   const [name, setName] = useState('');
@@ -80,11 +80,11 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!vehicleName.trim()) {
-      alert('Informe o veículo da rota.');
+      addToast({ type: 'warning', title: 'Veículo obrigatório', description: 'Informe o veículo da rota.' });
       return;
     }
     if (!driverName.trim()) {
-      alert('Informe o Motorista / Condutor.');
+      addToast({ type: 'warning', title: 'Condutor obrigatório', description: 'Informe o Motorista / Condutor.' });
       return;
     }
 
@@ -106,34 +106,16 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
     onClose();
   };
 
-  return createPortal(
-    <div className="fixed inset-0 bg-blh-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-3 sm:p-4 animate-fadeIn overflow-y-auto">
-      <div 
-        className="bg-white rounded-2xl shadow-elevation w-full max-w-xl overflow-hidden border border-blh-slate-200 my-auto animate-scaleIn"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Cabeçalho */}
-        <div className="px-6 py-4 bg-blh-primary text-white flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-              <Truck className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-white">Criar Nova Rota de Frota</h3>
-              <p className="text-xs text-emerald-100">Despacho de veículo para coleta de leite materno</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Criar Nova Rota de Frota"
+      subtitle="Despacho de veículo para coleta de leite materno"
+      maxWidth="xl"
+    >
         {/* Formulário */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[82vh] overflow-y-auto text-left">
+        <form onSubmit={handleSubmit} className="space-y-4 text-left">
           {/* Nome da Rota */}
           <div>
             <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
@@ -170,7 +152,7 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
             <div>
               <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
                 <span>Dia da Semana</span>
-                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                   Automático
                 </span>
               </label>
@@ -352,8 +334,6 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
             </Button>
           </div>
         </form>
-      </div>
-    </div>,
-    document.body
+    </Modal>
   );
 };

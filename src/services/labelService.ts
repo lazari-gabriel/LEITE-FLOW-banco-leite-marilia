@@ -1,68 +1,111 @@
+import JsBarcode from 'jsbarcode';
+import QRCode from 'qrcode';
+import { Bottle, LabelType } from '../types/bottle';
+import { LEITE_FLOW } from '../constants/blh';
+
 /**
- * Gerador de Código de Barras Vetorial SVG (Code 128 / Padrão de Alta Resolução Hospitalar)
+ * Payload opaco do QR Code (LGPD: NUNCA incluir CPF, nome ou diagnóstico clínico).
  */
-export function generateBarcodeSvgElements(text: string): { rects: { x: number; y: number; width: number; height: number }[]; totalWidth: number } {
-  let x = 10;
-  const y = 0;
-  const height = 40;
-  const pattern = [2, 1, 1, 2, 3, 1, 2, 2, 1, 3, 1, 1, 2, 1, 3, 2, 1, 1, 2, 2, 2, 1, 1, 3, 1, 2, 1, 2, 3, 1, 1, 2, 2, 1, 3, 1, 2, 1, 1, 2, 3, 2];
-
-  // Hash the input string to get deterministic bars
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
-  }
-
-  const rects: { x: number; y: number; width: number; height: number }[] = [];
-  const barCount = 48;
-
-  for (let i = 0; i < barCount; i++) {
-    const pIdx = (i + (hash % 11)) % pattern.length;
-    const width = pattern[pIdx];
-    const isBlack = i % 2 === 0;
-
-    if (isBlack) {
-      rects.push({ x, y, width, height });
-    }
-    x += width + (i % 3 === 0 ? 1 : 0);
-  }
-
-  return { rects, totalWidth: x + 10 };
+export function buildOpaqueQrPayload(bottleCode: string): string {
+  return `LF1:${bottleCode.trim()}`;
 }
 
 /**
- * Gerador Vetorial de QR Code em SVG Puro (Garantia de Impressão Térmica 60x40mm)
+ * Renderiza Código de Barras CODE 128 REAL (ISO/IEC 15417) em elemento SVG via JsBarcode.
+ * Legível por qualquer scanner óptico hospitalar 1D/2D.
  */
-export function generateQrCodeSvgPath(content: string): { paths: string[]; size: number } {
-  const size = 21;
-  const paths: string[] = [];
+export function renderCode128ToSvg(svgElement: SVGSVGElement, code: string): void {
+  JsBarcode(svgElement, code, {
+    format: 'CODE128',
+    displayValue: false,
+    margin: 4,
+    width: 1.8,
+    height: 36,
+    background: '#ffffff',
+    lineColor: '#000000',
+  });
+}
 
-  // Marcadores de canto (Finder Patterns 7x7)
-  function drawFinder(rX: number, rY: number) {
-    paths.push(`M ${rX} ${rY} h 7 v 7 h -7 Z`);
-    paths.push(`M ${rX + 1} ${rY + 1} h 5 v 5 h -5 Z`);
-    paths.push(`M ${rX + 2} ${rY + 2} h 3 v 3 h -3 Z`);
-  }
+/**
+ * Gera matriz QR Code REAL (ISO/IEC 18004, correção de erro nível M + quiet zone 4 módulos).
+ * 100% síncrono e compatível com browser e Node/Vitest (decodificável por qualquer câmera/leitor).
+ */
+export function generateRealQrCodeSvg(content: string): {
+  viewBoxSize: number;
+  pathD: string;
+  moduleCount: number;
+} {
+  const qr = QRCode.create(content, { errorCorrectionLevel: 'M' });
+  const moduleCount = qr.modules.size;
+  const quietZone = 4;
+  const viewBoxSize = moduleCount + quietZone * 2;
+  const segments: string[] = [];
 
-  drawFinder(1, 1);
-  drawFinder(17, 1);
-  drawFinder(1, 17);
-
-  // Módulos de dados internos pseudo-determinísticos
-  let hash = 0;
-  for (let i = 0; i < content.length; i++) {
-    hash = (hash * 31 + content.charCodeAt(i)) % 1000007;
-  }
-
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      if ((r < 8 && c < 8) || (r < 8 && c > 13) || (r > 13 && c < 8)) continue;
-      const seed = (r * 19 + c * 37 + hash) % 7;
-      if (seed === 0 || seed === 2 || seed === 5) {
-        paths.push(`M ${c + 2} ${r + 2} h 1 v 1 h -1 Z`);
+  for (let row = 0; row < moduleCount; row++) {
+    for (let col = 0; col < moduleCount; col++) {
+      if (qr.modules.get(row, col)) {
+        segments.push(`M${col + quietZone},${row + quietZone}h1v1h-1z`);
       }
     }
   }
 
-  return { paths, size: 25 };
+  return {
+    viewBoxSize,
+    pathD: segments.join(''),
+    moduleCount,
+  };
+}
+
+/**
+ * Verifica se o frasco está sanitariamente liberado para receber o modelo de etiqueta solicitado.
+ * Modelo 3 (UTI Neonatal / Pasteurização) é BLOQUEADO enquanto o leite não estiver Pasteurizado/Dispensado.
+ */
+export function canEmitLabelType(bottle: Bottle, labelType: LabelType): { allowed: boolean; reason?: string } {
+  if (labelType === 'pasteurizacao') {
+    if (bottle.statusPast !== 'Pasteurizado' && bottle.statusPast !== 'Dispensado') {
+      return {
+        allowed: false,
+        reason:
+          'Bloqueio Sanitário (RDC 171/2006): a Etiqueta Hospitalar de UTI só pode ser emitida após análise laboratorial e liberação de pasteurização.',
+      };
+    }
+  }
+  return { allowed: true };
+}
+
+/**
+ * Gera comando ZPL II nativo para impressoras térmicas Zebra / Argox / Elgin (60x40mm @ 203 DPI = 480x320 dots).
+ */
+export function generateZplLabel(bottle: Bottle, labelType: LabelType): string {
+  const isPast = labelType === 'pasteurizacao';
+  const donorLine = isPast
+    ? `DOADORA ANONIMA (DOAD-${String(bottle.doadoraId).padStart(3, '0')})`
+    : bottle.doadoraNome.toUpperCase().slice(0, 34);
+  const validityLabel = isPast
+    ? `VAL. PAST (6M): ${bottle.pasteurizedExpiresAt || 'N/A'}`
+    : `VAL. CRU (15D): ${bottle.validadeCru}`;
+  const qrPayload = buildOpaqueQrPayload(bottle.codigo);
+
+  return [
+    '^XA',
+    '^CI28',
+    '^PW480',
+    '^LL320',
+    '^FO16,12^A0N,22,22^FDLEITE FLOW - BLH MARILIA^FS',
+    `^FO16,38^A0N,16,16^FD${LEITE_FLOW.hospitalName.slice(0, 36)}^FS`,
+    '^FO16,58^GB448,2,2^FS',
+    `^FO16,68^A0N,24,24^FD${bottle.codigo}^FS`,
+    `^FO16,96^A0N,18,18^FD${donorLine}^FS`,
+    `^FO16,120^A0N,18,18^FDVOL: ${bottle.volume} mL  |  TEMP: ${bottle.temp} C  |  CLASSE: ${bottle.classe}^FS`,
+    `^FO16,144^A0N,18,18^FD${validityLabel}^FS`,
+    isPast
+      ? `^FO16,168^A0N,16,16^FDACIDEZ: ${bottle.acidez || '-'} | CREM: ${bottle.crematocrito || '-'}^FS`
+      : `^FO16,168^A0N,16,16^FDCOLETA: ${bottle.dataHoraColeta} | ZONA: ${bottle.zona}^FS`,
+    // QR Code nativo ZPL (^BQN) com payload opaco sem PII
+    `^FO356,66^BQN,2,3^FDMA,${qrPayload}^FS`,
+    // Code 128 nativo ZPL (^BCN)
+    '^BY2,2,56',
+    `^FO24,200^BCN,56,Y,N,N^FD${bottle.codigo}^FS`,
+    '^XZ',
+  ].join('\n');
 }

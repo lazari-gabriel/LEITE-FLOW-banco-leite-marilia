@@ -22,8 +22,8 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../../hooks/useApp';
 import { RouteAssignment, RouteStatus } from '../../../types/route';
-import { calculateHaversineKm } from '../../../services/routeService';
-import { LEITE_FLOW } from '../../../constants/blh';
+import { calculateTourDistanceKm } from '../../../services/routeService';
+import { FLEET_VEHICLES } from '../../../data/initialRoutes';
 import { Button } from '../../ui/Button';
 import { EmptyState } from '../../ui/EmptyState';
 import { CreateRouteModal } from './CreateRouteModal';
@@ -93,29 +93,23 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
       const donorIds = route.donorIds || [];
       totalStops += donorIds.length;
 
-      // Paradas concluídas
+      // Paradas resolvidas usando CollectionVisit real da rota (suporta coletas recorrentes)
+      const visitsByDonor = new Map((route.visits ?? []).map((v) => [v.donorId, v]));
       donorIds.forEach((id) => {
-        const hasBottle = bottles.some((b) => b.doadoraId === id);
-        const isSkipped = route.skippedStops?.some((s) => s.donorId === id);
-        if (hasBottle || isSkipped) {
+        const visit = visitsByDonor.get(id);
+        const isDone = visit
+          ? visit.status === 'completed' || visit.status === 'skipped'
+          : route.skippedStops?.some((s) => s.donorId === id);
+        if (isDone) {
           completedStops++;
         }
       });
 
-      // Cálculo aproximado de Km por rota
+      // Cálculo unificado de Km (ida + retorno ao Hospital Materno Infantil)
       const routeDonors = donorIds
         .map((id) => donors.find((d) => d.id === id))
-        .filter(Boolean);
-
-      let prevCoords = LEITE_FLOW.coords;
-      let rKm = 0;
-      routeDonors.forEach((d) => {
-        if (d) {
-          rKm += calculateHaversineKm(prevCoords[0], prevCoords[1], d.lat, d.lng) * 1.35;
-          prevCoords = [d.lat, d.lng];
-        }
-      });
-      totalKm += rKm;
+        .filter((d): d is NonNullable<typeof d> => Boolean(d));
+      totalKm += calculateTourDistanceKm(routeDonors);
     });
 
     return {
@@ -296,10 +290,19 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
           {filteredRoutes.map((route, idx) => {
             const isSelected = activeRouteId === route.id;
             const donorIds = route.donorIds || [];
-            const completedCount = donorIds.filter((id) =>
-              bottles.some((b) => b.doadoraId === id) ||
-              route.skippedStops?.some((s) => s.donorId === id)
-            ).length;
+            const visitsByDonor = new Map((route.visits ?? []).map((v) => [v.donorId, v]));
+            const completedCount = donorIds.filter((id) => {
+              const v = visitsByDonor.get(id);
+              return v
+                ? v.status === 'completed' || v.status === 'skipped'
+                : route.skippedStops?.some((s) => s.donorId === id);
+            }).length;
+            const matchedVehicle = FLEET_VEHICLES.find(
+              (v) => v.plate === route.vehiclePlate || v.name === route.vehicleName
+            );
+            const capacityBottles = matchedVehicle?.capacityBottles ?? 16;
+            const estimatedRouteBottles = donorIds.length * 2;
+            const exceedsCapacity = estimatedRouteBottles > capacityBottles;
             const totalCount = donorIds.length;
             const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
             const isActive = route.status === 'active';
@@ -366,7 +369,7 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
                         {route.vehicleName}
                       </p>
                       {route.vehiclePlate && (
-                        <span className="inline-block font-mono text-[10px] font-bold px-1.5 py-0.2 bg-white rounded border border-blh-slate-300 text-blh-slate-600 uppercase">
+                        <span className="inline-block font-mono text-[10px] font-bold px-1.5 py-0.5 bg-white rounded border border-blh-slate-300 text-blh-slate-600 uppercase">
                           {route.vehiclePlate}
                         </span>
                       )}
@@ -393,8 +396,16 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
                     </div>
                   </div>
 
-                  {/* Barra de Progresso de Paradas */}
+                  {/* Barra de Progresso de Paradas + Capacidade Térmica */}
                   <div className="pt-2 border-t border-blh-slate-200/80 space-y-1">
+                    {exceedsCapacity && (
+                      <div className="p-1.5 rounded bg-amber-50 border border-amber-300 text-amber-900 text-[10px] font-bold flex items-center gap-1 mb-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>
+                          Est. ~{estimatedRouteBottles} frascos excede capacidade ({capacityBottles}). Considere dividir em 2 vans.
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-blh-slate-600 font-medium">Progresso da Rota:</span>
                       <span className="font-bold text-blh-slate-900">

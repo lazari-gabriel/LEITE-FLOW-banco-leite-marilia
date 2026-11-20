@@ -11,9 +11,10 @@ import {
   ChevronRight,
   X,
   Truck,
-  HeartHandshake
+  LogOut
 } from 'lucide-react';
 import { useApp } from '../../hooks/useApp';
+import { useAuth, UserRole } from '../../context/AuthContext';
 import { ViewMode } from '../../types/common';
 import { LEITE_FLOW } from '../../constants/blh';
 
@@ -31,6 +32,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setIsMobileOpen
 }) => {
   const { currentView, setCurrentView, currentZoneStops, stats, routeAssignment, routeMetrics } = useApp();
+  const { user, logout, hasRole } = useAuth();
+
+  const roleLabels: Record<UserRole, string> = {
+    ADMIN: 'Administrador',
+    COORDENADOR_BLH: 'Coordenação BLH',
+    COLETOR_CAMPO: 'Coleta Externa',
+    LABORATORIO: 'Laboratório BLH',
+  };
 
   const navItems = [
     {
@@ -38,41 +47,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Rotas de Coleta',
       badge: `${currentZoneStops.length} Paradas`,
       badgeColor: 'bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 font-bold',
-      icon: <Route className="w-5 h-5 shrink-0" />
+      icon: <Route className="w-5 h-5 shrink-0" />,
+      allowed: true,
     },
     {
       id: 'mapa' as ViewMode,
       label: 'Mapa da Região',
       badge: 'Marília',
       badgeColor: 'bg-teal-950/70 text-teal-300 border border-teal-500/40',
-      icon: <MapPin className="w-5 h-5 shrink-0" />
+      icon: <MapPin className="w-5 h-5 shrink-0" />,
+      allowed: true,
     },
     {
       id: 'etiquetas' as ViewMode,
       label: 'Etiquetas dos Frascos',
       badge: `${stats.totalBottles}`,
       badgeColor: 'bg-indigo-950/70 text-indigo-300 border border-indigo-500/40 font-mono',
-      icon: <Tag className="w-5 h-5 shrink-0" />
+      icon: <Tag className="w-5 h-5 shrink-0" />,
+      allowed: true,
     },
     {
       id: 'cadastro' as ViewMode,
-      label: 'Cadastrar Doadora',
+      label: 'Doadoras & Triagem',
       badge: null,
-      icon: <UserCheck className="w-5 h-5 shrink-0" />
+      icon: <UserCheck className="w-5 h-5 shrink-0" />,
+      allowed: hasRole('ADMIN', 'COORDENADOR_BLH'),
     },
     {
       id: 'visao' as ViewMode,
       label: 'Painel Geral',
       badge: null,
-      icon: <LayoutDashboard className="w-5 h-5 shrink-0" />
+      icon: <LayoutDashboard className="w-5 h-5 shrink-0" />,
+      allowed: true,
     },
     {
       id: 'accountability' as ViewMode,
-      label: 'Controle de Frascos',
+      label: 'Laboratório & Frascos',
       badge: null,
-      icon: <ShieldCheck className="w-5 h-5 shrink-0" />
+      icon: <ShieldCheck className="w-5 h-5 shrink-0" />,
+      allowed: true,
     }
-  ];
+  ].filter((item) => item.allowed);
 
   const handleNavigate = (view: ViewMode) => {
     setCurrentView(view);
@@ -184,11 +199,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Status da Van & Telemetria de Frota */}
         {!isCollapsed && (
-          <div className="p-3.5 mx-3 mb-3 rounded-xl bg-gradient-to-b from-blh-slate-850 to-blh-slate-900 border border-blh-slate-800 shadow-hud text-xs space-y-2.5">
+          <div className="p-3.5 mx-3 mb-3 rounded-xl bg-gradient-to-b from-blh-slate-800 to-blh-slate-900 border border-blh-slate-800 shadow-hud text-xs space-y-2.5">
             {/* Status Live */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="relative flex h-2 w-2 shrink-0">
                   {routeAssignment?.status === 'active' && (
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   )}
@@ -200,30 +215,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'bg-blh-slate-500'
                   }`} />
                 </span>
-                <span className="text-[11px] font-bold tracking-wider uppercase text-slate-200">
-                  {routeAssignment?.status === 'active'
-                    ? 'Van 01 · Em Campo'
-                    : routeAssignment?.status === 'completed'
-                    ? 'Van 01 · No Hospital'
-                    : 'Van 01 · Em Espera'}
+                <span className="text-[11px] font-bold tracking-wider uppercase text-slate-200 truncate">
+                  {routeAssignment
+                    ? `${routeAssignment.code} · ${
+                        routeAssignment.status === 'active'
+                          ? 'Em Campo'
+                          : routeAssignment.status === 'completed'
+                          ? 'Concluída'
+                          : 'Planejada'
+                      }`
+                    : 'Sem rota ativa'}
                 </span>
               </div>
-              <span className="font-mono text-[10px] font-semibold text-emerald-400/90 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/40">
-                LF-2026
-              </span>
+              {routeAssignment?.vehiclePlate && (
+                <span className="font-mono text-[10px] font-semibold text-emerald-400/90 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/40 shrink-0">
+                  {routeAssignment.vehiclePlate}
+                </span>
+              )}
             </div>
 
             {/* Veículo & Modelo */}
             <div className="text-[11px] text-blh-slate-300 font-medium truncate flex items-center gap-1.5">
               <Truck className="w-3.5 h-3.5 text-blh-slate-400 shrink-0" />
-              <span className="truncate">Fiorino — Coleta Domiciliar</span>
+              <span className="truncate">{routeAssignment?.vehicleName || 'Nenhum veículo escalado'}</span>
             </div>
 
             {/* Telemetria Grid */}
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-blh-slate-800/80 text-[10px]">
               <div className="bg-blh-slate-900/60 p-1.5 rounded-lg border border-blh-slate-800">
-                <span className="text-blh-slate-400 block text-[9px] uppercase font-bold tracking-wider">Câmara Fria</span>
-                <span className="text-emerald-400 font-mono font-bold text-xs">-17.2 °C</span>
+                <span className="text-blh-slate-400 block text-[9px] uppercase font-bold tracking-wider">Média Caixa</span>
+                <span className="text-emerald-400 font-mono font-bold text-xs">
+                  {stats.totalBottles > 0 ? `${stats.averageTemp} °C` : 'Sem aferição'}
+                </span>
               </div>
               <div className="bg-blh-slate-900/60 p-1.5 rounded-lg border border-blh-slate-800">
                 <span className="text-blh-slate-400 block text-[9px] uppercase font-bold tracking-wider">Percurso Est.</span>
@@ -242,40 +265,57 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="flex items-center justify-between text-blh-slate-400">
                 <span>Coletor(a):</span>
                 <span className="text-slate-300 font-medium truncate max-w-[120px]">
-                  {routeAssignment?.vehicleName || 'Não escalado'}
+                  {routeAssignment?.collectorName || 'Não escalado'}
                 </span>
               </div>
             </div>
           </div>
         )}
 
-        {/* Footer */}
-        <div className="p-3 border-t border-blh-slate-800 flex items-center justify-between">
+        {/* Footer — Usuário Autenticado & Logout */}
+        <div className="p-3 border-t border-blh-slate-800 flex items-center justify-between gap-2">
           {!isCollapsed ? (
-            <div className="flex items-center gap-2.5 min-w-0 px-1">
+            <div className="flex items-center gap-2.5 min-w-0 px-1 flex-1">
               <div className="w-8 h-8 rounded-full bg-blh-slate-800 border border-blh-slate-700 flex items-center justify-center font-serif text-xs font-bold text-emerald-400 shrink-0">
-                LF
+                {user?.name?.charAt(0).toUpperCase() || 'LF'}
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-slate-200 truncate">{LEITE_FLOW.hospitalName}</p>
-                <p className="text-[10px] text-blh-slate-400 truncate">Banco de Leite de Marília</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-slate-200 truncate">
+                  {user?.name || LEITE_FLOW.hospitalName}
+                </p>
+                <p className="text-[10px] text-emerald-400 truncate">
+                  {user ? roleLabels[user.role] : 'Banco de Leite de Marília'}
+                </p>
               </div>
             </div>
           ) : (
             <div className="w-full flex justify-center py-1">
               <div className="w-8 h-8 rounded-full bg-blh-slate-800 border border-blh-slate-700 flex items-center justify-center font-serif text-xs font-bold text-emerald-400">
-                LF
+                {user?.name?.charAt(0).toUpperCase() || 'LF'}
               </div>
             </div>
           )}
 
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex p-1.5 rounded-md text-blh-slate-400 hover:text-white hover:bg-blh-slate-800 transition-colors"
-            title={isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
-          >
-            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className="p-1.5 rounded-md text-blh-slate-400 hover:text-rose-300 hover:bg-blh-slate-800 transition-colors"
+              title="Sair do sistema"
+              aria-label="Sair do sistema"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden lg:flex p-1.5 rounded-md text-blh-slate-400 hover:text-white hover:bg-blh-slate-800 transition-colors"
+              title={isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
+            >
+              {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </aside>
     </>

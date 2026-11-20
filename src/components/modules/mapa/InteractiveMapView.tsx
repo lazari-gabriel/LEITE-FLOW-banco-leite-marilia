@@ -33,6 +33,7 @@ import {
   buildWhatsAppUrl,
   fetchDrivingRouteGeometry 
 } from '../../../services/routeService';
+import { escapeHtml, openExternalUrlSafely } from '../../../utils/sanitize';
 
 const MAP_PROVIDERS = {
   osm: {
@@ -76,7 +77,10 @@ export const InteractiveMapView: React.FC = () => {
     optimizeCurrentRoute,
     handleArrivalAtStop,
     donors,
+    routes,
+    setActiveRouteId,
     routeAssignment,
+    stats,
     activateRoute,
     finishRoute,
     skipStop,
@@ -122,18 +126,19 @@ export const InteractiveMapView: React.FC = () => {
     tileLayerRef.current = newTileLayer;
   };
 
-  // Checklist interativo de chegada
+  // Checklist interativo de chegada (inicia desmarcado e reseta ao mudar de parada)
   const [checkedArrivalItems, setCheckedArrivalItems] = useState<Record<string, boolean>>({
-    temp: true,
-    recolher: true,
-    entregar: true,
-    lacre: true
+    temp: false,
+    recolher: false,
+    entregar: false,
+    lacre: false,
   });
 
   const toggleChecklistItem = (key: string) => {
     setCheckedArrivalItems((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const dayRoutes = routes.filter((r) => r.day === selectedDay && r.status !== 'canceled');
   const zoneConfig = ZONE_BY_DAY[selectedDay] || ZONE_BY_DAY['Segunda'];
   const activeDonor = activeModalDonorId ? donors.find((d) => d.id === activeModalDonorId) : null;
   const activeSkipDonor = activeSkipDonorId ? donors.find((d) => d.id === activeSkipDonorId) : null;
@@ -143,11 +148,15 @@ export const InteractiveMapView: React.FC = () => {
   const isRoutePlanning = !isRouteActive && !isRouteCompleted;
 
   // Parada em foco no painel do mapa (clicada ou próxima)
-  const currentFocusedStop = 
-    currentZoneStops.find((s) => s.donorId === selectedStopDonorId) || 
-    nextStop || 
-    currentZoneStops[0] || 
+  const currentFocusedStop =
+    currentZoneStops.find((s) => s.donorId === selectedStopDonorId) ||
+    nextStop ||
+    currentZoneStops[0] ||
     null;
+
+  useEffect(() => {
+    setCheckedArrivalItems({ temp: false, recolher: false, entregar: false, lacre: false });
+  }, [currentFocusedStop?.donorId]);
 
   // Contagem para finalização da rota
   const totalStops = currentZoneStops.length;
@@ -156,9 +165,23 @@ export const InteractiveMapView: React.FC = () => {
   const resolvedCount = completedCount + skippedCount;
   const allResolved = totalStops > 0 && resolvedCount === totalStops;
 
+  // Cleanup do mapa ao desmontar o componente (evita vazamento de memória no Leaflet)
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        tileLayerRef.current = null;
+        markersLayerRef.current = null;
+        routeLayerRef.current = null;
+      }
+    };
+  }, []);
+
   // Inicialização e atualização do Mapa Leaflet
   useEffect(() => {
     if (!mapContainerRef.current) return;
+    let isMounted = true;
 
     try {
       if (!mapInstanceRef.current) {
@@ -215,9 +238,11 @@ export const InteractiveMapView: React.FC = () => {
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            font-size: 18px;
+            font-size: 13px;
+            font-weight: 800;
+            font-family: system-ui, sans-serif;
           ">
-            🏥
+            BLH
           </div>
         `,
         iconSize: [40, 40],
@@ -227,7 +252,7 @@ export const InteractiveMapView: React.FC = () => {
       L.marker(LEITE_FLOW.coords, { icon: hospitalIcon })
         .bindPopup(`
           <div style="font-family: system-ui, sans-serif; padding: 4px;">
-            <strong style="color: #235347; font-size: 13px;">${LEITE_FLOW.hospitalName}</strong>
+            <strong style="color: #235347; font-size: 13px;">${escapeHtml(LEITE_FLOW.hospitalName)}</strong>
             <p style="margin: 2px 0 0; font-size: 11px; color: #555;">Sede do BLH · Ponto de Saída e Retorno da Van</p>
           </div>
         `)
@@ -254,7 +279,7 @@ export const InteractiveMapView: React.FC = () => {
               background: ${pinColor};
               border: 3px solid #ffffff;
               border-radius: 50%;
-              box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+              box-shadow: ${isNext ? '0 0 0 4px #bae6fd, 0 3px 12px rgba(0,0,0,0.35)' : '0 3px 12px rgba(0,0,0,0.35)'};
               display: flex;
               align-items: center;
               justify-content: center;
@@ -263,9 +288,8 @@ export const InteractiveMapView: React.FC = () => {
               font-weight: bold;
               font-size: ${isNext ? '14px' : '12px'};
               cursor: pointer;
-              ${isNext ? 'ring: 4px solid #bae6fd;' : ''}
             ">
-              ${isCompleted ? '✓' : isSkipped ? '✕' : stop.stopNumber}
+              ${isCompleted ? '✓' : isSkipped ? '✕' : Number(stop.stopNumber)}
             </div>
           `,
           iconSize: [36, 36],
@@ -279,21 +303,77 @@ export const InteractiveMapView: React.FC = () => {
           setSelectedStopDonorId(stop.donorId);
         });
 
-        marker.bindPopup(`
-          <div style="font-family: system-ui, sans-serif; padding: 4px; max-width: 240px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 4px;">
-              <span style="background: ${pinColor}; color: #fff; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: bold;">
-                PARADA ${stop.stopNumber}
-              </span>
-              <span style="font-size: 10px; font-weight: 700; color: ${isCompleted ? '#1e7e59' : isSkipped ? '#e11d48' : isNext ? '#0284c7' : '#666'};">
-                ${isCompleted ? '✓ Concluída' : isSkipped ? '✕ Não Realizada' : isNext ? '● Próxima' : '○ Pendente'}
-              </span>
-            </div>
-            <strong style="font-size: 13px; color: #0f1c24; display: block;">${stop.donorName}</strong>
-            <span style="font-size: 11px; color: #555; display: block; margin-top: 2px;">${stop.address}</span>
-            ${isSkipped && stop.skipMotivo ? `<div style="margin-top: 4px; padding: 3px 6px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 4px; font-size: 10px; color: #9f1239;"><strong>Motivo:</strong> ${stop.skipMotivo}</div>` : ''}
-          </div>
-        `).addTo(markersLayer);
+        // Construção segura do popup via DOM API (prevenção estrita contra XSS)
+        const popupEl = document.createElement('div');
+        popupEl.style.fontFamily = 'system-ui, sans-serif';
+        popupEl.style.padding = '4px';
+        popupEl.style.maxWidth = '240px';
+
+        const headerRow = document.createElement('div');
+        headerRow.style.display = 'flex';
+        headerRow.style.alignItems = 'center';
+        headerRow.style.justifyContent = 'space-between';
+        headerRow.style.gap = '4px';
+        headerRow.style.marginBottom = '4px';
+
+        const stopBadge = document.createElement('span');
+        stopBadge.style.background = pinColor;
+        stopBadge.style.color = '#fff';
+        stopBadge.style.padding = '1px 6px';
+        stopBadge.style.borderRadius = '4px';
+        stopBadge.style.fontSize = '9px';
+        stopBadge.style.fontWeight = 'bold';
+        stopBadge.textContent = `PARADA ${stop.stopNumber}`;
+
+        const statusBadge = document.createElement('span');
+        statusBadge.style.fontSize = '10px';
+        statusBadge.style.fontWeight = '700';
+        statusBadge.style.color = isCompleted ? '#1e7e59' : isSkipped ? '#e11d48' : isNext ? '#0284c7' : '#666';
+        statusBadge.textContent = isCompleted
+          ? '✓ Concluída'
+          : isSkipped
+          ? '✕ Não Realizada'
+          : isNext
+          ? '● Próxima'
+          : '○ Pendente';
+
+        headerRow.appendChild(stopBadge);
+        headerRow.appendChild(statusBadge);
+        popupEl.appendChild(headerRow);
+
+        const nameEl = document.createElement('strong');
+        nameEl.style.fontSize = '13px';
+        nameEl.style.color = '#0f1c24';
+        nameEl.style.display = 'block';
+        nameEl.textContent = stop.donorName;
+        popupEl.appendChild(nameEl);
+
+        const addrEl = document.createElement('span');
+        addrEl.style.fontSize = '11px';
+        addrEl.style.color = '#555';
+        addrEl.style.display = 'block';
+        addrEl.style.marginTop = '2px';
+        addrEl.textContent = stop.address;
+        popupEl.appendChild(addrEl);
+
+        if (isSkipped && stop.skipMotivo) {
+          const skipBox = document.createElement('div');
+          skipBox.style.marginTop = '4px';
+          skipBox.style.padding = '3px 6px';
+          skipBox.style.background = '#fff1f2';
+          skipBox.style.border = '1px solid #fecdd3';
+          skipBox.style.borderRadius = '4px';
+          skipBox.style.fontSize = '10px';
+          skipBox.style.color = '#9f1239';
+
+          const skipLabel = document.createElement('strong');
+          skipLabel.textContent = 'Motivo: ';
+          skipBox.appendChild(skipLabel);
+          skipBox.appendChild(document.createTextNode(stop.skipMotivo));
+          popupEl.appendChild(skipBox);
+        }
+
+        marker.bindPopup(popupEl).addTo(markersLayer);
       });
 
       // 3. Traçado Viário Real pelas Ruas (OSRM Driving Engine)
@@ -313,7 +393,6 @@ export const InteractiveMapView: React.FC = () => {
         routeLayerRef.current = initialPolyline;
 
         setIsLoadingRoads(true);
-        let isMounted = true;
 
         fetchDrivingRouteGeometry(waypoints)
           .then((streetCoords) => {
@@ -349,23 +428,27 @@ export const InteractiveMapView: React.FC = () => {
           })
           .catch((err) => {
             console.warn('Erro ao desenhar traçado viário:', err);
-            setIsLoadingRoads(false);
+            if (isMounted) setIsLoadingRoads(false);
           });
       }
     } catch (err) {
       console.error('Erro no Leaflet:', err);
       setMapError(true);
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [currentZoneStops, selectedDay]);
 
   const handleOpenGoogleMaps = () => {
     const url = buildGoogleMapsUrl(currentZoneStops);
-    window.open(url, '_blank');
+    openExternalUrlSafely(url);
   };
 
   const handleNavigateToStop = (stop: typeof currentZoneStops[0]) => {
     const url = buildGoogleMapsSingleStopUrl(stop.lat, stop.lng, stop.address);
-    window.open(url, '_blank');
+    openExternalUrlSafely(url);
   };
 
   const handleViewLabel = (stop: typeof currentZoneStops[0]) => {
@@ -450,22 +533,44 @@ export const InteractiveMapView: React.FC = () => {
         </div>
       </div>
 
-      {/* Seletor Rápido de Zona */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs font-bold text-blh-slate-500 mr-1">Região:</span>
-        {ZONAS_SEMANA.map((z) => (
-          <button
-            key={z.dia}
-            onClick={() => setSelectedDay(z.dia)}
-            className={`text-xs px-3 py-1.5 rounded-lg border font-semibold transition-all ${
-              selectedDay === z.dia
-                ? 'bg-blh-primary text-white border-blh-primary shadow-sm'
-                : 'bg-white text-blh-slate-700 border-blh-line hover:border-blh-line-strong hover:bg-blh-slate-50'
-            }`}
-          >
-            Zona {z.zona} ({z.dia.substring(0, 3)})
-          </button>
-        ))}
+      {/* Seletor Rápido de Zona + Seletor Multi-Rota do Dia */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-bold text-blh-slate-500 mr-1">Região:</span>
+          {ZONAS_SEMANA.map((z) => (
+            <button
+              key={z.dia}
+              onClick={() => setSelectedDay(z.dia)}
+              className={`text-xs px-3 py-1.5 rounded-lg border font-semibold transition-all ${
+                selectedDay === z.dia
+                  ? 'bg-blh-primary text-white border-blh-primary shadow-sm'
+                  : 'bg-white text-blh-slate-700 border-blh-line hover:border-blh-line-strong hover:bg-blh-slate-50'
+              }`}
+            >
+              Zona {z.zona} ({z.dia.substring(0, 3)})
+            </button>
+          ))}
+        </div>
+
+        {dayRoutes.length > 1 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs font-bold text-blh-slate-500">Veículo:</span>
+            {dayRoutes.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setActiveRouteId(r.id)}
+                className={`text-xs px-2.5 py-1 rounded-lg font-bold border transition-all ${
+                  routeAssignment?.id === r.id
+                    ? 'bg-blh-slate-900 text-white border-blh-slate-900'
+                    : 'bg-white text-blh-slate-700 border-blh-line hover:bg-blh-slate-50'
+                }`}
+              >
+                {r.code} ({r.donorIds.length})
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Área do Mapa com Painel Integrado */}
@@ -488,7 +593,7 @@ export const InteractiveMapView: React.FC = () => {
                   onClick={() => changeMapProvider(key as MapProviderKey)}
                   className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-all ${
                     isSelected
-                      ? 'bg-blh-primary text-white shadow-xs font-bold'
+                      ? 'bg-blh-primary text-white shadow-sm font-bold'
                       : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-blh-slate-100 font-medium'
                   }`}
                   title={provider.name}
@@ -556,15 +661,15 @@ export const InteractiveMapView: React.FC = () => {
             </div>
           ) : (
             <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:left-auto sm:top-3 sm:right-3 z-10 sm:w-96 max-h-[85%] sm:max-h-[92%] overflow-y-auto bg-white/95 backdrop-blur-md rounded-2xl border border-blh-line shadow-floating p-4 sm:p-5 space-y-3.5 animate-slideUp">
-              {/* Tag de Telemetria de Frota */}
+              {/* Tag de Identificação Real da Rota Ativa */}
               <div className="flex items-center justify-between gap-2 pb-2 border-b border-blh-line/60">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-900 bg-emerald-100/90 px-2 py-0.5 rounded">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                  Telemetria · Van 01
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-900 bg-emerald-100/90 px-2 py-0.5 rounded truncate max-w-[60%]">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isRouteActive ? 'bg-emerald-600 animate-pulse' : 'bg-amber-500'}`} />
+                  {routeAssignment ? `${routeAssignment.code} · ${routeAssignment.vehiclePlate || routeAssignment.vehicleName.split(' - ')[0]}` : 'Sem rota'}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-mono font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded">
-                    -17.2°C Frio
+                    {stats.totalBottles > 0 ? `${stats.averageTemp}°C média` : 'Sem aferição'}
                   </span>
                   <button
                     type="button"
@@ -617,7 +722,7 @@ export const InteractiveMapView: React.FC = () => {
                 href={buildWhatsAppUrl(currentFocusedStop.donorName, currentFocusedStop.phone)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-xs"
+                className="p-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-sm"
                 title="Avisar mãe no WhatsApp"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-700" />

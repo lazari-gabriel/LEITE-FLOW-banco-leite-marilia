@@ -8,6 +8,7 @@ import {
   Menu
 } from 'lucide-react';
 import { useApp } from '../../hooks/useApp';
+import { useAuth } from '../../context/AuthContext';
 import { ViewMode } from '../../types/common';
 
 interface BottomNavProps {
@@ -16,6 +17,7 @@ interface BottomNavProps {
 
 export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMobileMenu }) => {
   const { currentView, setCurrentView, currentZoneStops, stats } = useApp();
+  const { hasRole } = useAuth();
 
   const navItems = [
     {
@@ -23,39 +25,44 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMobileMenu }) => {
       label: 'Rotas',
       badge: currentZoneStops.length > 0 ? `${currentZoneStops.length}` : null,
       icon: <Route className="w-5 h-5" />,
+      allowed: true,
     },
     {
       id: 'mapa' as ViewMode,
       label: 'Mapa',
       badge: null,
       icon: <MapPin className="w-5 h-5" />,
+      allowed: true,
     },
     {
       id: 'cadastro' as ViewMode,
       label: 'Doadoras',
       badge: null,
       icon: <UserPlus className="w-5 h-5" />,
+      allowed: hasRole('ADMIN', 'COORDENADOR_BLH'),
     },
     {
       id: 'etiquetas' as ViewMode,
       label: 'Frascos',
       badge: stats.totalBottles > 0 ? `${stats.totalBottles}` : null,
       icon: <Tag className="w-5 h-5" />,
+      allowed: true,
     },
     {
       id: 'visao' as ViewMode,
       label: 'Painel',
       badge: null,
       icon: <LayoutDashboard className="w-5 h-5" />,
+      allowed: true,
     },
-  ];
+  ].filter((item) => item.allowed);
 
   return (
     <nav 
       aria-label="Navegação móvel"
       className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-md border-t border-blh-line pb-safe shadow-elevation transition-all duration-200"
     >
-      <div className="grid grid-cols-6 items-center px-1.5 py-1 max-w-md mx-auto">
+      <div className={`grid ${navItems.length === 5 ? 'grid-cols-6' : 'grid-cols-5'} items-center px-1.5 py-1 max-w-md mx-auto`}>
         {navItems.map((item) => {
           const isActive = currentView === item.id;
           return (
@@ -78,7 +85,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMobileMenu }) => {
               <div className="relative">
                 {item.icon}
                 {item.badge && (
-                  <span className="absolute -top-1 -right-2 px-1 min-w-[16px] h-4 bg-emerald-600 text-white text-[9px] font-mono font-bold rounded-full flex items-center justify-center shadow-xs">
+                  <span className="absolute -top-1 -right-2 px-1 min-w-[16px] h-4 bg-emerald-600 text-white text-[9px] font-mono font-bold rounded-full flex items-center justify-center shadow-sm">
                     {item.badge}
                   </span>
                 )}

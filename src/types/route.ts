@@ -51,6 +51,7 @@ export interface RouteStop {
 export interface RouteMetrics {
   totalStops: number;
   completedStops: number;
+  skippedStops: number;
   pendingStops: number;
   distanceKm: number;
   estimatedMinutes: number;
@@ -60,11 +61,23 @@ export type RouteShift = 'Manhã' | 'Tarde' | 'Integral';
 
 export type RouteStatus = 'planning' | 'active' | 'completed' | 'canceled';
 
+export interface RouteVisitSummary {
+  id: string;
+  donorId: number;
+  stopOrder: number;
+  status: 'pending' | 'arrived' | 'completed' | 'skipped';
+  skipReason?: string;
+  arrivedAt?: string;
+  completedAt?: string;
+  bottleIds: number[];
+}
+
 /** Planejamento e despacho de rota de frota — Gestão Multi-Veículo (CRUD) */
 export interface RouteAssignment {
   id: string;                  // ex: "rot-20260929-01"
   code: string;                // ex: "ROT-01", "ROT-02"
   name: string;                // ex: "Van 01 - Rota Norte Principal"
+  scheduledDate?: string;      // YYYY-MM-DD
   day: WeekDay;
   zone: ZoneName;
   donorIds: number[];          // ordenados — posição = número da parada
@@ -78,6 +91,7 @@ export interface RouteAssignment {
   completedAt?: string;
   status: RouteStatus;
   skippedStops: SkippedStop[];  // paradas não realizadas com motivo
+  visits?: RouteVisitSummary[]; // paradas persistidas no backend (1:N com frascos)
   notes?: string;
 }
 

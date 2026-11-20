@@ -42,7 +42,8 @@ export function createBottleFromCollection(
   formData: CollectionFormData,
   donor: Donor,
   nextId: number,
-  sequenceIndex: number
+  sequenceIndex: number,
+  responsavel?: string
 ): Bottle {
   const now = new Date();
 
@@ -55,14 +56,17 @@ export function createBottleFromCollection(
     volume: formData.volume,
     temp: formData.temp,
     classe: formData.classe,
-    extracao: donor.extracao || "Ordenha Manual",
-    equipamento: donor.equipamento || "Freezer",
+    extracao: donor.extracao || 'Ordenha Manual',
+    equipamento: donor.equipamento || 'Freezer',
     dataHoraColeta: formatDateTime(now),
     validadeCru: calculateRawMilkExpiry(now),
-    statusPast: "Em Triagem",
-    acidez: "3.6 °D",
-    crematocrito: "670 Kcal/L",
-    destinoUTI: "Aguardando Pasteurização",
-    responsavel: `Equipe LEITE FLOW ${donor.zona} (Matr. 3891)`
+    statusPast: 'Em Triagem',
+    // Laudos laboratoriais nascem nulos até análise físico-química real no BLH
+    acidez: null,
+    crematocrito: null,
+    destinoUTI: 'Aguardando Análise Laboratorial',
+    responsavel: responsavel?.trim() || `Equipe BLH — Zona ${donor.zona}`,
+    frascosEntregues: formData.frascosEntregues,
+    observacao: formData.observacao?.trim() || undefined,
   };
 }

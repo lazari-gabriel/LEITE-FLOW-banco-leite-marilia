@@ -76,7 +76,7 @@ export const Logo: React.FC<LogoProps> = ({
             <img
               src={symbolSrc}
               alt="LEITE FLOW"
-              className={`${sizeClasses[size].symbol} object-contain shrink-0 drop-shadow-xs`}
+              className={`${sizeClasses[size].symbol} object-contain shrink-0 drop-shadow-sm`}
             />
             <span
               className={`font-serif font-black text-sm tracking-tight ${
