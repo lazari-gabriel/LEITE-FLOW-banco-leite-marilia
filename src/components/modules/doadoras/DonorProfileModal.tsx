@@ -160,7 +160,7 @@ export const DonorProfileModal: React.FC<DonorProfileModalProps> = ({
               Identificação &amp; Contato
             </h4>
             <div className="flex justify-between">
-              <span className="text-blh-slate-500">Bebê / Data Parto:</span>
+              <span className="text-blh-slate-500">Bebê / Data do Parto:</span>
               <strong className="text-blh-slate-900">{donor.bebe} ({donor.parto || '—'})</strong>
             </div>
             <div className="flex justify-between">

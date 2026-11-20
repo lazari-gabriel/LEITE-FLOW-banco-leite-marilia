@@ -57,6 +57,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
     selectAllZoneDonors,
     clearRouteAssignment,
     activateRoute,
+    reopenEmptyRoute,
     optimizeCurrentRoute,
     setCurrentView
   } = useApp();
@@ -413,12 +414,18 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
 
         {/* Action Buttons */}
         <div className="mt-4 flex flex-wrap gap-2.5">
-          {isPlanning && canStartRoute && (
+          {isPlanning && (
             <Button
               size="sm"
-              onClick={() => {
-                activateRoute();
-                if (onNavigateToExecution) {
+              disabled={!canStartRoute}
+              title={
+                !canStartRoute
+                  ? 'Adicione pelo menos uma doadora à rota antes de iniciar'
+                  : 'Iniciar rota de campo'
+              }
+              onClick={async () => {
+                const started = await activateRoute();
+                if (started && onNavigateToExecution) {
                   onNavigateToExecution();
                 }
               }}
@@ -429,7 +436,18 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             </Button>
           )}
 
-          {isActive && onNavigateToExecution && (
+          {isActive && assignedIds.length === 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void reopenEmptyRoute(routeAssignment.id)}
+              className="border-amber-300 text-amber-800 hover:bg-amber-50 font-bold"
+            >
+              Voltar ao Planejamento (Sem Paradas)
+            </Button>
+          )}
+
+          {isActive && assignedIds.length > 0 && onNavigateToExecution && (
             <Button
               size="sm"
               onClick={onNavigateToExecution}
@@ -896,7 +914,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                         title={`Incluir ${donor.nome} na rota ${routeAssignment.code}`}
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        <span>+ Incluir na {routeAssignment.code}</span>
+                        <span>Incluir na {routeAssignment.code}</span>
                       </button>
                     ) : (
                       <span className="text-[11px] text-blh-slate-400 font-medium">Rota ativa</span>

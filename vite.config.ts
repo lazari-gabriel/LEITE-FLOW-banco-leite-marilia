@@ -16,6 +16,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
+          'motion-vendor': ['motion'],
           'leaflet-vendor': ['leaflet'],
           'barcode-vendor': ['jsbarcode', 'qrcode'],
         },

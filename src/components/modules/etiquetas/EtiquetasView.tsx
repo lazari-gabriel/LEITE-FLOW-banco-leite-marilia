@@ -205,7 +205,7 @@ export const EtiquetasView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6">
       {/* Header */}
       <div className="bg-white p-6 rounded-xl border border-blh-line shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -256,7 +256,7 @@ export const EtiquetasView: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-emerald-800 mt-1">
-              Frasco: <strong>{selectedBottle.codigo}</strong> • Doadora: <strong>{selectedBottle.doadoraNome}</strong> • Volume: <strong>{selectedBottle.volume} mL</strong> • Temp: <strong>{selectedBottle.temp} °C</strong>
+              Frasco: <strong>{selectedBottle.codigo}</strong> • Doadora: <strong>{selectedBottle.doadoraNome}</strong> • Volume: <strong>{selectedBottle.volume} mL</strong> • Temperatura: <strong>{selectedBottle.temp} °C</strong>
             </p>
           </div>
 
@@ -397,7 +397,7 @@ export const EtiquetasView: React.FC = () => {
                         <div className="font-medium text-xs text-blh-slate-800 truncate mt-0.5">{b.doadoraNome}</div>
                         <div className="flex items-center justify-between pt-1.5 mt-1.5 border-t border-blh-line/60 text-[11px] text-blh-slate-500">
                           <span>{b.volume} mL · {b.temp}°C</span>
-                          <span>Val. {b.validadeCru}</span>
+                          <span>Validade: {b.validadeCru}</span>
                         </div>
                       </div>
                     </div>

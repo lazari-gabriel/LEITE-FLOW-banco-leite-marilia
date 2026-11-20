@@ -75,7 +75,7 @@ export interface AppContextType {
   setActiveLabelType: (type: LabelType) => void;
   setActiveFlowStep: (step: GuidedFlowStep) => void;
   setActiveStopDonorId: (donorId: number | null) => void;
-  startRoute: (targetRouteId?: string | unknown) => void;
+  startRoute: (targetRouteId?: string | unknown) => Promise<boolean>;
   handleArrivalAtStop: (donorId: number) => void;
   finishStopCollectionAndShowLabel: (formData: CollectionFormData) => Bottle;
   confirmLabelAndCompleteStop: (bottleId: number) => void;
@@ -108,7 +108,8 @@ export interface AppContextType {
   setDriverInfo: (name: string, vehicle: string, collectorName?: string, vehiclePlate?: string, targetRouteId?: string) => void;
   selectAllZoneDonors: (targetRouteId?: string | unknown) => void;
   clearRouteAssignment: (targetRouteId?: string | unknown) => void;
-  activateRoute: (targetRouteId?: string | unknown) => void;
+  activateRoute: (targetRouteId?: string | unknown) => Promise<boolean>;
+  reopenEmptyRoute: (targetRouteId?: string | unknown) => Promise<boolean>;
   finishRoute: (targetRouteId?: string | unknown) => void;
   skipStop: (donorId: number, motivo: string, targetRouteId?: string) => void;
 }
@@ -753,6 +754,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateRoute = useCallback(
     (routeId: string, updates: Partial<RouteAssignment>) => {
+      const target = routes.find((r) => r.id === routeId);
+      if (target && target.status !== 'planning') {
+        addToast({
+          type: 'warning',
+          title: 'Edição bloqueada',
+          description: 'Só é possível editar uma rota enquanto ela estiver em Planejamento.',
+        });
+        return;
+      }
+
       queryClient.setQueryData<RouteAssignment[]>(['routes'], (prev = []) =>
         prev.map((r) => (r.id === routeId ? { ...r, ...updates } : r))
       );
@@ -774,7 +785,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           handleApiError(err, 'Erro ao atualizar rota');
         });
     },
-    [queryClient, invalidateAll, addToast, handleApiError]
+    [routes, queryClient, invalidateAll, addToast, handleApiError]
   );
 
   const deleteRoute = useCallback(
@@ -810,6 +821,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     (routeId: string) => {
       const source = routes.find((r) => r.id === routeId);
       if (!source) return null;
+      if (source.status !== 'planning') {
+        addToast({
+          type: 'warning',
+          title: 'Duplicação bloqueada',
+          description: 'Só é possível duplicar uma rota enquanto ela estiver em Planejamento.',
+        });
+        return null;
+      }
 
       void apiFetch<{ route: RouteAssignment }>(`/routes/${routeId}/duplicate`, {
         method: 'POST',
@@ -923,27 +942,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 
   const activateRoute = useCallback(
-    (targetRouteIdParam?: string | unknown) => {
+    async (targetRouteIdParam?: string | unknown): Promise<boolean> => {
       const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
-      if (!routeId) return;
+      if (!routeId) return false;
 
-      void apiFetch<{ route: RouteAssignment }>(`/routes/${routeId}/start`, {
-        method: 'POST',
-      })
-        .then(({ route }) => {
-          setActiveRouteIdState(route.id);
-          setActiveFlowStep('navigating');
-          if (nextStop) setActiveStopDonorId(nextStop.donorId);
-          invalidateAll();
-          addToast({
-            type: 'success',
-            title: 'Rota Iniciada!',
-            description: `${route.name} está em trânsito.`,
-          });
-        })
-        .catch((err) => handleApiError(err, 'Não foi possível iniciar a rota'));
+      const target = routes.find((r) => r.id === routeId) || routeAssignment;
+      if (!target || target.donorIds.length === 0) {
+        addToast({
+          type: 'warning',
+          title: 'Rota sem doadoras',
+          description:
+            'Adicione pelo menos uma doadora em "Montar Paradas" antes de iniciar ou executar a rota.',
+        });
+        return false;
+      }
+
+      try {
+        const { route } = await apiFetch<{ route: RouteAssignment }>(`/routes/${routeId}/start`, {
+          method: 'POST',
+        });
+        setActiveRouteIdState(route.id);
+        setActiveFlowStep('navigating');
+        if (nextStop) setActiveStopDonorId(nextStop.donorId);
+        invalidateAll();
+        addToast({
+          type: 'success',
+          title: 'Rota Iniciada!',
+          description: `${route.name} está em trânsito.`,
+        });
+        return true;
+      } catch (err) {
+        handleApiError(err, 'Não foi possível iniciar a rota');
+        return false;
+      }
     },
-    [routeAssignment, nextStop, invalidateAll, addToast, handleApiError]
+    [routes, routeAssignment, nextStop, invalidateAll, addToast, handleApiError]
+  );
+
+  const reopenEmptyRoute = useCallback(
+    async (targetRouteIdParam?: string | unknown): Promise<boolean> => {
+      const routeId = typeof targetRouteIdParam === 'string' ? targetRouteIdParam : routeAssignment?.id;
+      if (!routeId) return false;
+
+      try {
+        const { route } = await apiFetch<{ route: RouteAssignment }>(`/routes/${routeId}/reopen`, {
+          method: 'POST',
+        });
+        setActiveRouteIdState(route.id);
+        invalidateAll();
+        addToast({
+          type: 'info',
+          title: 'Rota devolvida ao planejamento',
+          description: `${route.code} voltou para planejamento. Adicione ao menos uma doadora antes de iniciar.`,
+        });
+        return true;
+      } catch (err) {
+        handleApiError(err, 'Não foi possível retornar a rota ao planejamento');
+        return false;
+      }
+    },
+    [routeAssignment, invalidateAll, addToast, handleApiError]
   );
 
   const skipStop = useCallback(
@@ -1061,6 +1119,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     selectAllZoneDonors,
     clearRouteAssignment,
     activateRoute,
+    reopenEmptyRoute,
     finishRoute,
     skipStop,
   };

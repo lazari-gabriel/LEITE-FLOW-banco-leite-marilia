@@ -518,16 +518,27 @@ export const InteractiveMapView: React.FC = () => {
           )}
 
           {/* Botão Finalizar Rota no Header */}
-          {isRouteActive && (
+          {isRouteActive && totalStops > 0 && (
             <Button
               size="sm"
               disabled={!allResolved}
               onClick={finishRoute}
               className={allResolved ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold' : 'opacity-50 cursor-not-allowed bg-blh-slate-200 text-blh-slate-600'}
               leftIcon={<Flag className="w-3.5 h-3.5" />}
-              title={allResolved ? 'Finalizar rota do dia' : `Ainda há ${totalStops - resolvedCount} paradas pendentes`}
+              title={
+                allResolved
+                  ? 'Finalizar rota do dia'
+                  : `Ainda há ${totalStops - resolvedCount} ${
+                      totalStops - resolvedCount === 1 ? 'parada pendente' : 'paradas pendentes'
+                    }`
+              }
             >
-              Finalizar Rota {allResolved ? '✓' : `(${totalStops - resolvedCount} pend.)`}
+              Finalizar Rota{' '}
+              {allResolved
+                ? '✓'
+                : `(${totalStops - resolvedCount} ${
+                    totalStops - resolvedCount === 1 ? 'pendente' : 'pendentes'
+                  })`}
             </Button>
           )}
         </div>

@@ -20,6 +20,7 @@ import { StatCard } from '../../ui/StatCard';
 import { Badge } from '../../ui/Badge';
 import { Button } from '../../ui/Button';
 import { Modal } from '../../ui/Modal';
+import { AnimatedCounter, ScrollReveal, StaggerContainer, StaggerItem } from '../../motion';
 
 export const AccountabilityView: React.FC = () => {
   const { stats, bottles, setSelectedBottleId, setActiveLabelType, setCurrentView, addToast } = useApp();
@@ -140,7 +141,7 @@ export const AccountabilityView: React.FC = () => {
   const acidezOutOfSpec = !isNaN(parsedAcidez) && parsedAcidez > 8.0;
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6">
       {/* Header */}
       <div className="bg-white p-6 rounded-xl border border-blh-line shadow-card">
         <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-blh-primary bg-blh-primary-soft px-2.5 py-1 rounded-md mb-2">
@@ -155,38 +156,47 @@ export const AccountabilityView: React.FC = () => {
       </div>
 
       {/* Grid de Reconciliação Real dos Frascos (vindo do ledger do banco) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Frascos no Hospital (Estoque)"
-          value={stats.inventoryStock}
-          caption="Saldo calculado do livro de movimentações"
-          variant="default"
-          icon={<Package className="w-4 h-4 text-blh-primary" />}
-        />
-        <StatCard
-          label="Frascos com as Doadoras"
-          value={stats.bottlesWithMothers}
-          caption="Entregues em rota aguardando coleta"
-          variant="warn"
-          icon={<Building2 className="w-4 h-4 text-amber-600" />}
-        />
-        <StatCard
-          label="Frascos Coletados"
-          value={stats.totalBottles}
-          caption={`${stats.totalVolumeMl} mL acumulados no banco`}
-          variant="success"
-          icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />}
-        />
-        <StatCard
-          label="Taxa de Retorno de Vidros"
-          value={stats.returnRate}
-          caption="Relação real coletados ÷ entregues"
-          variant="accent"
-          icon={<RotateCcw className="w-4 h-4 text-blh-accent" />}
-        />
-      </div>
+      <StaggerContainer staggerDelay={0.055} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StaggerItem>
+          <StatCard
+            label="Frascos no Hospital (Estoque)"
+            value={<AnimatedCounter value={stats.inventoryStock} />}
+            caption="Saldo calculado do livro de movimentações"
+            variant="default"
+            icon={<Package className="w-4 h-4 text-blh-primary" />}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <StatCard
+            label="Frascos com as Doadoras"
+            value={<AnimatedCounter value={stats.bottlesWithMothers} />}
+            caption="Entregues em rota aguardando coleta"
+            variant="warn"
+            icon={<Building2 className="w-4 h-4 text-amber-600" />}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <StatCard
+            label="Frascos Coletados"
+            value={<AnimatedCounter value={stats.totalBottles} />}
+            caption={`${stats.totalVolumeMl} mL acumulados no banco`}
+            variant="success"
+            icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <StatCard
+            label="Taxa de Retorno de Vidros"
+            value={stats.returnRate}
+            caption="Relação real coletados ÷ entregues"
+            variant="accent"
+            icon={<RotateCcw className="w-4 h-4 text-blh-accent" />}
+          />
+        </StaggerItem>
+      </StaggerContainer>
 
       {/* Tabela Interativa do Laboratório (Cadernos 1, 2 e 3) */}
+      <ScrollReveal>
       <div className="bg-white rounded-xl border border-blh-line p-5 sm:p-6 shadow-card space-y-4">
         <div className="pb-4 border-b border-blh-line flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div>
@@ -234,7 +244,7 @@ export const AccountabilityView: React.FC = () => {
               <tr>
                 <th className="px-4 py-3">Frasco</th>
                 <th className="px-4 py-3">Origem (Caderno 1)</th>
-                <th className="px-4 py-3">Coleta &amp; Temp</th>
+                <th className="px-4 py-3">Coleta &amp; Temperatura</th>
                 <th className="px-4 py-3">Status (Caderno 2)</th>
                 <th className="px-4 py-3">Acidez / Calorias</th>
                 <th className="px-4 py-3">Destino UTI (Caderno 3)</th>
@@ -342,6 +352,7 @@ export const AccountabilityView: React.FC = () => {
           </table>
         </div>
       </div>
+      </ScrollReveal>
 
       {/* Modal de Análise Laboratorial (Caderno 2) */}
       <Modal
@@ -355,7 +366,7 @@ export const AccountabilityView: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label htmlFor="lab-acidez" className="block text-xs font-bold text-blh-slate-700 mb-1">
-                Acidez Dornic (°D) * <span className="font-normal text-blh-slate-500">Máx. 8.0 °D</span>
+                Acidez Dornic (°D) * <span className="font-normal text-blh-slate-500">Máx. 8,0 °D</span>
               </label>
               <input
                 id="lab-acidez"
@@ -425,7 +436,7 @@ export const AccountabilityView: React.FC = () => {
               <option value="Em Análise">Em Análise</option>
               <option value="Em Quarentena">Em Quarentena (Aguardando cultura)</option>
               <option value="Pasteurizado" disabled={acidezOutOfSpec || !microOk}>
-                Pasteurizado — Liberado p/ UTI (Validade +6 meses)
+                Pasteurizado — Liberado para UTI (Validade +6 meses)
               </option>
               <option value="Descartado">Descartado (Impróprio para consumo)</option>
             </select>
@@ -442,7 +453,7 @@ export const AccountabilityView: React.FC = () => {
                 required
                 value={discardReason}
                 onChange={(e) => setDiscardReason(e.target.value)}
-                placeholder="Ex: Acidez Dornic > 8°D / presença de sujidade / desvio térmico"
+                placeholder="Ex.: Acidez Dornic > 8,0 °D / presença de sujidade / desvio térmico"
                 className="w-full text-xs px-3 py-2 rounded-lg border border-blh-slate-300"
               />
             </div>
@@ -478,7 +489,7 @@ export const AccountabilityView: React.FC = () => {
               required
               value={destinoUTI}
               onChange={(e) => setDestinoUTI(e.target.value)}
-              placeholder="Ex: UTI Neonatal · Leito 04 · Pront. #88210"
+              placeholder="Ex.: UTI Neonatal · Leito 04 · Prontuário #88210"
               className="w-full text-xs px-3 py-2 rounded-lg border border-blh-slate-300"
             />
           </div>

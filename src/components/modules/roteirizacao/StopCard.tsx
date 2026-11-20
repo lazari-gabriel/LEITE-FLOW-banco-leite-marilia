@@ -107,7 +107,7 @@ export const StopCard: React.FC<StopCardProps> = ({ stop, onOpenColeta, onOpenSk
             </div>
 
             <p className="text-xs text-blh-slate-600 mt-0.5">
-              Bebê: <strong className="text-blh-slate-900">{stop.babyName}</strong> ({stop.babyAgeDays} dias) • Tel: <span className="font-mono">{stop.phone}</span>
+              Bebê: <strong className="text-blh-slate-900">{stop.babyName}</strong> ({stop.babyAgeDays} dias) • Telefone: <span className="font-mono">{stop.phone}</span>
             </p>
           </div>
         </div>

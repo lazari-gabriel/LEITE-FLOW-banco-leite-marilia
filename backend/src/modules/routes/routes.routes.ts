@@ -309,11 +309,11 @@ export async function routesRoutes(app: FastifyInstance) {
 
       const { donorIds, ...meta } = parsed.data;
 
-      if (donorIds !== undefined && existing.status !== 'planning') {
+      if (existing.status !== 'planning') {
         return reply.status(409).send({
           title: 'Rota travada',
           status: 409,
-          detail: 'Paradas só podem ser alteradas enquanto a rota está em planejamento.',
+          detail: 'Rotas só podem ser editadas enquanto estão em planejamento.',
         });
       }
 
@@ -429,6 +429,14 @@ export async function routesRoutes(app: FastifyInstance) {
         });
       }
 
+      if (route.visits.length === 0) {
+        return reply.status(422).send({
+          title: 'Rota sem paradas',
+          status: 422,
+          detail: 'Não é possível concluir uma rota sem nenhuma doadora vinculada.',
+        });
+      }
+
       const pendingCount = route.visits.filter(
         (v) => v.status !== 'completed' && v.status !== 'skipped'
       ).length;
@@ -449,6 +457,56 @@ export async function routesRoutes(app: FastifyInstance) {
       await recordAudit({
         request,
         action: 'ROUTE_FINISHED',
+        entity: 'Route',
+        entityId: updated.id,
+        details: { code: updated.code },
+      });
+
+      return reply.send({ route: serializeRoute(updated) });
+    }
+  );
+
+  // Reabrir rota ativa que ficou sem nenhuma parada (evita deadlock operacional)
+  app.post(
+    '/routes/:id/reopen',
+    {
+      preHandler: [requireRoles('ADMIN', 'COORDENADOR_BLH')],
+      schema: {
+        tags: ['Rotas'],
+        summary: 'Retornar rota ativa vazia para planejamento (active sem paradas -> planning)',
+      },
+    },
+    async (request, reply) => {
+      const id = (request.params as { id: string }).id;
+      const route = await prisma.route.findUnique({
+        where: { id },
+        include: { visits: true },
+      });
+      if (!route) return reply.status(404).send({ title: 'Rota não encontrada', status: 404 });
+      if (route.status !== 'active') {
+        return reply.status(409).send({
+          title: 'Transição inválida',
+          status: 409,
+          detail: `Apenas rotas em trânsito sem paradas podem retornar ao planejamento (status atual: '${route.status}').`,
+        });
+      }
+      if (route.visits.length > 0) {
+        return reply.status(409).send({
+          title: 'Rota possui paradas vinculadas',
+          status: 409,
+          detail: 'Rotas em trânsito com doadoras vinculadas não podem retornar ao planejamento.',
+        });
+      }
+
+      const updated = await prisma.route.update({
+        where: { id },
+        data: { status: 'planning', startedAt: null },
+        include: { visits: { include: { bottles: { select: { id: true } } } } },
+      });
+
+      await recordAudit({
+        request,
+        action: 'ROUTE_REOPENED_EMPTY',
         entity: 'Route',
         entityId: updated.id,
         details: { code: updated.code },
@@ -526,6 +584,13 @@ export async function routesRoutes(app: FastifyInstance) {
       const id = (request.params as { id: string }).id;
       const source = await prisma.route.findUnique({ where: { id } });
       if (!source) return reply.status(404).send({ title: 'Rota não encontrada', status: 404 });
+      if (source.status !== 'planning') {
+        return reply.status(409).send({
+          title: 'Rota travada',
+          status: 409,
+          detail: 'Rotas só podem ser duplicadas enquanto estão em planejamento.',
+        });
+      }
 
       const code = await generateNextRouteCode();
       const created = await prisma.route.create({

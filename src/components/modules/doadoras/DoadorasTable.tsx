@@ -25,6 +25,7 @@ import { Button } from '../../ui/Button';
 import { Modal } from '../../ui/Modal';
 import { EmptyState } from '../../ui/EmptyState';
 import { DonorProfileModal } from './DonorProfileModal';
+import { TableSkeleton } from '../../motion';
 import {
   calculateMilkClass,
   getMilkClassDescription,
@@ -38,7 +39,7 @@ interface DoadorasTableProps {
 type SortField = 'id' | 'nome' | 'zona' | 'aptidao' | 'statusCadastro';
 
 export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => {
-  const { donors, navigateToDonorRoute, deleteDonor, reactivateDonor, startEditDonor } = useApp();
+  const { donors, isDataLoading, navigateToDonorRoute, deleteDonor, reactivateDonor, startEditDonor } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedZone, setSelectedZone] = useState<string>('Todas');
   const [selectedStatus, setSelectedStatus] = useState<string>('Todas');
@@ -118,6 +119,10 @@ export const DoadorasTable: React.FC<DoadorasTableProps> = ({ onEditDonor }) => 
       setReactivatingDonor(null);
     }
   };
+
+  if (isDataLoading && donors.length === 0) {
+    return <TableSkeleton rows={6} />;
+  }
 
   return (
     <div className="bg-white rounded-xl border border-blh-line p-5 sm:p-6 shadow-card space-y-4">

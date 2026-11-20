@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion } from 'motion/react';
 import { 
   Truck, 
   Plus, 
@@ -20,6 +21,8 @@ import {
   Gauge,
   ChevronRight
 } from 'lucide-react';
+import { AnimatedCounter, StaggerContainer, StaggerItem } from '../../motion';
+import { MOTION_DURATION, MOTION_EASE, MOTION_SPRING } from '../../../lib/motion';
 import { useApp } from '../../../hooks/useApp';
 import { RouteAssignment, RouteStatus } from '../../../types/route';
 import { calculateTourDistanceKm } from '../../../services/routeService';
@@ -29,6 +32,7 @@ import { EmptyState } from '../../ui/EmptyState';
 import { CreateRouteModal } from './CreateRouteModal';
 import { EditRouteModal } from './EditRouteModal';
 import { DeleteRouteConfirmModal } from './DeleteRouteConfirmModal';
+import { DuplicateRouteConfirmModal } from './DuplicateRouteConfirmModal';
 
 interface RouteFleetManagerProps {
   onSelectRouteForEditing: (routeId: string) => void;
@@ -45,7 +49,7 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
     activeRouteId,
     setActiveRouteId,
     activateRoute,
-    duplicateRoute,
+    reopenEmptyRoute,
     donors,
     bottles
   } = useApp();
@@ -54,6 +58,7 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingRoute, setEditingRoute] = useState<RouteAssignment | null>(null);
+  const [duplicatingRoute, setDuplicatingRoute] = useState<RouteAssignment | null>(null);
   const [deletingRoute, setDeletingRoute] = useState<RouteAssignment | null>(null);
 
   // Rotas do dia selecionado
@@ -123,83 +128,108 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
   }, [dayRoutes, donors, bottles]);
 
   return (
-    <div className="space-y-5 animate-fadeIn">
+    <div className="space-y-5">
       {/* ── 1. Painel de Métricas da Frota (Fleet KPIs) ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <StaggerContainer staggerDelay={0.05} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* Veículos / Rotas */}
-        <div className="p-4 rounded-xl bg-white border border-blh-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blh-primary/10 text-blh-primary flex items-center justify-center shrink-0">
-            <Truck className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-[11px] font-bold text-blh-slate-500 uppercase tracking-wider">
-              Frota no Dia
-            </p>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-black text-blh-slate-900">
-                {fleetMetrics.totalRoutes}
-              </span>
-              <span className="text-xs text-blh-slate-500">
-                ({fleetMetrics.activeVehicles} em rota)
-              </span>
+        <StaggerItem>
+          <motion.div
+            whileHover={{ y: -2.5 }}
+            transition={MOTION_SPRING.gentle}
+            className="p-4 rounded-xl bg-white border border-blh-slate-200 hover:border-blh-primary/40 shadow-sm hover:shadow-elevation transition-[border-color,box-shadow] duration-200 flex items-center gap-3 h-full"
+          >
+            <div className="w-10 h-10 rounded-xl bg-blh-primary/10 text-blh-primary flex items-center justify-center shrink-0">
+              <Truck className="w-5 h-5" />
             </div>
-          </div>
-        </div>
+            <div>
+              <p className="text-[11px] font-bold text-blh-slate-500 uppercase tracking-wider">
+                Frota no Dia
+              </p>
+              <div className="flex items-baseline gap-1.5 tabular-nums">
+                <span className="text-xl font-black text-blh-slate-900">
+                  <AnimatedCounter value={fleetMetrics.totalRoutes} />
+                </span>
+                <span className="text-xs text-blh-slate-500">
+                  ({fleetMetrics.activeVehicles} em rota)
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        </StaggerItem>
 
         {/* Paradas Programadas */}
-        <div className="p-4 rounded-xl bg-white border border-blh-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <MapPin className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-[11px] font-bold text-blh-slate-500 uppercase tracking-wider">
-              Paradas da Frota
-            </p>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-black text-emerald-700">
-                {fleetMetrics.completedStops}/{fleetMetrics.totalStops}
-              </span>
-              <span className="text-xs text-blh-slate-500">concluídas</span>
+        <StaggerItem>
+          <motion.div
+            whileHover={{ y: -2.5 }}
+            transition={MOTION_SPRING.gentle}
+            className="p-4 rounded-xl bg-white border border-blh-slate-200 hover:border-emerald-300 shadow-sm hover:shadow-elevation transition-[border-color,box-shadow] duration-200 flex items-center gap-3 h-full"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <MapPin className="w-5 h-5" />
             </div>
-          </div>
-        </div>
+            <div>
+              <p className="text-[11px] font-bold text-blh-slate-500 uppercase tracking-wider">
+                Paradas da Frota
+              </p>
+              <div className="flex items-baseline gap-1.5 tabular-nums">
+                <span className="text-xl font-black text-emerald-700">
+                  <AnimatedCounter value={fleetMetrics.completedStops} />/
+                  <AnimatedCounter value={fleetMetrics.totalStops} />
+                </span>
+                <span className="text-xs text-blh-slate-500">concluídas</span>
+              </div>
+            </div>
+          </motion.div>
+        </StaggerItem>
 
         {/* Quilometragem Estimada Total */}
-        <div className="p-4 rounded-xl bg-white border border-blh-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <Navigation className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-[11px] font-bold text-blh-slate-500 uppercase tracking-wider">
-              Distância Estimada
-            </p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-black text-blh-slate-900">
-                {fleetMetrics.totalKm}
-              </span>
-              <span className="text-xs text-blh-slate-500 font-semibold">km totais</span>
+        <StaggerItem>
+          <motion.div
+            whileHover={{ y: -2.5 }}
+            transition={MOTION_SPRING.gentle}
+            className="p-4 rounded-xl bg-white border border-blh-slate-200 hover:border-blue-300 shadow-sm hover:shadow-elevation transition-[border-color,box-shadow] duration-200 flex items-center gap-3 h-full"
+          >
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Navigation className="w-5 h-5" />
             </div>
-          </div>
-        </div>
+            <div>
+              <p className="text-[11px] font-bold text-blh-slate-500 uppercase tracking-wider">
+                Distância Estimada
+              </p>
+              <div className="flex items-baseline gap-1 tabular-nums">
+                <span className="text-xl font-black text-blh-slate-900">
+                  <AnimatedCounter value={fleetMetrics.totalKm} decimals={1} />
+                </span>
+                <span className="text-xs text-blh-slate-500 font-semibold">km totais</span>
+              </div>
+            </div>
+          </motion.div>
+        </StaggerItem>
 
         {/* Frascos Previstos */}
-        <div className="p-4 rounded-xl bg-white border border-blh-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-            <Gauge className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-[11px] font-bold text-blh-slate-500 uppercase tracking-wider">
-              Volume Estimado
-            </p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-black text-blh-slate-900">
-                ~{fleetMetrics.estimatedBottles}
-              </span>
-              <span className="text-xs text-blh-slate-500 font-semibold">frascos</span>
+        <StaggerItem>
+          <motion.div
+            whileHover={{ y: -2.5 }}
+            transition={MOTION_SPRING.gentle}
+            className="p-4 rounded-xl bg-white border border-blh-slate-200 hover:border-purple-300 shadow-sm hover:shadow-elevation transition-[border-color,box-shadow] duration-200 flex items-center gap-3 h-full"
+          >
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <Gauge className="w-5 h-5" />
             </div>
-          </div>
-        </div>
-      </div>
+            <div>
+              <p className="text-[11px] font-bold text-blh-slate-500 uppercase tracking-wider">
+                Volume Estimado
+              </p>
+              <div className="flex items-baseline gap-1 tabular-nums">
+                <span className="text-xl font-black text-blh-slate-900">
+                  ~<AnimatedCounter value={fleetMetrics.estimatedBottles} />
+                </span>
+                <span className="text-xs text-blh-slate-500 font-semibold">frascos</span>
+              </div>
+            </div>
+          </motion.div>
+        </StaggerItem>
+      </StaggerContainer>
 
       {/* ── 2. Barra de Filtros, Busca e Ações da Frota ── */}
       <div className="p-3.5 bg-white rounded-xl border border-blh-slate-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -305,13 +335,22 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
             const exceedsCapacity = estimatedRouteBottles > capacityBottles;
             const totalCount = donorIds.length;
             const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+            const isPlanning = route.status === 'planning';
             const isActive = route.status === 'active';
             const isCompleted = route.status === 'completed';
 
             return (
-              <div
+              <motion.div
                 key={route.id}
-                className={`bg-white rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-elevation ${
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -3 }}
+                transition={{
+                  duration: MOTION_DURATION.normal,
+                  delay: Math.min(idx * 0.05, 0.25),
+                  ease: MOTION_EASE.outExpo,
+                }}
+                className={`bg-white rounded-2xl border transition-[border-color,box-shadow] duration-200 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-elevation ${
                   isSelected
                     ? 'border-blh-primary ring-2 ring-blh-primary/20'
                     : 'border-blh-slate-200 hover:border-blh-slate-300'
@@ -402,7 +441,7 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
                       <div className="p-1.5 rounded bg-amber-50 border border-amber-300 text-amber-900 text-[10px] font-bold flex items-center gap-1 mb-1">
                         <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         <span>
-                          Est. ~{estimatedRouteBottles} frascos excede capacidade ({capacityBottles}). Considere dividir em 2 vans.
+                          Estimativa de ~{estimatedRouteBottles} frascos excede a capacidade ({capacityBottles}). Considere dividir em 2 vans.
                         </span>
                       </div>
                     )}
@@ -413,15 +452,17 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
                       </span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-blh-slate-200 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${
+                      <motion.div
+                        className={`h-full rounded-full ${
                           isCompleted
                             ? 'bg-blh-slate-700'
                             : isActive
                             ? 'bg-emerald-500'
                             : 'bg-blh-primary'
                         }`}
-                        style={{ width: `${percent}%` }}
+                        initial={{ width: '0%' }}
+                        animate={{ width: `${percent}%` }}
+                        transition={{ duration: MOTION_DURATION.chart, ease: MOTION_EASE.outExpo }}
                       />
                     </div>
                   </div>
@@ -430,22 +471,42 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
                 {/* Rodapé de Ações do Card (CRUD Completo) */}
                 <div className="p-3 bg-white border-t border-blh-slate-100 flex items-center justify-between gap-1.5">
                   <div className="flex items-center gap-1">
-                    {/* Editar Metadados */}
+                    {/* Editar Metadados (somente em Planejamento) */}
                     <button
                       type="button"
-                      onClick={() => setEditingRoute(route)}
-                      title="Editar dados da rota (veículo/equipe)"
-                      className="p-1.5 rounded-lg text-blh-slate-500 hover:text-blh-primary hover:bg-blh-slate-100 transition"
+                      disabled={!isPlanning}
+                      onClick={() => isPlanning && setEditingRoute(route)}
+                      title={
+                        isPlanning
+                          ? 'Editar dados da rota (veículo/equipe)'
+                          : 'Só é possível editar rotas em Planejamento'
+                      }
+                      aria-label={`Editar rota ${route.code}`}
+                      className={`p-1.5 rounded-lg transition ${
+                        isPlanning
+                          ? 'text-blh-slate-500 hover:text-blh-primary hover:bg-blh-slate-100'
+                          : 'text-blh-slate-300 cursor-not-allowed'
+                      }`}
                     >
                       <Edit className="w-3.5 h-3.5" />
                     </button>
 
-                    {/* Duplicar Rota */}
+                    {/* Duplicar Rota (somente em Planejamento) */}
                     <button
                       type="button"
-                      onClick={() => duplicateRoute(route.id)}
-                      title="Duplicar esta rota"
-                      className="p-1.5 rounded-lg text-blh-slate-500 hover:text-blh-primary hover:bg-blh-slate-100 transition"
+                      disabled={!isPlanning}
+                      onClick={() => isPlanning && setDuplicatingRoute(route)}
+                      title={
+                        isPlanning
+                          ? 'Duplicar esta rota'
+                          : 'Só é possível duplicar rotas em Planejamento'
+                      }
+                      aria-label={`Duplicar rota ${route.code}`}
+                      className={`p-1.5 rounded-lg transition ${
+                        isPlanning
+                          ? 'text-blh-slate-500 hover:text-blh-primary hover:bg-blh-slate-100'
+                          : 'text-blh-slate-300 cursor-not-allowed'
+                      }`}
                     >
                       <Copy className="w-3.5 h-3.5" />
                     </button>
@@ -480,8 +541,37 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
                       Paradas ({totalCount})
                     </Button>
 
-                    {/* Botão Iniciar / Executar */}
-                    {isActive ? (
+                    {/* Botão Iniciar / Executar / Recuperar Rota Vazia / Resumo */}
+                    {isCompleted ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setActiveRouteId(route.id);
+                          onSelectRouteForExecution(route.id);
+                        }}
+                        className="text-xs px-2.5 py-1.5 border-blh-slate-300 text-blh-slate-700 hover:bg-blh-slate-100 font-semibold"
+                        rightIcon={<ChevronRight className="w-3.5 h-3.5" />}
+                      >
+                        Resumo
+                      </Button>
+                    ) : isActive && totalCount === 0 ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          const ok = await reopenEmptyRoute(route.id);
+                          if (ok) {
+                            setActiveRouteId(route.id);
+                            onSelectRouteForEditing(route.id);
+                          }
+                        }}
+                        title="Rota ativa sem doadoras. Clique para voltar ao planejamento e adicionar paradas."
+                        className="text-xs px-2.5 py-1.5 border-amber-300 text-amber-800 hover:bg-amber-50 font-bold"
+                      >
+                        Reabrir Rota
+                      </Button>
+                    ) : isActive ? (
                       <Button
                         size="sm"
                         onClick={() => {
@@ -496,9 +586,17 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
                     ) : (
                       <Button
                         size="sm"
-                        onClick={() => {
-                          activateRoute(route.id);
-                          onSelectRouteForExecution(route.id);
+                        disabled={totalCount === 0}
+                        title={
+                          totalCount === 0
+                            ? 'Adicione pelo menos uma doadora em "Paradas" antes de iniciar a rota'
+                            : 'Iniciar rota de campo'
+                        }
+                        onClick={async () => {
+                          const started = await activateRoute(route.id);
+                          if (started) {
+                            onSelectRouteForExecution(route.id);
+                          }
                         }}
                         className="text-xs px-2.5 py-1.5 bg-blh-primary hover:bg-blh-primary-dark text-white font-bold"
                         leftIcon={<Play className="w-3 h-3 fill-white" />}
@@ -508,7 +606,7 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -526,6 +624,12 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
         isOpen={!!editingRoute}
         onClose={() => setEditingRoute(null)}
         route={editingRoute}
+      />
+
+      <DuplicateRouteConfirmModal
+        isOpen={!!duplicatingRoute}
+        onClose={() => setDuplicatingRoute(null)}
+        route={duplicatingRoute}
       />
 
       <DeleteRouteConfirmModal

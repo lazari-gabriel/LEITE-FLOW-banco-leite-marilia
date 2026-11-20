@@ -1,6 +1,8 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { motion } from 'motion/react';
+import { MOTION_SPRING } from '../../lib/motion';
 
 export interface StatCardProps {
   label: string;
@@ -22,12 +24,12 @@ export const StatCard: React.FC<StatCardProps> = ({
   trend,
   icon,
   variant = 'default',
-  className
+  className,
 }) => {
   const variantStyles = {
-    default: 'bg-white border-blh-line hover:border-blh-line-strong',
+    default: 'bg-white border-blh-line hover:border-blh-primary/40',
     alert: 'bg-white border-red-200 hover:border-red-300 ring-1 ring-red-50',
-    accent: 'bg-white border-blh-accent-soft hover:border-blh-accent/30 ring-1 ring-blh-accent-soft',
+    accent: 'bg-white border-blh-accent-soft hover:border-blh-accent/40 ring-1 ring-blh-accent-soft',
     warn: 'bg-white border-amber-200 hover:border-amber-300 ring-1 ring-amber-50',
     success: 'bg-white border-emerald-200 hover:border-emerald-300 ring-1 ring-emerald-50',
   };
@@ -40,27 +42,53 @@ export const StatCard: React.FC<StatCardProps> = ({
     success: 'text-blh-success',
   };
 
+  const topHighlight = {
+    default: 'from-blh-primary/0 via-blh-primary/50 to-blh-primary/0',
+    alert: 'from-rose-400/0 via-rose-500/60 to-rose-400/0',
+    accent: 'from-blh-accent/0 via-blh-accent/60 to-blh-accent/0',
+    warn: 'from-amber-400/0 via-amber-500/60 to-amber-400/0',
+    success: 'from-emerald-400/0 via-emerald-500/60 to-emerald-400/0',
+  };
+
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -3 }}
+      transition={MOTION_SPRING.gentle}
       className={twMerge(
         clsx(
-          'relative p-5 rounded-lg border shadow-card transition-all duration-200 hover:shadow-md flex flex-col justify-between group',
+          'relative overflow-hidden p-5 rounded-xl border shadow-card hover:shadow-elevation transition-[border-color,box-shadow] duration-200 flex flex-col justify-between group h-full',
           variantStyles[variant],
           className
         )
       )}
     >
+      {/* Sutil iluminação clínica na borda superior ao passar o mouse */}
+      <span
+        aria-hidden="true"
+        className={clsx(
+          'pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300',
+          topHighlight[variant]
+        )}
+      />
+
       <div className="flex items-center justify-between gap-3 mb-2">
-        <span className="text-xs font-semibold text-blh-slate-600 uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-semibold text-blh-slate-600 uppercase tracking-wider">
+          {label}
+        </span>
         {icon && (
-          <div className="w-8 h-8 rounded-md bg-blh-slate-100 flex items-center justify-center text-blh-slate-600 group-hover:bg-blh-primary-soft group-hover:text-blh-primary transition-colors">
+          <div className="w-8 h-8 rounded-lg bg-blh-slate-100 flex items-center justify-center text-blh-slate-600 group-hover:bg-blh-primary-soft group-hover:text-blh-primary group-hover:scale-105 transition-all duration-200">
             {icon}
           </div>
         )}
       </div>
 
       <div className="my-1">
-        <div className={clsx('text-2xl lg:text-3xl font-bold font-sans tabular-nums tracking-tight', accentColor[variant])}>
+        <div
+          className={clsx(
+            'text-2xl lg:text-3xl font-bold font-sans tabular-nums tracking-tight',
+            accentColor[variant]
+          )}
+        >
           {value}
         </div>
       </div>
@@ -80,6 +108,6 @@ export const StatCard: React.FC<StatCardProps> = ({
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

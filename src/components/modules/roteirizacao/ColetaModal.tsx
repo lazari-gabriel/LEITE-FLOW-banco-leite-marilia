@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertCircle, ArrowRight, Plus, Trash2, Calendar } from 'lucide-react';
+import { AlertCircle, ArrowRight, Plus, Trash2, Calendar, MapPin, Droplets } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { BatchBottleItem, Bottle } from '../../../types/bottle';
 import { Donor } from '../../../types/donor';
@@ -165,18 +165,31 @@ export const ColetaModal: React.FC<ColetaModalProps> = ({
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         {/* Resumo da Doadora */}
-        <div className="p-3 rounded-lg bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-950 flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <strong className="text-sm text-emerald-900 block">{donor.nome}</strong>
-            <span className="text-emerald-800 text-[11px]">{donor.endereco}</span>
+        <div className="p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-blh-primary-soft/80 via-emerald-50/40 to-white border border-blh-line-strong border-l-4 border-l-blh-primary flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0 space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <strong className="text-sm font-bold text-blh-slate-900 truncate">{donor.nome}</strong>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blh-primary text-white shadow-sm shrink-0">
+                Zona {donor.zona}
+              </span>
+            </div>
+            <p className="text-xs text-blh-slate-600 flex items-start gap-1.5 leading-snug">
+              <MapPin className="w-3.5 h-3.5 text-blh-primary shrink-0 mt-0.5" />
+              <span className="line-clamp-2">{donor.endereco}</span>
+            </p>
           </div>
-          <div className="text-right font-mono text-[11px]">
-            <span className="bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded font-bold block">
-              Zona {donor.zona}
+
+          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1 px-3 py-2 rounded-lg bg-white border border-blh-line shadow-sm shrink-0">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-blh-slate-500 flex items-center gap-1">
+              <Droplets className="w-3 h-3 text-blh-primary" />
+              Total da Visita
             </span>
-            <span className="text-emerald-800 mt-0.5 block">
-              Total: <strong>{totalVolume} mL</strong> ({items.length} {items.length === 1 ? 'frasco' : 'frascos'})
-            </span>
+            <div className="font-mono text-sm font-extrabold text-blh-primary tabular-nums leading-tight">
+              {totalVolume} mL{' '}
+              <span className="text-[11px] font-sans font-semibold text-blh-slate-500">
+                ({items.length} {items.length === 1 ? 'frasco' : 'frascos'})
+              </span>
+            </div>
           </div>
         </div>
 
@@ -237,10 +250,10 @@ export const ColetaModal: React.FC<ColetaModalProps> = ({
                 </div>
 
                 {/* Data da 1ª Ordenha + Temperatura */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                   <div>
-                    <label className="block text-[11px] font-bold text-blh-slate-700 mb-1 flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-blh-primary" />
+                    <label className="text-[11px] font-bold text-blh-slate-700 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-blh-primary shrink-0" />
                       Data da 1ª Ordenha * (RDC 171)
                     </label>
                     <input
@@ -249,10 +262,10 @@ export const ColetaModal: React.FC<ColetaModalProps> = ({
                       max={todayIso}
                       value={item.firstExpressionAt}
                       onChange={(e) => updateItem(idx, { firstExpressionAt: e.target.value })}
-                      className="w-full text-xs px-2.5 py-2 rounded-lg border border-blh-slate-300 bg-white font-mono"
+                      className="w-full h-10 text-xs px-2.5 rounded-lg border border-blh-slate-300 bg-white font-mono focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
                     />
                     <span
-                      className={`text-[10px] font-semibold mt-0.5 block ${
+                      className={`text-[10px] font-semibold mt-1 block ${
                         expiry.daysLeft <= 0
                           ? 'text-rose-700'
                           : expiry.daysLeft <= 3
@@ -279,7 +292,7 @@ export const ColetaModal: React.FC<ColetaModalProps> = ({
                       required
                       value={item.temp}
                       onChange={(e) => updateItem(idx, { temp: Number(e.target.value) })}
-                      className="w-full text-sm font-bold font-mono px-3 py-1.5 rounded-lg border border-blh-slate-300 bg-white"
+                      className="w-full h-10 text-sm font-bold font-mono px-3 rounded-lg border border-blh-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
                     />
                     {!isTempOk && (
                       <span className="text-[10px] font-bold text-rose-700 mt-0.5 flex items-center gap-1">
@@ -305,9 +318,9 @@ export const ColetaModal: React.FC<ColetaModalProps> = ({
         </Button>
 
         {/* Frascos vazios entregues + Observação */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-blh-line">
-          <div>
-            <label htmlFor="coleta-entregues" className="block text-xs font-semibold text-blh-slate-700 mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-3 border-t border-blh-line items-end">
+          <div className="sm:col-span-5">
+            <label htmlFor="coleta-entregues" className="block text-xs font-semibold text-blh-slate-700 mb-1.5">
               Vidros Estéreis Entregues
             </label>
             <input
@@ -317,20 +330,20 @@ export const ColetaModal: React.FC<ColetaModalProps> = ({
               max="50"
               value={frascosEntregues}
               onChange={(e) => setFrascosEntregues(Number(e.target.value))}
-              className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 font-mono font-bold"
+              className="w-full h-10 text-sm px-3 rounded-lg border border-blh-slate-300 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
             />
           </div>
-          <div className="sm:col-span-2">
-            <label htmlFor="coleta-obs" className="block text-xs font-semibold text-blh-slate-700 mb-1">
+          <div className="sm:col-span-7">
+            <label htmlFor="coleta-obs" className="block text-xs font-semibold text-blh-slate-700 mb-1.5">
               Observações da Visita (Opcional)
             </label>
             <input
               id="coleta-obs"
               type="text"
-              placeholder="Ex: Doadora solicitou mais frascos para próxima semana..."
+              placeholder="Ex.: Doadora solicitou mais frascos para a próxima semana..."
               value={observacaoGeral}
               onChange={(e) => setObservacaoGeral(e.target.value)}
-              className="w-full text-xs px-3 py-2.5 rounded-lg border border-blh-slate-300"
+              className="w-full h-10 text-xs px-3 rounded-lg border border-blh-slate-300 focus:outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
             />
           </div>
         </div>

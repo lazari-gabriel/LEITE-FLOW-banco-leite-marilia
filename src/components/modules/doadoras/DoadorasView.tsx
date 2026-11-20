@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { X, PlusCircle, ArrowLeft } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { CadastroWizard } from './CadastroWizard';
 import { GoNoGoVerdictBanner } from './GoNoGoVerdictBanner';
 import { DoadorasTable } from './DoadorasTable';
 import { Donor, GoNoGoVerdict } from '../../../types/donor';
 import { Button } from '../../ui/Button';
 import { useApp } from '../../../hooks/useApp';
+import { PageTransition } from '../../motion';
+import { MOTION_EASE } from '../../../lib/motion';
 
 export const DoadorasView: React.FC = () => {
   const { editingDonor, cancelEditDonor, startEditDonor } = useApp();
@@ -33,7 +36,7 @@ export const DoadorasView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6">
       {/* Header Unificado */}
       <div className="bg-white rounded-xl border border-blh-line p-5 sm:p-6 shadow-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -98,28 +101,43 @@ export const DoadorasView: React.FC = () => {
         </div>
       </div>
 
-      {/* Banner de Veredito Recente */}
-      {lastVerdict && (
-        <GoNoGoVerdictBanner
-          verdict={lastVerdict}
-          onDismiss={() => setLastVerdict(null)}
-        />
-      )}
+      {/* Banner de Veredito Recente com AnimatePresence */}
+      <AnimatePresence>
+        {lastVerdict && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.985 }}
+            transition={{ duration: 0.28, ease: MOTION_EASE.outExpo }}
+          >
+            <GoNoGoVerdictBanner
+              verdict={lastVerdict}
+              onDismiss={() => setLastVerdict(null)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Separação clara: Wizard dedicado OU Tabela Principal */}
-      {showWizard ? (
-        <CadastroWizard
-          editingDonor={editingDonor}
-          onCancelEdit={handleCloseWizard}
-          onSubmitted={(result) => {
-            setLastVerdict(result);
-            cancelEditDonor();
-            setShowWizard(false);
-          }}
-        />
-      ) : (
-        <DoadorasTable onEditDonor={handleStartEdit} />
-      )}
+      {/* Separação clara com transição suave entre Wizard e Tabela Principal */}
+      <AnimatePresence mode="wait" initial={false}>
+        {showWizard ? (
+          <PageTransition key="donor-wizard" variant="tab">
+            <CadastroWizard
+              editingDonor={editingDonor}
+              onCancelEdit={handleCloseWizard}
+              onSubmitted={(result) => {
+                setLastVerdict(result);
+                cancelEditDonor();
+                setShowWizard(false);
+              }}
+            />
+          </PageTransition>
+        ) : (
+          <PageTransition key="donor-table" variant="tab">
+            <DoadorasTable onEditDonor={handleStartEdit} />
+          </PageTransition>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

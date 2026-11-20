@@ -24,15 +24,15 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         setIsMobileOpen={setIsMobileOpen}
       />
 
-      {/* Main Content Area */}
+      {/* Main Content Area — padding sincronizado com a mesma curva e duração da Sidebar */}
       <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
+        className={`flex-1 flex flex-col min-w-0 transition-[padding-left] duration-[320ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isCollapsed ? 'lg:pl-20' : 'lg:pl-72'
         }`}
       >
         <Header onOpenMobileMenu={() => setIsMobileOpen(true)} />
 
-        <main className="flex-1 p-3 sm:p-5 lg:p-8 pb-24 lg:pb-8 max-w-7xl w-full mx-auto animate-viewEnter">
+        <main className="flex-1 p-3 sm:p-5 lg:p-8 pb-24 lg:pb-8 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>

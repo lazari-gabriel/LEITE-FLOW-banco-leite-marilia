@@ -1,15 +1,17 @@
 import React from 'react';
-import { 
-  Route, 
-  MapPin, 
-  Tag, 
-  UserPlus, 
-  LayoutDashboard, 
-  Menu
+import {
+  Route,
+  MapPin,
+  Tag,
+  UserPlus,
+  LayoutDashboard,
+  Menu,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useApp } from '../../hooks/useApp';
 import { useAuth } from '../../context/AuthContext';
 import { ViewMode } from '../../types/common';
+import { MOTION_SPRING } from '../../lib/motion';
 
 interface BottomNavProps {
   onOpenMobileMenu: () => void;
@@ -58,58 +60,72 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMobileMenu }) => {
   ].filter((item) => item.allowed);
 
   return (
-    <nav 
+    <nav
       aria-label="Navegação móvel"
-      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-md border-t border-blh-line pb-safe shadow-elevation transition-all duration-200"
+      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-md border-t border-blh-line pb-safe shadow-elevation"
     >
-      <div className={`grid ${navItems.length === 5 ? 'grid-cols-6' : 'grid-cols-5'} items-center px-1.5 py-1 max-w-md mx-auto`}>
+      <div
+        className={`grid ${navItems.length === 5 ? 'grid-cols-6' : 'grid-cols-5'} items-center px-1.5 py-1 max-w-md mx-auto`}
+      >
         {navItems.map((item) => {
           const isActive = currentView === item.id;
           return (
-            <button
+            <motion.button
               key={item.id}
               type="button"
+              whileTap={{ scale: 0.9 }}
+              transition={MOTION_SPRING.tap}
               onClick={() => setCurrentView(item.id)}
-              className={`relative flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all duration-150 active:scale-90 select-none ${
+              className={`relative isolate flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-colors duration-150 select-none ${
                 isActive
                   ? 'text-blh-primary font-bold'
                   : 'text-blh-slate-500 hover:text-blh-slate-800 font-medium'
               }`}
             >
-              {/* Active Highlight Pill */}
+              {/* Active Highlight Pill com layoutId deslizante */}
               {isActive && (
-                <span className="absolute inset-0 bg-blh-primary-soft/80 rounded-xl -z-10 animate-scaleIn" />
+                <motion.span
+                  layoutId="bottomnav-active-pill"
+                  transition={MOTION_SPRING.snappy}
+                  className="absolute inset-0 bg-blh-primary-soft/90 rounded-xl -z-10 border border-blh-primary/15"
+                />
               )}
 
               {/* Icon Container with Badge */}
-              <div className="relative">
+              <motion.div
+                animate={{ y: isActive ? -1 : 0 }}
+                transition={MOTION_SPRING.snappy}
+                className="relative"
+              >
                 {item.icon}
                 {item.badge && (
                   <span className="absolute -top-1 -right-2 px-1 min-w-[16px] h-4 bg-emerald-600 text-white text-[9px] font-mono font-bold rounded-full flex items-center justify-center shadow-sm">
                     {item.badge}
                   </span>
                 )}
-              </div>
+              </motion.div>
 
               <span className={`text-[10px] tracking-tight mt-0.5 truncate ${isActive ? 'font-bold' : ''}`}>
                 {item.label}
               </span>
-            </button>
+            </motion.button>
           );
         })}
 
         {/* Menu / Mais Drawer Trigger */}
-        <button
+        <motion.button
           type="button"
+          whileTap={{ scale: 0.9 }}
+          transition={MOTION_SPRING.tap}
           onClick={onOpenMobileMenu}
-          className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-blh-slate-500 hover:text-blh-slate-800 transition-all duration-150 active:scale-90 select-none"
+          className="flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-blh-slate-500 hover:text-blh-slate-800 transition-colors duration-150 select-none"
           aria-label="Abrir menu completo"
         >
           <Menu className="w-5 h-5" />
           <span className="text-[10px] tracking-tight mt-0.5 font-medium">
             Menu
           </span>
-        </button>
+        </motion.button>
       </div>
     </nav>
   );

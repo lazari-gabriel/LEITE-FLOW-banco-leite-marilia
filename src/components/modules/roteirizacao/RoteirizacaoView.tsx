@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { 
   MapPin, 
   Navigation, 
@@ -13,6 +14,8 @@ import {
   Lock,
   Building2
 } from 'lucide-react';
+import { MOTION_DURATION, MOTION_EASE, MOTION_SPRING } from '../../../lib/motion';
+import { PageTransition } from '../../motion';
 import { useApp } from '../../../hooks/useApp';
 import { ZONE_BY_DAY } from '../../../constants/zones';
 import { WeekDaySelector } from './WeekDaySelector';
@@ -43,7 +46,8 @@ export const RoteirizacaoView: React.FC = () => {
     donors,
     skipStop,
     finishRoute,
-    activateRoute
+    activateRoute,
+    reopenEmptyRoute
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<MainTab>('frota');
@@ -83,24 +87,31 @@ export const RoteirizacaoView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5 animate-fadeIn">
+    <div className="space-y-5">
       {/* Seletor dos Dias da Semana */}
       <WeekDaySelector />
 
       {/* Tabs de Navegação da Frota (Gestão da Frota | Montar Paradas | Executar Coletas) */}
-      <div className="flex gap-1 p-1 bg-blh-slate-100 rounded-xl">
+      <div className="flex gap-1 p-1 bg-blh-slate-100 rounded-xl border border-blh-slate-200/70">
         <button
           type="button"
           onClick={() => setActiveTab('frota')}
-          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all duration-200 ease-out ${
+          className={`relative isolate flex-1 min-w-0 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg transition-colors duration-150 ${
             activeTab === 'frota'
-              ? 'bg-white text-blh-primary shadow-sm ring-1 ring-blh-slate-200'
-              : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-white/50'
+              ? 'text-blh-primary'
+              : 'text-blh-slate-600 hover:text-blh-slate-900'
           }`}
         >
-          <Truck className="w-4 h-4" />
-          <span className="hidden sm:inline">Gestão da</span> Frota
-          <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blh-slate-200 text-blh-slate-800 transition-colors">
+          {activeTab === 'frota' && (
+            <motion.span
+              layoutId="rotas-active-tab"
+              transition={MOTION_SPRING.snappy}
+              className="absolute inset-0 bg-white rounded-lg shadow-sm ring-1 ring-blh-slate-200 -z-10"
+            />
+          )}
+          <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="truncate"><span className="hidden sm:inline">Gestão da </span>Frota</span>
+          <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blh-slate-200 text-blh-slate-800 transition-colors shrink-0">
             {dayRoutes.length}
           </span>
         </button>
@@ -108,16 +119,23 @@ export const RoteirizacaoView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('montar')}
-          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all duration-200 ease-out ${
+          className={`relative isolate flex-1 min-w-0 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg transition-colors duration-150 ${
             activeTab === 'montar'
-              ? 'bg-white text-blh-primary shadow-sm ring-1 ring-blh-slate-200'
-              : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-white/50'
+              ? 'text-blh-primary'
+              : 'text-blh-slate-600 hover:text-blh-slate-900'
           }`}
         >
-          <ClipboardList className="w-4 h-4" />
-          Montar Paradas
+          {activeTab === 'montar' && (
+            <motion.span
+              layoutId="rotas-active-tab"
+              transition={MOTION_SPRING.snappy}
+              className="absolute inset-0 bg-white rounded-lg shadow-sm ring-1 ring-blh-slate-200 -z-10"
+            />
+          )}
+          <ClipboardList className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="truncate"><span className="hidden sm:inline">Montar </span>Paradas</span>
           {routeAssignment && (
-            <span className={`ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full transition-colors ${
+            <span className={`hidden md:inline-flex px-1.5 py-0.5 text-[10px] font-bold rounded-full transition-colors shrink-0 ${
               isRouteActive
                 ? 'bg-emerald-500 text-white'
                 : 'bg-blh-primary text-white'
@@ -130,25 +148,33 @@ export const RoteirizacaoView: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('executar')}
-          className={`flex-1 flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-3 rounded-lg transition-all duration-200 ease-out ${
+          className={`relative isolate flex-1 min-w-0 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg transition-colors duration-150 ${
             activeTab === 'executar'
-              ? 'bg-white text-blh-primary shadow-sm ring-1 ring-blh-slate-200'
-              : 'text-blh-slate-600 hover:text-blh-slate-900 hover:bg-white/50'
+              ? 'text-blh-primary'
+              : 'text-blh-slate-600 hover:text-blh-slate-900'
           }`}
         >
-          <Play className="w-4 h-4" />
-          Executar Coletas
+          {activeTab === 'executar' && (
+            <motion.span
+              layoutId="rotas-active-tab"
+              transition={MOTION_SPRING.snappy}
+              className="absolute inset-0 bg-white rounded-lg shadow-sm ring-1 ring-blh-slate-200 -z-10"
+            />
+          )}
+          <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+          <span className="truncate">Executar<span className="hidden sm:inline"> Coletas</span></span>
           {doneCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full transition-colors">
+            <span className="px-1.5 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full transition-colors shrink-0">
               {doneCount}/{totalStops}
             </span>
           )}
         </button>
       </div>
 
+      <AnimatePresence mode="wait" initial={false}>
       {/* ── Tab 1: GESTÃO DA FROTA (CRUD Completo de Rotas) ── */}
       {activeTab === 'frota' && (
-        <div key="tab-panel-frota" className="animate-routeSwap">
+        <PageTransition key="tab-panel-frota" variant="tab">
           <RouteFleetManager
             onSelectRouteForEditing={(routeId) => {
               setActiveRouteId(routeId);
@@ -159,22 +185,22 @@ export const RoteirizacaoView: React.FC = () => {
               setActiveTab('executar');
             }}
           />
-        </div>
+        </PageTransition>
       )}
 
       {/* ── Tab 2: MONTAR PARADAS (RouteDispatcher) ── */}
       {activeTab === 'montar' && (
-        <div key="tab-panel-montar" className="animate-routeSwap">
+        <PageTransition key="tab-panel-montar" variant="tab">
           <RouteDispatcher 
             onNavigateToExecution={() => setActiveTab('executar')} 
             onNavigateToFleet={() => setActiveTab('frota')}
           />
-        </div>
+        </PageTransition>
       )}
 
       {/* ── Tab 3: EXECUTAR COLETAS ── */}
       {activeTab === 'executar' && (
-        <div key="tab-panel-executar" className="animate-routeSwap space-y-4">
+        <PageTransition key="tab-panel-executar" variant="tab" className="space-y-4">
           {/* Seletor Rápido de Veículo caso haja mais de 1 rota no dia */}
           {dayRoutes.length > 1 && (
             <div className="p-3 bg-white rounded-xl border border-blh-slate-200 flex flex-wrap items-center justify-between gap-2 shadow-sm">
@@ -213,7 +239,7 @@ export const RoteirizacaoView: React.FC = () => {
                     A rota de hoje ainda não foi iniciada
                   </p>
                   <p className="text-xs text-amber-700 mt-0.5">
-                    Revise as doadoras na aba "Montar Rota" ou clique diretamente em <strong>"Iniciar Rota Agora"</strong> para liberar o registro das coletas.
+                    Revise as doadoras na aba "Montar Paradas" ou clique diretamente em <strong>"Iniciar Rota Agora"</strong> para liberar o registro das coletas.
                   </p>
                 </div>
               </div>
@@ -299,7 +325,12 @@ export const RoteirizacaoView: React.FC = () => {
                           : `Ainda há ${totalStops - doneCount} parada(s) pendente(s)`
                       }
                     >
-                      Finalizar Rota {isAllCompleted ? '✓' : `(${totalStops - doneCount} pend.)`}
+                      Finalizar Rota{' '}
+                      {isAllCompleted
+                        ? '✓'
+                        : `(${totalStops - doneCount} ${
+                            totalStops - doneCount === 1 ? 'pendente' : 'pendentes'
+                          })`}
                     </Button>
                   )}
 
@@ -312,12 +343,14 @@ export const RoteirizacaoView: React.FC = () => {
                 </div>
               </div>
               <div className="w-full bg-blh-slate-200 h-2.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 h-full rounded-full transition-all duration-500 relative overflow-hidden"
-                  style={{ width: `${progressPercent}%` }}
+                <motion.div
+                  className="bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 h-full rounded-full relative overflow-hidden"
+                  initial={{ width: '0%' }}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ duration: MOTION_DURATION.chart, ease: MOTION_EASE.outExpo }}
                 >
                   <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                </div>
+                </motion.div>
               </div>
             </div>
           )}
@@ -451,7 +484,7 @@ export const RoteirizacaoView: React.FC = () => {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs font-semibold text-blh-primary">
-                  {totalStops} Paradas
+                  {totalStops} {totalStops === 1 ? 'Parada' : 'Paradas'}
                 </span>
                 <Button
                   size="sm"
@@ -467,9 +500,20 @@ export const RoteirizacaoView: React.FC = () => {
             {totalStops === 0 ? (
               <EmptyState
                 title={`Nenhuma doadora agendada para a Zona ${zoneConfig.zona}`}
-                description="Monte a rota na aba 'Montar Rota' para adicionar paradas."
-                actionLabel="Montar Rota"
-                onAction={() => setActiveTab('montar')}
+                description={
+                  isRouteActive
+                    ? 'Esta rota foi aberta sem nenhuma doadora vinculada. Retorne ao planejamento para adicionar pelo menos uma doadora antes de executá-la.'
+                    : 'Adicione pelo menos uma doadora na aba "Montar Paradas" para liberar a execução desta rota.'
+                }
+                actionLabel={isRouteActive ? 'Voltar ao Planejamento' : 'Montar Paradas'}
+                onAction={async () => {
+                  if (isRouteActive && routeAssignment) {
+                    const ok = await reopenEmptyRoute(routeAssignment.id);
+                    if (ok) setActiveTab('montar');
+                  } else {
+                    setActiveTab('montar');
+                  }
+                }}
               />
             ) : (
               <div className="space-y-3 pt-2">
@@ -523,8 +567,9 @@ export const RoteirizacaoView: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </PageTransition>
       )}
+      </AnimatePresence>
 
       {/* Modal de Registro de Coleta */}
       {activeDonor && (

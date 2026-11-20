@@ -1,7 +1,8 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { ZONAS_SEMANA } from '../../../constants/zones';
 import { useApp } from '../../../hooks/useApp';
-import { WeekDay } from '../../../types/donor';
+import { MOTION_SPRING } from '../../../lib/motion';
 
 export const WeekDaySelector: React.FC = () => {
   const { selectedDay, setSelectedDay, donors, bottles } = useApp();
@@ -16,16 +17,27 @@ export const WeekDaySelector: React.FC = () => {
         const bottlesCount = bottles.filter((b) => b.zona === z.zona).length;
 
         return (
-          <button
+          <motion.button
             key={z.dia}
             type="button"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            transition={MOTION_SPRING.tap}
             onClick={() => setSelectedDay(z.dia)}
-            className={`min-w-[145px] sm:min-w-0 shrink-0 snap-start p-3 sm:p-3.5 rounded-xl border text-left transition-all duration-150 flex flex-col justify-between ${
+            className={`relative isolate overflow-hidden min-w-[145px] sm:min-w-0 shrink-0 snap-start p-3 sm:p-3.5 rounded-xl border text-left transition-colors duration-150 flex flex-col justify-between ${
               isSelected
-                ? 'bg-blh-primary text-white border-blh-primary shadow-md ring-2 ring-blh-primary/20'
+                ? 'text-white border-blh-primary shadow-md ring-2 ring-blh-primary/20'
                 : 'bg-white text-blh-slate-800 border-blh-line hover:border-blh-line-strong hover:bg-blh-slate-50'
             }`}
           >
+            {isSelected && (
+              <motion.span
+                layoutId="weekday-active-bg"
+                transition={MOTION_SPRING.snappy}
+                className="absolute inset-0 bg-blh-primary -z-10"
+              />
+            )}
+
             <div>
               <div className="flex items-center justify-between gap-1 mb-1">
                 <span
@@ -36,7 +48,7 @@ export const WeekDaySelector: React.FC = () => {
                   {z.dia}-feira
                 </span>
                 <span
-                  className="w-2.5 h-2.5 rounded-full border border-white/50"
+                  className="w-2.5 h-2.5 rounded-full border border-white/50 shadow-sm"
                   style={{ backgroundColor: z.cor }}
                 />
               </div>
@@ -64,7 +76,7 @@ export const WeekDaySelector: React.FC = () => {
                 {bottlesCount} {bottlesCount === 1 ? 'frasco' : 'frascos'}
               </span>
             </div>
-          </button>
+          </motion.button>
         );
       })}
     </div>

@@ -125,58 +125,58 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Van 02 - Rota Norte Apoio ou Coleta Urgência"
-              className="w-full text-sm px-3.5 py-2.5 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary focus:border-transparent outline-none transition"
+              placeholder="Ex.: Van 02 - Rota Norte Apoio ou Coleta Urgência"
+              className="w-full h-10 text-sm px-3.5 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary outline-none transition"
             />
           </div>
 
-          {/* Zona de Coleta, Dia da Semana e Turno (Sincronizados) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Zona de Coleta, Dia da Semana e Turno (Sincronizados e Alinhados) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
             <div>
-              <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="h-5 flex items-center text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
                 Zona de Coleta
               </label>
               <select
                 value={zone}
                 onChange={(e) => handleZoneChange(e.target.value as ZoneName)}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary outline-none bg-white font-medium"
+                className="w-full h-10 text-sm px-3 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary outline-none bg-white font-medium"
               >
-                <option value="Norte">Zona Norte (Segunda)</option>
-                <option value="Sul">Zona Sul (Terça)</option>
-                <option value="Oeste">Zona Oeste (Quarta)</option>
-                <option value="Leste">Zona Leste (Quinta)</option>
-                <option value="Rural">Zona Rural (Sexta)</option>
+                <option value="Norte">Zona Norte</option>
+                <option value="Sul">Zona Sul</option>
+                <option value="Oeste">Zona Oeste</option>
+                <option value="Leste">Zona Leste</option>
+                <option value="Rural">Zona Rural</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                <span>Dia da Semana</span>
-                <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                  Automático
+              <label className="h-5 flex items-center justify-between gap-1 text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
+                <span className="truncate">Dia da Semana</span>
+                <span className="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">
+                  Auto
                 </span>
               </label>
               <select
                 value={day}
                 onChange={(e) => handleDayChange(e.target.value as WeekDay)}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary outline-none bg-white font-medium"
+                className="w-full h-10 text-sm px-3 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary outline-none bg-white font-medium"
               >
-                <option value="Segunda">Segunda-feira (Zona Norte)</option>
-                <option value="Terça">Terça-feira (Zona Sul)</option>
-                <option value="Quarta">Quarta-feira (Zona Oeste)</option>
-                <option value="Quinta">Quinta-feira (Zona Leste)</option>
-                <option value="Sexta">Sexta-feira (Zona Rural)</option>
+                <option value="Segunda">Segunda-feira</option>
+                <option value="Terça">Terça-feira</option>
+                <option value="Quarta">Quarta-feira</option>
+                <option value="Quinta">Quinta-feira</option>
+                <option value="Sexta">Sexta-feira</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="h-5 flex items-center text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
                 Turno
               </label>
               <select
                 value={shift}
                 onChange={(e) => setShift(e.target.value as RouteShift)}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary outline-none bg-white font-medium"
+                className="w-full h-10 text-sm px-3 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary outline-none bg-white font-medium"
               >
                 <option value="Manhã">Manhã</option>
                 <option value="Tarde">Tarde</option>
@@ -187,22 +187,29 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
 
           {/* Veículo & Placa */}
           <div className="p-3.5 bg-blh-slate-50 rounded-xl border border-blh-slate-200 space-y-2.5">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="text-xs font-bold text-blh-slate-800 flex items-center gap-1.5">
                 <Truck className="w-3.5 h-3.5 text-blh-primary" />
                 Veículo da Frota
               </span>
               <div className="flex gap-1.5">
-                {FLEET_VEHICLES.map((v) => (
-                  <button
-                    key={v.id}
-                    type="button"
-                    onClick={() => handleSelectVehicle(v.id)}
-                    className="text-[11px] px-2 py-0.5 rounded bg-white hover:bg-blh-primary hover:text-white border border-blh-slate-200 text-blh-slate-700 transition font-medium"
-                  >
-                    {v.name.split(' - ')[0]}
-                  </button>
-                ))}
+                {FLEET_VEHICLES.map((v) => {
+                  const isCurrentVehicle = vehicleName === v.name;
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => handleSelectVehicle(v.id)}
+                      className={`text-[11px] px-2.5 py-0.5 rounded-md border transition font-semibold ${
+                        isCurrentVehicle
+                          ? 'bg-blh-primary text-white border-blh-primary shadow-sm'
+                          : 'bg-white hover:bg-blh-primary-soft hover:border-blh-primary/40 border-blh-slate-200 text-blh-slate-700'
+                      }`}
+                    >
+                      {v.name.split(' - ')[0]}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -212,8 +219,8 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
                   type="text"
                   value={vehicleName}
                   onChange={(e) => setVehicleName(e.target.value)}
-                  placeholder="Modelo do Veículo (ex: Mercedes Sprinter BLH)"
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white outline-none focus:ring-1 focus:ring-blh-primary"
+                  placeholder="Modelo do Veículo (ex.: Mercedes Sprinter BLH)"
+                  className="w-full h-10 text-xs px-3 rounded-lg border border-blh-slate-300 bg-white outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
                   required
                 />
               </div>
@@ -222,8 +229,8 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
                   type="text"
                   value={vehiclePlate}
                   onChange={(e) => setVehiclePlate(e.target.value)}
-                  placeholder="Placa (ex: BRA-2E19)"
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white outline-none focus:ring-1 focus:ring-blh-primary font-mono uppercase"
+                  placeholder="Placa (ex.: BRA-2E19)"
+                  className="w-full h-10 text-xs px-3 rounded-lg border border-blh-slate-300 bg-white outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary font-mono uppercase"
                 />
               </div>
             </div>
@@ -247,7 +254,7 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
                   onChange={(e) => setDriverName(e.target.value)}
                   placeholder="Nome do motorista"
                   list="drivers-list"
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white outline-none focus:ring-1 focus:ring-blh-primary"
+                  className="w-full h-10 text-xs px-3 rounded-lg border border-blh-slate-300 bg-white outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
                   required
                 />
                 <datalist id="drivers-list">
@@ -267,7 +274,7 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
                   onChange={(e) => setCollectorName(e.target.value)}
                   placeholder="Nome da coletora / técnica"
                   list="collectors-list"
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-blh-slate-300 bg-white outline-none focus:ring-1 focus:ring-blh-primary"
+                  className="w-full h-10 text-xs px-3 rounded-lg border border-blh-slate-300 bg-white outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
                 />
                 <datalist id="collectors-list">
                   {FLEET_COLLECTORS.map((c) => (
@@ -279,21 +286,26 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
           </div>
 
           {/* Pré-alocação automática de paradas */}
-          <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200">
+          <div className="p-3.5 bg-blh-primary-soft/60 rounded-xl border border-blh-line-strong border-l-4 border-l-blh-primary">
             <label className="flex items-start gap-2.5 cursor-pointer">
               <input
                 type="checkbox"
                 checked={autoFill}
                 onChange={(e) => setAutoFill(e.target.checked)}
-                className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                className="mt-0.5 rounded accent-blh-primary focus:ring-blh-primary w-4 h-4 cursor-pointer shrink-0"
               />
               <div className="text-left">
-                <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-xs font-bold text-blh-slate-900 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-blh-primary shrink-0" />
                   Alocar automaticamente doadoras disponíveis da Zona {zone}
                 </span>
-                <p className="text-[11px] text-emerald-800 mt-0.5">
-                  Inclui <strong>{availableZoneDonors.length} doadoras</strong> aptas que não estão alocadas em outra van no mesmo dia, já ordenadas por menor distância (TSP).
+                <p className="text-[11px] text-blh-slate-700 mt-0.5 leading-relaxed">
+                  Inclui{' '}
+                  <strong>
+                    {availableZoneDonors.length}{' '}
+                    {availableZoneDonors.length === 1 ? 'doadora apta' : 'doadoras aptas'}
+                  </strong>{' '}
+                  que não estão alocadas em outra van no mesmo dia, já ordenadas por menor distância (TSP).
                 </p>
               </div>
             </label>
@@ -301,15 +313,15 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
 
           {/* Observações */}
           <div>
-            <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
               Observações Operacionais (Opcional)
             </label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ex: Levar caixas extras de gelox; parada prioritária no Palmital."
-              className="w-full text-xs px-3 py-2 rounded-lg border border-blh-slate-300 outline-none focus:ring-1 focus:ring-blh-primary"
+              placeholder="Ex.: Levar caixas extras de gelo reciclável; parada prioritária no Palmital."
+              className="w-full h-10 text-xs px-3 rounded-lg border border-blh-slate-300 outline-none focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary"
             />
           </div>
 

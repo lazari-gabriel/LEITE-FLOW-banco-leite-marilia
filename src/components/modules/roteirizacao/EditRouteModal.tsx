@@ -92,7 +92,7 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
           </div>
 
           {/* Turno e Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
             <div>
               <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
                 Turno Operacional
@@ -100,7 +100,7 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
               <select
                 value={shift}
                 onChange={(e) => setShift(e.target.value as RouteShift)}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary outline-none bg-white font-medium"
+                className="w-full h-10 text-sm px-3 rounded-lg border border-blh-slate-300 focus:ring-2 focus:ring-blh-primary/30 focus:border-blh-primary outline-none bg-white font-medium"
               >
                 <option value="Manhã">Manhã</option>
                 <option value="Tarde">Tarde</option>
@@ -110,9 +110,9 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
 
             <div>
               <label className="block text-xs font-bold text-blh-slate-700 uppercase tracking-wider mb-1.5">
-                Status Atual (Máquina de Estados)
+                Status Atual
               </label>
-              <div className="w-full text-xs px-3 py-2.5 rounded-lg border border-blh-slate-200 bg-blh-slate-50 font-bold text-blh-slate-700">
+              <div className="w-full h-10 flex items-center text-xs px-3 rounded-lg border border-blh-slate-200 bg-blh-slate-50 font-bold text-blh-slate-700 truncate">
                 {status === 'planning'
                   ? 'Planejamento (use Iniciar Rota)'
                   : status === 'active'
