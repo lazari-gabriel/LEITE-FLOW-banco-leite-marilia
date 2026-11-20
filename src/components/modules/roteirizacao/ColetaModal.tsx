@@ -159,7 +159,7 @@ export const ColetaModal: React.FC<ColetaModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Registrar Coleta de Leite (Multi-Frasco)"
+      title="Registrar Coleta de Leite"
       subtitle={`Doadora: ${donor.nome} • ${classDesc.name}`}
       maxWidth="lg"
     >

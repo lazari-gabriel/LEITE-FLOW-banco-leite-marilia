@@ -145,23 +145,23 @@ export const AccountabilityView: React.FC = () => {
       {/* Header */}
       <div className="bg-white p-6 rounded-xl border border-blh-line shadow-card">
         <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-blh-primary bg-blh-primary-soft px-2.5 py-1 rounded-md mb-2">
-          LEITE FLOW · Laboratório BLH &amp; Estoque Real
+          LEITE FLOW · Laboratório e Controle de Estoque
         </span>
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-blh-slate-900 tracking-tight">
-          Processamento Laboratorial, Dispensação UTI &amp; Controle de Vidros
+          Processamento Laboratorial, Dispensação UTI e Controle de Vidros
         </h1>
         <p className="text-xs sm:text-sm text-blh-slate-600 mt-1 max-w-3xl leading-relaxed">
-          Registre Acidez Dornic (≤ 8,0 °D), Crematócrito, liberação pós-pasteurização, dispensação anonimizada para a UTI Neonatal e acompanhe o saldo real de frascos de vidro.
+          Registre Acidez Dornic (≤ 8,0 °D), Crematócrito, liberação pós-pasteurização, dispensação com sigilo da doadora para a UTI Neonatal e acompanhe o saldo atualizado de frascos de vidro.
         </p>
       </div>
 
-      {/* Grid de Reconciliação Real dos Frascos (vindo do ledger do banco) */}
+      {/* Grid de Reconciliação de Frascos */}
       <StaggerContainer staggerDelay={0.055} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StaggerItem>
           <StatCard
             label="Frascos no Hospital (Estoque)"
             value={<AnimatedCounter value={stats.inventoryStock} />}
-            caption="Saldo calculado do livro de movimentações"
+            caption="Frascos disponíveis para envio às doadoras"
             variant="default"
             icon={<Package className="w-4 h-4 text-blh-primary" />}
           />
@@ -179,7 +179,7 @@ export const AccountabilityView: React.FC = () => {
           <StatCard
             label="Frascos Coletados"
             value={<AnimatedCounter value={stats.totalBottles} />}
-            caption={`${stats.totalVolumeMl} mL acumulados no banco`}
+            caption={`${stats.totalVolumeMl} mL acumulados no período`}
             variant="success"
             icon={<CheckCircle2 className="w-4 h-4 text-emerald-600" />}
           />
@@ -188,7 +188,7 @@ export const AccountabilityView: React.FC = () => {
           <StatCard
             label="Taxa de Retorno de Vidros"
             value={stats.returnRate}
-            caption="Relação real coletados ÷ entregues"
+            caption="Percentual de frascos devolvidos pelas doadoras"
             variant="accent"
             icon={<RotateCcw className="w-4 h-4 text-blh-accent" />}
           />
@@ -243,11 +243,11 @@ export const AccountabilityView: React.FC = () => {
             <thead className="bg-blh-slate-50 border-b border-blh-line text-[11px] font-bold text-blh-slate-500 uppercase tracking-wider">
               <tr>
                 <th className="px-4 py-3">Frasco</th>
-                <th className="px-4 py-3">Origem (Caderno 1)</th>
-                <th className="px-4 py-3">Coleta &amp; Temperatura</th>
-                <th className="px-4 py-3">Status (Caderno 2)</th>
+                <th className="px-4 py-3">Doadora e Zona</th>
+                <th className="px-4 py-3">Coleta e Temperatura</th>
+                <th className="px-4 py-3">Situação Laboratorial</th>
                 <th className="px-4 py-3">Acidez / Calorias</th>
-                <th className="px-4 py-3">Destino UTI (Caderno 3)</th>
+                <th className="px-4 py-3">Destino UTI Neonatal</th>
                 <th className="px-4 py-3">Validade</th>
                 <th className="px-4 py-3 text-right">Ações</th>
               </tr>
@@ -421,7 +421,7 @@ export const AccountabilityView: React.FC = () => {
 
           <div>
             <label htmlFor="lab-status" className="block text-xs font-bold text-blh-slate-700 mb-1">
-              Decisão / Novo Status *
+              Situação após análise *
             </label>
             <select
               id="lab-status"

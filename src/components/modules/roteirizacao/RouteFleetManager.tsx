@@ -427,7 +427,7 @@ export const RouteFleetManager: React.FC<RouteFleetManagerProps> = ({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-bold text-blh-slate-500 w-28 shrink-0">
-                        Pessoa que foi coletar:
+                        Responsável coleta:
                       </span>
                       <span className="font-semibold text-blh-slate-900 truncate">
                         {route.collectorName || 'Equipe BLH'}

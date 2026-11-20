@@ -11,10 +11,10 @@ export class ApiError extends Error {
   errors?: Record<string, string[]>;
 
   constructor(status: number, payload: ApiErrorPayload) {
-    super(payload.detail || payload.title || `Erro HTTP ${status}`);
+    super(payload.detail || payload.title || 'Não foi possível concluir a solicitação. Tente novamente em instantes.');
     this.name = 'ApiError';
     this.status = status;
-    this.title = payload.title || 'Erro na requisição';
+    this.title = payload.title || 'Não foi possível concluir a solicitação';
     this.errors = payload.errors;
   }
 }

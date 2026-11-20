@@ -56,7 +56,7 @@ export const DonorProfileModal: React.FC<DonorProfileModalProps> = ({
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={`Perfil 360° — ${donor.nome}`}
+      title={`Informações da Doadora — ${donor.nome}`}
       subtitle={`DOAD-${String(donor.id).padStart(3, '0')} · Zona ${donor.zona} · Cadastro ${donor.statusCadastro === 'ativa' ? 'Ativo' : 'Inativo'}`}
       maxWidth="2xl"
     >
@@ -82,7 +82,7 @@ export const DonorProfileModal: React.FC<DonorProfileModalProps> = ({
                 donor.geocodeStatus === 'verified' ? 'success' : 'neutral'
               }
             >
-              {donor.geocodeStatus === 'verified' ? 'GPS Verificado' : 'GPS Aproximado'}
+              {donor.geocodeStatus === 'verified' ? 'Endereço verificado' : 'Localização aproximada'}
             </Badge>
           </div>
 

@@ -25,7 +25,7 @@ export const LoginView: React.FC = () => {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError('Não foi possível conectar ao servidor do LEITE FLOW. Verifique se a API está ativa.');
+        setError('Não foi possível conectar ao sistema. Verifique sua conexão e tente novamente.');
       }
     } finally {
       setSubmitting(false);
@@ -157,7 +157,7 @@ export const LoginView: React.FC = () => {
           {import.meta.env.DEV && (
             <div className="pt-4 border-t border-blh-line space-y-2">
               <p className="text-[11px] font-bold uppercase tracking-wider text-blh-slate-500">
-                Perfis de Desenvolvimento (RBAC)
+                Acesso rápido para testes
               </p>
               <div className="grid grid-cols-2 gap-1.5 text-[11px]">
                 {[

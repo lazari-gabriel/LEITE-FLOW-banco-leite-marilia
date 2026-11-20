@@ -493,7 +493,7 @@ export const InteractiveMapView: React.FC = () => {
               onClick={optimizeCurrentRoute}
               leftIcon={<ArrowUpDown className="w-3.5 h-3.5 text-blh-primary" />}
             >
-              Melhorar Rota
+              Otimizar trajeto
             </Button>
           )}
 
@@ -626,7 +626,7 @@ export const InteractiveMapView: React.FC = () => {
             ) : (
               <>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-blh-slate-800 font-medium">Traçado por Ruas (GPS)</span>
+                <span className="text-blh-slate-800 font-medium">Trajeto pelas vias</span>
               </>
             )}
           </div>
@@ -835,7 +835,7 @@ export const InteractiveMapView: React.FC = () => {
                         className="py-2 px-3 rounded-lg text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-colors flex items-center justify-center gap-1.5 flex-1"
                       >
                         <Tag className="w-3.5 h-3.5" />
-                        <span>Preencher Etiqueta</span>
+                        <span>Registrar coleta</span>
                       </button>
                     ) : (
                       <button
@@ -854,7 +854,7 @@ export const InteractiveMapView: React.FC = () => {
                       className="w-full py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors flex items-center justify-center gap-1.5"
                     >
                       <XCircle className="w-3.5 h-3.5" />
-                      <span>Marcar como Não Feita</span>
+                      <span>Registrar não atendimento</span>
                     </button>
                   )}
                 </>

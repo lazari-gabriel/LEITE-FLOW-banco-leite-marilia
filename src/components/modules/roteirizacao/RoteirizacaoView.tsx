@@ -274,12 +274,12 @@ export const RoteirizacaoView: React.FC = () => {
                     Rota do Dia Finalizada e Arquivada
                   </p>
                   <p className="text-xs text-blue-800 mt-0.5">
-                    Modo somente leitura. Todas as coletas ({completedCount}) e justificativas ({skippedCount}) estão vinculadas ao histórico permanente do Banco de Leite.
+                    Rota arquivada. Todas as coletas ({completedCount}) e justificativas ({skippedCount}) estão vinculadas ao histórico permanente do Banco de Leite.
                   </p>
                 </div>
               </div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-blue-800 bg-blue-100 px-3 py-1 rounded-md shrink-0">
-                Somente Leitura
+                Arquivada
               </span>
             </div>
           )}
@@ -366,7 +366,7 @@ export const RoteirizacaoView: React.FC = () => {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold uppercase tracking-wider border border-emerald-500/40">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      Radar de Chegada Ativo
+                      Próxima parada da rota
                     </span>
                     <span className="text-xs font-mono font-bold text-emerald-300 bg-white/10 px-2 py-0.5 rounded">
                       PARADA #{nextStop.stopNumber}
@@ -405,7 +405,7 @@ export const RoteirizacaoView: React.FC = () => {
                     leftIcon={<Navigation className="w-4 h-4 text-emerald-400" />}
                     className="bg-white/10 hover:bg-white/20 border-white/20 text-white font-bold backdrop-blur-sm"
                   >
-                    GPS / Trajeto
+                    Abrir rota no mapa
                   </Button>
 
                   <Button
@@ -424,7 +424,7 @@ export const RoteirizacaoView: React.FC = () => {
                     className="text-rose-300 hover:bg-rose-500/20 border border-rose-500/30 text-xs font-semibold"
                     leftIcon={<XCircle className="w-4 h-4 text-rose-400" />}
                   >
-                    Não Feita
+                    Não atendida
                   </Button>
                 </div>
               </div>

@@ -83,7 +83,7 @@ export const ThermalLabelPreview: React.FC<ThermalLabelPreviewProps> = ({
         {/* QR Code Vetorial REAL ISO/IEC 18004 */}
         <div
           className="w-16 h-16 p-0.5 border border-black rounded bg-white shrink-0"
-          title={`QR Code ISO 18004: ${buildOpaqueQrPayload(bottle.codigo)}`}
+          title={`QR Code de rastreabilidade do frasco ${bottle.codigo}`}
         >
           <svg
             viewBox={`0 0 ${qrData.viewBoxSize} ${qrData.viewBoxSize}`}

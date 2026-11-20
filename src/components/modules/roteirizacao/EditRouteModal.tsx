@@ -72,7 +72,7 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={`Editar Dados da Rota (${route.code})`}
-      subtitle="Atualização de veículo, tripulação e turno operacional"
+      subtitle="Atualize veículo, equipe e turno da coleta"
       maxWidth="xl"
     >
         {/* Formulário */}
@@ -118,7 +118,7 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
                   : status === 'active'
                   ? 'Em Trânsito (use Finalizar Rota)'
                   : status === 'completed'
-                  ? 'Concluída (Somente leitura)'
+                  ? 'Concluída (registro arquivado)'
                   : 'Cancelada'}
               </div>
             </div>
@@ -158,7 +158,7 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
           <div className="p-3.5 bg-blh-slate-50 rounded-xl border border-blh-slate-200 space-y-2.5">
             <span className="text-xs font-bold text-blh-slate-800 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-blh-primary" />
-              Tripulação Alocada
+              Equipe responsável
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -183,7 +183,7 @@ export const EditRouteModal: React.FC<EditRouteModalProps> = ({
 
               <div>
                 <label className="block text-[11px] font-semibold text-blh-slate-600 mb-1">
-                  Pessoa que foi coletar
+                  Responsável pela coleta
                 </label>
                 <input
                   type="text"

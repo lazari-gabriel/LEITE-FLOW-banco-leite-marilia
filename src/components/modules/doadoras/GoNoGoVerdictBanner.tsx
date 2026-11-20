@@ -35,7 +35,7 @@ export const GoNoGoVerdictBanner: React.FC<GoNoGoVerdictBannerProps> = ({
       <button
         onClick={onDismiss}
         className="absolute top-4 right-4 p-1.5 rounded-md text-blh-slate-400 hover:text-blh-slate-700 hover:bg-black/5 transition-colors"
-        aria-label="Fechar veredito"
+        aria-label="Fechar resultado da triagem"
       >
         <X className="w-4 h-4" />
       </button>
@@ -71,30 +71,30 @@ export const GoNoGoVerdictBanner: React.FC<GoNoGoVerdictBannerProps> = ({
               }`}
             >
               {isApproved
-                ? 'VEREDITO: GO — APROVADA'
+                ? 'APTA PARA DOAÇÃO'
                 : isPending
-                ? 'STATUS: PENDENTE DE EXAMES'
-                : 'VEREDITO: NO-GO — BLOQUEADA'}
+                ? 'AGUARDANDO EXAMES'
+                : 'INAPTA PARA DOAÇÃO'}
             </span>
             <span className="text-xs text-blh-slate-500">
-              Protocolo de Segurança ANVISA / BLH
+              Protocolo Clínico ANVISA / BLH
             </span>
           </div>
 
           <h3 className="font-serif font-bold text-base sm:text-lg">
             {isApproved
-              ? `Doadora ${donor.nome} Apta para Coleta Domiciliar!`
+              ? `Doadora ${donor.nome} apta para coleta domiciliar`
               : isPending
-              ? `Doadora ${donor.nome} Aguardando Laudos Sorológicos`
-              : `Doadora ${donor.nome} Reprovada na Triagem de Segurança`}
+              ? `Doadora ${donor.nome} aguardando laudos sorológicos`
+              : `Doadora ${donor.nome} inapta na triagem clínica`}
           </h3>
 
           <p className="text-xs sm:text-sm text-blh-slate-700 mt-1 leading-relaxed">
             {isApproved
-              ? `Aprovada sem restrições sanitárias. Liberada para a rota semanal da Zona ${donor.zona} de Marília. O kit de frascos esterilizados e toucas será entregue na 1ª visita da van coletora.`
+              ? `Aprovada sem restrições clínicas. Liberada para a rota semanal da Zona ${donor.zona} de Marília. O kit de frascos esterilizados e toucas será entregue na 1ª visita da equipe de coleta.`
               : isPending
-              ? `Cadastro salvo com sucesso sem contraindicações clínicas, porém bloqueado para coleta até o registro dos exames sorológicos (1ª, 2ª e 3ª amostras) como Não Reagentes.`
-              : `Bloqueada do ingresso na rota de coleta domiciliar. Motivo técnico impeditivo: ${evalResult.reasons.join(' · ')}.`}
+              ? `Cadastro salvo sem contraindicações clínicas, mas aguardando a confirmação dos exames sorológicos (1ª, 2ª e 3ª amostras) como Não Reagentes para liberação em rota.`
+              : `Não liberada para a rota de coleta domiciliar. Critério clínico impeditivo: ${evalResult.reasons.join(' · ')}.`}
           </p>
 
           <div className="mt-3.5 flex items-center gap-3">

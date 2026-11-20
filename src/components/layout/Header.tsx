@@ -39,11 +39,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
 
   const breadcrumbMap: Record<string, string> = {
     visao: 'Painel Geral',
-    cadastro: 'Cadastro de Doadoras',
-    roteirizacao: 'Rotas de Coleta do Dia',
+    cadastro: 'Gestão de Doadoras',
+    roteirizacao: 'Rotas de Coleta',
     mapa: 'Mapa das Rotas',
     etiquetas: 'Etiquetas dos Frascos',
-    accountability: 'Controle de Frascos',
+    accountability: 'Laboratório e Estoque',
   };
 
   const currentTitle = breadcrumbMap[currentView] || 'Painel';
@@ -91,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
         {/* Cold Chain Real Average Badge */}
         <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-sky-50 border border-sky-200/80 text-sky-900 text-[11px] sm:text-xs font-semibold tabular-nums shadow-sm transition-colors hover:border-sky-300">
           <ShieldCheck className="w-3.5 h-3.5 text-sky-700 shrink-0 hidden sm:inline" />
-          <span className="hidden sm:inline">Média Caixa: </span>
+          <span className="hidden sm:inline">Temp. média: </span>
           <strong className="font-mono text-sky-950 font-bold whitespace-nowrap">
             {stats.totalBottles > 0 ? `${stats.averageTemp}°C` : 'Sem aferição'}
           </strong>
@@ -123,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileMenu }) => {
                 leftIcon={<PlusCircle className="w-4 h-4" />}
                 className="shadow-sm font-bold"
               >
-                <span className="hidden sm:inline">Nova</span> Doadora
+                <span className="hidden sm:inline">Cadastrar</span> Doadora
               </Button>
             </motion.div>
           )}

@@ -136,7 +136,7 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
 
   const handleGeocodeAddress = async () => {
     if (!formData.endereco.trim()) {
-      setErrorMsg('Digite o endereço antes de localizar no GPS.');
+      setErrorMsg('Digite o endereço antes de localizar no mapa.');
       return;
     }
     setIsGeocoding(true);
@@ -163,22 +163,22 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
         }));
         addToast({
           type: 'success',
-          title: 'Endereço Localizado (GPS Real)',
-          description: `Coordenadas verificadas: ${res.lat.toFixed(5)}, ${res.lng.toFixed(5)}`,
+          title: 'Endereço localizado',
+          description: `Localização confirmada para o planejamento de rotas (${res.lat.toFixed(4)}, ${res.lng.toFixed(4)}).`,
         });
       } else {
         setFormData((prev) => ({ ...prev, geocodeStatus: 'approximate' }));
         addToast({
           type: 'warning',
-          title: 'Coordenada Aproximada',
-          description: res.detail || 'Endereço não encontrado com precisão; será usada referência da zona.',
+          title: 'Localização aproximada',
+          description: res.detail || 'Não foi possível confirmar o endereço exato; será usada a referência da zona.',
         });
       }
     } catch {
       addToast({
         type: 'warning',
-        title: 'Geocodificação indisponível',
-        description: 'O cadastro continuará normalmente usando referência da zona.',
+        title: 'Localização automática indisponível',
+        description: 'O cadastro continuará normalmente usando a referência da zona.',
       });
     } finally {
       setIsGeocoding(false);
@@ -187,10 +187,10 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
 
   const steps = [
     { num: 1, label: 'Identificação' },
-    { num: 2, label: 'Vacinas & Hábitos' },
+    { num: 2, label: 'Vacinas e Hábitos' },
     { num: 3, label: 'Socioeconômico' },
     { num: 4, label: 'Cadeia de Frio' },
-    { num: 5, label: 'Sorologia (Regra de Ouro)' }
+    { num: 5, label: 'Exames Sorológicos' }
   ];
 
   // Load donor data when editing
@@ -621,7 +621,7 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
                 onClick={preencherExemplo}
                 leftIcon={<Sparkles className="w-3.5 h-3.5 text-blh-amber" />}
               >
-                Preencher Exemplo
+                Preencher dados de teste
               </Button>
             )}
           </div>
@@ -814,7 +814,7 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
                 <div className="flex items-center gap-2">
                   {formData.geocodeStatus === 'verified' && formData.lat && formData.lng && (
                     <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300">
-                      GPS Verificado ({formData.lat.toFixed(4)}, {formData.lng.toFixed(4)})
+                      Endereço verificado ({formData.lat.toFixed(4)}, {formData.lng.toFixed(4)})
                     </span>
                   )}
                   <Button
@@ -825,7 +825,7 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
                     onClick={() => void handleGeocodeAddress()}
                     leftIcon={<MapPin className="w-3.5 h-3.5" />}
                   >
-                    Localizar GPS
+                    Localizar endereço
                   </Button>
                 </div>
               </div>
@@ -1197,9 +1197,9 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
               <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               <div>
                 <strong className="block text-xs font-bold text-rose-950 mb-0.5">
-                  A Regra de Ouro da ANVISA / BLH Marília:
+                  Critério de segurança clínica (RDC 171/2006):
                 </strong>
-                Se qualquer uma das 3 amostras sorológicas for reagente/alterada, ou se a doadora apresentar tabagismo ativo regular ou tatuagem recente (&lt; 12 meses), ela será automaticamente <strong>REPROVADA (NO-GO)</strong> e bloqueada do ingresso na rota de coleta domiciliar para a total segurança imunológica dos recém-nascidos da UTI Neonatal.
+                Se qualquer uma das 3 amostras sorológicas for reagente ou alterada, ou se a doadora apresentar tabagismo ativo regular ou tatuagem recente (&lt; 12 meses), ela será considerada <strong>inapta para doação</strong> e não será incluída na rota domiciliar, garantindo a segurança dos recém-nascidos da UTI Neonatal.
               </div>
             </div>
           </div>
@@ -1240,11 +1240,11 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
             >
               {isEditing
                 ? step === 5
-                  ? 'Salvar Alterações & Concluir'
-                  : 'Salvar & Avançar'
+                  ? 'Salvar alterações'
+                  : 'Salvar e avançar'
                 : step === 5
-                ? 'Avaliar Triagem Clínica (Go / No-Go)'
-                : 'Próxima Etapa'}
+                ? 'Concluir triagem e avaliar aptidão'
+                : 'Próxima etapa'}
             </Button>
           </div>
         </div>

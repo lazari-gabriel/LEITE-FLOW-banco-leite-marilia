@@ -194,14 +194,14 @@ export const StopCard: React.FC<StopCardProps> = ({ stop, onOpenColeta, onOpenSk
                     className="text-rose-600 hover:bg-rose-50 border border-rose-200"
                     leftIcon={<XCircle className="w-3.5 h-3.5" />}
                   >
-                    Não Feita
+                    Não atendida
                   </Button>
                 )}
               </>
             ) : isRouteCompleted ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
                 <Lock className="w-3.5 h-3.5" />
-                Rota finalizada (somente leitura)
+                Rota arquivada
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded border border-amber-200">

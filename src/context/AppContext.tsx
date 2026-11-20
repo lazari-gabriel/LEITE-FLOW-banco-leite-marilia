@@ -189,7 +189,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const handleApiError = useCallback(
     (err: unknown, fallbackTitle: string) => {
-      const msg = err instanceof ApiError ? err.message : 'Falha na comunicação com o servidor.';
+      const msg = err instanceof ApiError ? err.message : 'Não foi possível concluir a operação. Verifique sua conexão e tente novamente.';
       addToast({ type: 'error', title: fallbackTitle, description: msg });
     },
     [addToast]
@@ -411,7 +411,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           addToast({
             type: 'success',
             title: 'Coleta Registrada ✓',
-            description: `Frasco ${bottle.codigo} salvo no banco de dados. Confira a etiqueta.`,
+            description: `Coleta registrada para o frasco ${bottle.codigo}. Confira a etiqueta antes de confirmar.`,
           });
         })
         .catch((err) => {
@@ -484,20 +484,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (serverVerdict.aptidao === 'Apta') {
             addToast({
               type: 'success',
-              title: 'Doadora Aprovada (GO)',
-              description: `${donor.nome} cadastrada e salva no banco de dados.`,
+              title: 'Doadora apta para doação',
+              description: `Cadastro de ${donor.nome} concluído com sucesso.`,
             });
           } else if (serverVerdict.aptidao === 'Pendente') {
             addToast({
               type: 'info',
-              title: 'Cadastro Salvo — Sorologia Pendente',
-              description: `${donor.nome} cadastrada como Pendente até lançamento dos laudos.`,
+              title: 'Cadastro salvo — aguardando exames',
+              description: `${donor.nome} cadastrada como pendente até o registro dos laudos sorológicos.`,
             });
           } else {
             addToast({
               type: 'warning',
-              title: 'Doadora Bloqueada (NO-GO)',
-              description: `Triagem indicou contraindicação sanitária: ${serverVerdict.reasons[0]}`,
+              title: 'Doadora inapta na triagem',
+              description: `Triagem indicou contraindicação clínica: ${serverVerdict.reasons[0]}`,
             });
           }
         })
@@ -532,20 +532,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (becameAltered || serverVerdict.aptidao === 'Inapta') {
             addToast({
               type: 'warning',
-              title: becameAltered ? 'Sorologia Reagente — Regra de Ouro' : 'Doadora Inapta (NO-GO)',
-              description: `${donor.nome} foi marcada como Inapta e removida da rota ativa.`,
+              title: becameAltered ? 'Sorologia reagente — doadora inapta' : 'Doadora inapta na triagem',
+              description: `${donor.nome} foi marcada como inapta e removida da rota ativa.`,
             });
           } else if (donor.aptidao === 'Apta' && oldDonor.aptidao !== 'Apta') {
             addToast({
               type: 'success',
-              title: 'Doadora Aprovada / Reabilitada (GO)',
-              description: `${donor.nome} agora está Apta para a Zona ${donor.zona}.`,
+              title: 'Doadora liberada para doação',
+              description: `${donor.nome} agora está apta para coleta na Zona ${donor.zona}.`,
             });
           } else {
             addToast({
               type: 'info',
-              title: 'Dados Atualizados',
-              description: `${donor.nome} atualizada com sucesso no banco de dados.`,
+              title: 'Informações atualizadas',
+              description: `As informações de ${donor.nome} foram atualizadas com sucesso.`,
             });
           }
         })
@@ -663,8 +663,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           invalidateAll();
           addToast({
             type: 'success',
-            title: 'Rota Otimizada (2-opt)!',
-            description: `${route.code} (${route.name}) reorganizada no servidor sem cruzamentos.`,
+            title: 'Trajeto otimizado',
+            description: `As paradas da rota ${route.code} (${route.name}) foram reorganizadas para reduzir o percurso.`,
           });
         })
         .catch(() => {
@@ -675,8 +675,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           persistRouteDonorIds(targetRoute.id, optimizedIds);
           addToast({
             type: 'success',
-            title: 'Rota Otimizada (2-opt)!',
-            description: `${targetRoute.code} (${targetRoute.name}) reorganizada por menor distância.`,
+            title: 'Trajeto otimizado',
+            description: `As paradas da rota ${targetRoute.code} (${targetRoute.name}) foram reorganizadas por menor distância.`,
           });
         });
     },

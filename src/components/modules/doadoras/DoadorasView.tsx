@@ -44,7 +44,7 @@ export const DoadorasView: React.FC = () => {
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-blh-primary bg-blh-primary-soft px-2.5 py-1 rounded-md">
                 {editingDonor
-                  ? 'Modo de Edição Cadastral'
+                  ? 'Atualização de Cadastro'
                   : showWizard
                   ? 'Nova Triagem Clínica'
                   : 'LEITE FLOW · Gestão de Doadoras'}
@@ -58,18 +58,18 @@ export const DoadorasView: React.FC = () => {
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-blh-slate-900 tracking-tight">
               {editingDonor ? (
                 <>
-                  Editar Cadastro: <span className="text-blh-primary">{editingDonor.nome}</span>
+                  Atualizar Cadastro: <span className="text-blh-primary">{editingDonor.nome}</span>
                 </>
               ) : showWizard ? (
-                'Cadastro de Doadora & Triagem Sanitária'
+                'Cadastro e Triagem Clínica da Doadora'
               ) : (
-                'Base Central de Doadoras — BLH Marília'
+                'Gestão de Doadoras — BLH Marília'
               )}
             </h1>
             <p className="text-xs sm:text-sm text-blh-slate-600 mt-1 max-w-3xl leading-relaxed">
               {showWizard
-                ? 'Triagem clínica baseada na RDC ANVISA nº 171/2006. Exames iniciam pendentes por segurança (fail-safe).'
-                : 'Pesquise, inspecione o perfil 360°, gerencie aptidão sorológica ou inicie um novo cadastro de triagem.'}
+                ? 'Triagem clínica conforme a RDC ANVISA nº 171/2006. Por segurança, os exames iniciam como pendentes até a confirmação do laudo.'
+                : 'Consulte as doadoras cadastradas, acompanhe exames sorológicos ou inicie uma nova triagem.'}
             </p>
           </div>
 
@@ -81,7 +81,7 @@ export const DoadorasView: React.FC = () => {
                 onClick={handleCloseWizard}
                 leftIcon={editingDonor ? <X className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
               >
-                {editingDonor ? 'Cancelar Edição' : 'Voltar para Lista'}
+                {editingDonor ? 'Cancelar atualização' : 'Voltar para lista'}
               </Button>
             ) : (
               <Button
@@ -94,7 +94,7 @@ export const DoadorasView: React.FC = () => {
                 leftIcon={<PlusCircle className="w-4 h-4" />}
                 className="font-bold shadow-sm"
               >
-                Nova Doadora
+                Cadastrar doadora
               </Button>
             )}
           </div>

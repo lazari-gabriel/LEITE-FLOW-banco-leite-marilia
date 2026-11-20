@@ -212,8 +212,8 @@ export const EtiquetasView: React.FC = () => {
     } catch (err) {
       addToast({
         type: 'error',
-        title: 'Não foi possível registrar emissão',
-        description: err instanceof ApiError ? err.message : 'Verifique a conexão com o servidor.',
+        title: 'Não foi possível registrar a emissão',
+        description: err instanceof ApiError ? err.message : 'Verifique sua conexão e tente novamente.',
       });
     }
   };
@@ -302,8 +302,8 @@ export const EtiquetasView: React.FC = () => {
     } catch (err) {
       addToast({
         type: 'error',
-        title: 'Erro ao confirmar etiquetagem',
-        description: err instanceof ApiError ? err.message : 'Verifique a conexão com o servidor.',
+        title: 'Não foi possível confirmar a etiquetagem',
+        description: err instanceof ApiError ? err.message : 'Verifique sua conexão e tente novamente.',
       });
     } finally {
       setConfirmingLabel(false);
@@ -321,13 +321,13 @@ export const EtiquetasView: React.FC = () => {
       <div className="bg-white p-6 rounded-xl border border-blh-line shadow-card flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-blh-primary bg-blh-primary-soft px-2.5 py-1 rounded-md mb-2">
-            Etiquetas &amp; Rastreabilidade Real (ISO Code128 + QR)
+            Etiquetas e Rastreabilidade de Frascos
           </span>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-blh-slate-900 tracking-tight">
             Central de Etiquetagem LEITE FLOW
           </h1>
           <p className="text-xs sm:text-sm text-blh-slate-600 mt-1 max-w-3xl leading-relaxed">
-            Códigos ópticos reais (Code 128 + QR ISO/IEC 18004 sem PII), controle de vias, bloqueio sanitário de pasteurização, lote A4 e exportação ZPL (60×40mm).
+            Emissão de etiquetas com código de barras e QR Code com proteção de dados da doadora, controle de vias, validação sanitária para UTI e impressão individual ou em lote.
           </p>
         </div>
 
@@ -339,7 +339,7 @@ export const EtiquetasView: React.FC = () => {
               onClick={openEditModal}
               leftIcon={<Edit3 className="w-4 h-4" />}
             >
-              Editar Frasco
+              Editar frasco
             </Button>
           )}
           {!canEditBottle && latestValidLog && canVoidLabel && (
@@ -350,7 +350,7 @@ export const EtiquetasView: React.FC = () => {
               leftIcon={<Ban className="w-4 h-4" />}
               className="border-rose-300 text-rose-700 hover:bg-rose-50"
             >
-              Anular Etiqueta
+              Anular etiqueta
             </Button>
           )}
           <Button
@@ -360,7 +360,7 @@ export const EtiquetasView: React.FC = () => {
             onClick={() => void handleDownloadZpl()}
             leftIcon={<Download className="w-4 h-4" />}
           >
-            Exportar ZPL
+            Arquivo térmico (ZPL)
           </Button>
           <Button
             size="sm"
@@ -384,7 +384,7 @@ export const EtiquetasView: React.FC = () => {
             <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm sm:text-base">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
               <span>
-                {isBottleLabelConfirmed ? 'Etiquetagem Confirmada (Bloqueada para Edição) ✓' : 'Confirmação da Etiqueta do Frasco'}
+                {isBottleLabelConfirmed ? 'Etiqueta confirmada e bloqueada para edição' : 'Confirmação da Etiqueta do Frasco'}
               </span>
             </div>
             <p className="text-xs text-emerald-800 mt-1">
@@ -435,7 +435,7 @@ export const EtiquetasView: React.FC = () => {
                   className="font-bold shadow-md"
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  Concluir e Ir para Próxima Parada
+                  Avançar para próxima parada
                 </Button>
               </>
             )}
@@ -446,7 +446,7 @@ export const EtiquetasView: React.FC = () => {
       {bottles.length === 0 ? (
         <EmptyState
           title="Nenhum frasco registrado"
-          description="Inicie uma rota e registre uma coleta para gerar a primeira etiqueta com Code 128 e QR Code reais."
+          description="Inicie uma rota e registre uma coleta para emitir a primeira etiqueta de rastreabilidade."
           actionLabel="Ir para Rotas de Coleta"
           onAction={() => setCurrentView('roteirizacao')}
         />
@@ -631,7 +631,7 @@ export const EtiquetasView: React.FC = () => {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-bold text-blh-slate-900">
-                              {log.copyNumber}ª via ({log.labelType})
+                              {log.copyNumber}ª via ({log.labelType === 'coleta' ? 'Coleta' : log.labelType === 'estocagem' ? 'Pré-estocagem' : 'UTI Neonatal'})
                             </span>
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-blh-slate-100 text-blh-slate-700 font-mono">
                               {log.format}

@@ -21,10 +21,10 @@ export const WeekMatrixOverview: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-blh-line">
           <div>
             <h2 className="text-base sm:text-lg font-serif font-bold text-blh-slate-900">
-              Matriz Operacional Semanal de Coletas — Marília
+              Programação Semanal de Coletas — Marília
             </h2>
             <p className="text-xs sm:text-sm text-blh-slate-600 mt-0.5">
-              Zoneamento logístico por dia útil. Selecione um dia para gerenciar frota e paradas.
+              Zoneamento das coletas por dia útil. Selecione um dia para gerenciar frota e paradas.
             </p>
           </div>
           <motion.button
@@ -35,7 +35,7 @@ export const WeekMatrixOverview: React.FC = () => {
             onClick={() => setCurrentView('roteirizacao')}
             className="text-xs font-bold text-blh-primary hover:text-blh-primary-dark inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center transition-colors group"
           >
-            <span>Abrir Roteirizador</span>
+            <span>Gerenciar rotas</span>
             <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </motion.button>
         </div>

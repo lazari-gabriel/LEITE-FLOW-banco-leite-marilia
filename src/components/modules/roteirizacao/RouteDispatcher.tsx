@@ -196,7 +196,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
               ) : isActive ? (
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-900 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Missão em Andamento
+                  Rota em andamento
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200">
@@ -345,7 +345,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
               </div>
               <div>
                 <h3 className="text-xs font-bold text-blh-slate-800 uppercase tracking-wider">
-                  Tripulação Escalada para a Rota
+                  Equipe Escalada para a Rota
                 </h3>
                 <p className="text-[11px] text-blh-slate-500">
                   Equipe oficial vinculada a este veículo para a coleta domiciliar
@@ -356,7 +356,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             <div className="flex items-center gap-2 self-start sm:self-auto">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blh-slate-200/80 text-blh-slate-700 text-[11px] font-bold border border-blh-slate-300">
                 <Lock className="w-3 h-3 text-blh-slate-500" />
-                Somente Leitura nesta aba
+                Edição disponível em Gestão da Frota
               </span>
               {onNavigateToFleet && (
                 <button
@@ -398,7 +398,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
               </div>
               <div className="min-w-0 flex-1">
                 <span className="text-[10px] font-bold text-blh-slate-500 uppercase tracking-wider block">
-                  Pessoa que foi coletar (Coletor / Enfermagem)
+                  Responsável pela coleta (Enfermagem)
                 </span>
                 <span className="text-sm font-bold text-blh-slate-900 truncate block">
                   {routeAssignment.collectorName?.trim() || 'Equipe BLH'}
@@ -466,7 +466,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
               leftIcon={<ArrowUpDown className="w-3.5 h-3.5 text-blh-primary" />}
               disabled={assignedIds.length < 2}
             >
-              Melhorar Sequência
+              Otimizar trajeto
             </Button>
           )}
 
@@ -499,7 +499,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-emerald-700 shrink-0" />
             <span>
-              <strong>Rota travada em andamento:</strong> A lista de paradas está fixada para a coleta de hoje.
+              <strong>Rota em andamento:</strong> A sequência de paradas está fixada para a coleta de hoje.
             </span>
           </div>
           {onNavigateToExecution ? (
@@ -527,7 +527,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
             </span>
           </div>
           <span className="text-[11px] font-semibold text-blue-800">
-            Somente Leitura
+            Arquivada
           </span>
         </div>
       )}
@@ -820,7 +820,7 @@ export const RouteDispatcher: React.FC<RouteDispatcherProps> = ({
                 onClick={() => setCurrentView('cadastro')}
                 leftIcon={<UserPlus className="w-3.5 h-3.5" />}
               >
-                Nova Doadora
+                Cadastrar doadora
               </Button>
 
               {isPlanning && (

@@ -37,8 +37,8 @@ export const TripleVerificationPipeline: React.FC<TripleVerificationPipelineProp
 
   const nodes = [
     {
-      badge: 'NÓ 1 · ORIGEM',
-      title: 'Coleta Domiciliar & Triagem',
+      badge: 'ETAPA 1 · COLETA E TRIAGEM',
+      title: 'Coleta Domiciliar e Triagem',
       mainMetric: inTriage,
       mainLabel: inTriage === 1 ? 'frasco em triagem' : 'frascos em triagem',
       details: [
@@ -53,8 +53,8 @@ export const TripleVerificationPipeline: React.FC<TripleVerificationPipelineProp
       badgeColor: 'bg-emerald-600 text-white',
     },
     {
-      badge: 'NÓ 2 · LABORATÓRIO',
-      title: 'Análise, Quarentena & Pasteurização',
+      badge: 'ETAPA 2 · LABORATÓRIO',
+      title: 'Análise, Quarentena e Pasteurização',
       mainMetric: pasteurized,
       mainLabel:
         pasteurized === 1
@@ -70,13 +70,13 @@ export const TripleVerificationPipeline: React.FC<TripleVerificationPipelineProp
       badgeColor: 'bg-sky-600 text-white',
     },
     {
-      badge: 'NÓ 3 · DESTINO UTI',
-      title: 'Dispensação Neonatal Anonimizada',
+      badge: 'ETAPA 3 · UTI NEONATAL',
+      title: 'Dispensação Neonatal Protegida',
       mainMetric: dispensed.length,
       mainLabel: dispensed.length === 1 ? 'frasco dispensado' : 'frascos dispensados',
       details: [
         `${dispensedMl} mL entregues aos recém-nascidos`,
-        'Rastreabilidade reversa ativa (RDC 171/2006)',
+        'Rastreabilidade ativa conforme RDC 171/2006',
       ],
       color: 'border-indigo-200 bg-indigo-50/40 text-indigo-900 hover:border-indigo-300',
       badgeColor: 'bg-indigo-600 text-white',
@@ -91,11 +91,11 @@ export const TripleVerificationPipeline: React.FC<TripleVerificationPipelineProp
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-blh-primary" />
               <h2 className="text-base sm:text-lg font-serif font-bold text-blh-slate-900">
-                Funil Vivo da Cadeia de Custódia (Nó 1 → Nó 2 → Nó 3)
+                Fluxo de Rastreabilidade do Leite Humano
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-blh-slate-600 mt-0.5">
-              Quantitativo real de frascos por etapa da tripla verificação hospitalar.
+              Acompanhamento dos frascos desde a coleta domiciliar até a dispensação na UTI Neonatal.
             </p>
           </div>
           <motion.button

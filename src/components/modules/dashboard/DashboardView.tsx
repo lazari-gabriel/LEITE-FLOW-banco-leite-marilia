@@ -246,7 +246,7 @@ export const DashboardView: React.FC = () => {
               Painel Operacional &amp; Logístico — BLH Marília
             </h1>
             <p className="text-xs sm:text-sm text-blh-slate-600 mt-1 max-w-3xl leading-relaxed">
-              Indicadores em tempo real calculados diretamente do banco de dados de doadoras, coletas, rotas e laboratório.
+              Acompanhe em tempo real doadoras, coletas, rotas e o processamento laboratorial do Banco de Leite.
             </p>
           </div>
 
@@ -435,7 +435,7 @@ export const DashboardView: React.FC = () => {
         </StaggerItem>
         <StaggerItem>
           <StatCard
-            label="Cadeia de Frio Real"
+            label="Temperatura de Transporte"
             value={
               metrics.avgTempNum !== null ? (
                 <span className="inline-flex items-baseline">

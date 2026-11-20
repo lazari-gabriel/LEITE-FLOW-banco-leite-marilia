@@ -143,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 LEITE FLOW
               </h1>
               <p className="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase truncate">
-                Hosp. Materno Infantil
+                Hospital Materno Infantil
               </p>
             </div>
           </motion.div>
@@ -166,7 +166,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-hidden={isCollapsed}
             className={`px-3 h-6 flex items-center text-[10px] font-bold uppercase tracking-wider text-blh-slate-500 whitespace-nowrap transition-[opacity,transform] duration-200 ease-out ${hideLabelsDesktop}`}
           >
-            Menu de Acesso
+            Navegação
           </div>
 
           {navItems.map((item) => {
@@ -283,7 +283,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Telemetria Grid */}
               <div className="grid grid-cols-2 gap-2 pt-2 border-t border-blh-slate-800/80 text-[10px]">
                 <div className="bg-blh-slate-900/60 p-1.5 rounded-lg border border-blh-slate-800">
-                  <span className="text-blh-slate-400 block text-[9px] uppercase font-bold tracking-wider">Média Caixa</span>
+                  <span className="text-blh-slate-400 block text-[9px] uppercase font-bold tracking-wider">Temp. média</span>
                   <span className="text-emerald-400 font-mono font-bold text-xs">
                     {stats.totalBottles > 0 ? `${stats.averageTemp} °C` : 'Sem aferição'}
                   </span>

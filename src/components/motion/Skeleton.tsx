@@ -141,7 +141,7 @@ export const SessionLoadingScreen: React.FC = () => (
   <div
     className="min-h-screen bg-blh-bg flex items-center justify-center p-4"
     role="status"
-    aria-label="Validando sessão segura LEITE FLOW"
+    aria-label="Verificando seu acesso ao LEITE FLOW"
   >
     <motion.div
       initial={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -166,7 +166,7 @@ export const SessionLoadingScreen: React.FC = () => (
       <div className="space-y-1">
         <p className="font-serif font-bold text-base text-blh-slate-900">LEITE FLOW</p>
         <p className="text-xs font-medium text-blh-slate-500">
-          Validando sessão segura do BLH...
+          Verificando seu acesso ao LEITE FLOW...
         </p>
       </div>
       <div className="w-full h-1.5 rounded-full bg-blh-slate-100 overflow-hidden">

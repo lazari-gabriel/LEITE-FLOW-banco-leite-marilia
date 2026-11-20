@@ -266,7 +266,7 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
 
               <div>
                 <label className="block text-[11px] font-semibold text-blh-slate-600 mb-1">
-                  Pessoa que foi coletar
+                  Responsável pela coleta
                 </label>
                 <input
                   type="text"
@@ -305,7 +305,7 @@ export const CreateRouteModal: React.FC<CreateRouteModalProps> = ({
                     {availableZoneDonors.length}{' '}
                     {availableZoneDonors.length === 1 ? 'doadora apta' : 'doadoras aptas'}
                   </strong>{' '}
-                  que não estão alocadas em outra van no mesmo dia, já ordenadas por menor distância (TSP).
+                  que não estão alocadas em outra van no mesmo dia, já ordenadas pelo trajeto mais curto.
                 </p>
               </div>
             </label>

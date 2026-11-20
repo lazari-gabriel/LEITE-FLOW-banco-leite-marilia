@@ -227,7 +227,7 @@ export function evaluateGoNoGo(data: DonorFormData, referenceDate: Date = new Da
 
   // Regra de Ouro 1: Sorologia (qualquer uma das 3 amostras alterada)
   if (data.soro1Res === 'alterada' || data.soro2Res === 'alterada' || data.soro3Res === 'alterada') {
-    reasons.push('Sorologia reagente ou alterada (Violação da Regra de Ouro ANVISA)');
+    reasons.push('Sorologia reagente ou alterada (critério impeditivo — RDC ANVISA nº 171/2006)');
   }
 
   // Regra 2: Hepatite pregressa (intercorrência clínica impeditiva)

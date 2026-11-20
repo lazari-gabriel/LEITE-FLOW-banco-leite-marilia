@@ -40,10 +40,10 @@ export const DeleteRouteConfirmModal: React.FC<DeleteRouteConfirmModalProps> = (
             Regra de Segurança de Frota
           </div>
           <p>
-            • As <strong>{route.donorIds.length} doadoras</strong> desta rota retornarão imediatamente para o pool de disponíveis.
+            • As <strong>{route.donorIds.length} doadoras</strong> desta rota voltarão a ficar disponíveis para agendamento em outras rotas.
           </p>
           <p>
-            • Coletas e frascos registrados anteriormente permanecem <strong>100% preservados</strong> no banco de dados.
+            • Coletas e frascos registrados anteriormente permanecerão <strong>preservados</strong> no histórico do Banco de Leite.
           </p>
         </div>
 
