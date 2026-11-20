@@ -451,7 +451,7 @@ export async function bottlesRoutes(app: FastifyInstance) {
         where: { id },
         include: {
           donor: { select: { parto: true } },
-          labelPrints: { where: { status: 'valid' }, select: { id: true } },
+          labelPrints: { select: { id: true } },
         },
       });
       if (!existing) {
@@ -466,9 +466,10 @@ export async function bottlesRoutes(app: FastifyInstance) {
       }
       if (existing.labelPrints.length > 0) {
         return reply.status(409).send({
-          title: 'Etiqueta já emitida',
+          title: 'Etiquetagem já confirmada',
           status: 409,
-          detail: 'Anule a etiqueta impressa antes de alterar os dados do frasco.',
+          detail:
+            'Não é permitido editar o frasco após confirmar a etiquetagem. Anule a etiqueta informando o motivo (o registro permanece preservado no histórico).',
         });
       }
 
@@ -779,12 +780,12 @@ export async function bottlesRoutes(app: FastifyInstance) {
     }
   );
 
-  // Anular / invalidar uma etiqueta impressa
+  // Anular / invalidar uma etiqueta confirmada ou impressa (mantém registro intacto no histórico)
   app.patch(
     '/labels/:printId/void',
     {
-      preHandler: [requireRoles('ADMIN', 'COORDENADOR_BLH', 'LABORATORIO')],
-      schema: { tags: ['Etiquetas'], summary: 'Anular/cancelar etiqueta impressa com motivo auditado' },
+      preHandler: [requireRoles('ADMIN', 'COORDENADOR_BLH', 'LABORATORIO', 'COLETOR_CAMPO')],
+      schema: { tags: ['Etiquetas'], summary: 'Anular/cancelar etiqueta com motivo auditado (sem excluir histórico)' },
     },
     async (request, reply) => {
       const printId = (request.params as { printId: string }).printId;
@@ -795,6 +796,13 @@ export async function bottlesRoutes(app: FastifyInstance) {
 
       const existing = await prisma.labelPrintLog.findUnique({ where: { id: printId } });
       if (!existing) return reply.status(404).send({ title: 'Registro de etiqueta não encontrado', status: 404 });
+      if (existing.status === 'voided') {
+        return reply.status(409).send({
+          title: 'Etiqueta já anulada',
+          status: 409,
+          detail: 'Este registro de etiqueta já foi anulado anteriormente.',
+        });
+      }
 
       const updated = await prisma.labelPrintLog.update({
         where: { id: printId },

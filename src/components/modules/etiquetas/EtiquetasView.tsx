@@ -82,12 +82,16 @@ export const EtiquetasView: React.FC = () => {
   const validCopiesForType = printLogs.filter(
     (l) => l.labelType === activeLabelType && l.status === 'valid'
   ).length;
-  const totalValidPrints = printLogs.filter((l) => l.status === 'valid').length;
+  const hasAnyLabelHistory = printLogs.length > 0;
+  const latestValidLog = printLogs.find((l) => l.status === 'valid') ?? null;
+  const isBottleLabelConfirmed = isLabelConfirmed || hasAnyLabelHistory;
+  const canVoidLabel = hasRole('ADMIN', 'COORDENADOR_BLH', 'LABORATORIO', 'COLETOR_CAMPO');
   const canEditBottle = Boolean(
     selectedBottle &&
+      !printLogsQuery.isLoading &&
       hasRole('ADMIN', 'COORDENADOR_BLH', 'COLETOR_CAMPO') &&
       selectedBottle.statusPast === 'Em Triagem' &&
-      totalValidPrints === 0 &&
+      !hasAnyLabelHistory &&
       !isLabelConfirmed
   );
 
@@ -275,10 +279,34 @@ export const EtiquetasView: React.FC = () => {
     }
   };
 
-  const handleConfirmEtiqueta = () => {
-    if (selectedBottle) {
+  const [confirmingLabel, setConfirmingLabel] = useState(false);
+
+  const handleConfirmEtiqueta = async () => {
+    if (!selectedBottle) return;
+    setConfirmingLabel(true);
+    try {
+      // Persiste a confirmação oficial da etiquetagem no histórico auditado do banco
+      if (!hasAnyLabelHistory) {
+        await apiFetch(`/bottles/${selectedBottle.id}/labels`, {
+          method: 'POST',
+          body: JSON.stringify({
+            labelType: activeLabelType,
+            format: printFormat,
+            reason: 'Confirmação oficial da etiquetagem',
+          }),
+        });
+        await queryClient.invalidateQueries({ queryKey: ['bottle-labels', selectedBottle.id] });
+      }
       confirmLabelAndCompleteStop(selectedBottle.id);
       setIsLabelConfirmed(true);
+    } catch (err) {
+      addToast({
+        type: 'error',
+        title: 'Erro ao confirmar etiquetagem',
+        description: err instanceof ApiError ? err.message : 'Verifique a conexão com o servidor.',
+      });
+    } finally {
+      setConfirmingLabel(false);
     }
   };
 
@@ -314,6 +342,17 @@ export const EtiquetasView: React.FC = () => {
               Editar Frasco
             </Button>
           )}
+          {!canEditBottle && latestValidLog && canVoidLabel && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setVoidingLog(latestValidLog)}
+              leftIcon={<Ban className="w-4 h-4" />}
+              className="border-rose-300 text-rose-700 hover:bg-rose-50"
+            >
+              Anular Etiqueta
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
@@ -345,7 +384,7 @@ export const EtiquetasView: React.FC = () => {
             <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm sm:text-base">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
               <span>
-                {isLabelConfirmed ? 'Etiqueta Confirmada com Sucesso ✓' : 'Confirmação da Etiqueta do Frasco'}
+                {isBottleLabelConfirmed ? 'Etiquetagem Confirmada (Bloqueada para Edição) ✓' : 'Confirmação da Etiqueta do Frasco'}
               </span>
             </div>
             <p className="text-xs text-emerald-800 mt-1">
@@ -354,7 +393,7 @@ export const EtiquetasView: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-            {!isLabelConfirmed ? (
+            {!isBottleLabelConfirmed ? (
               <>
                 {canEditBottle && (
                   <Button
@@ -369,7 +408,8 @@ export const EtiquetasView: React.FC = () => {
                 )}
                 <Button
                   size="sm"
-                  onClick={handleConfirmEtiqueta}
+                  isLoading={confirmingLabel}
+                  onClick={() => void handleConfirmEtiqueta()}
                   className="font-bold shadow-md bg-emerald-700 hover:bg-emerald-800"
                   rightIcon={<CheckCircle2 className="w-4 h-4" />}
                 >
@@ -377,14 +417,27 @@ export const EtiquetasView: React.FC = () => {
                 </Button>
               </>
             ) : (
-              <Button
-                size="sm"
-                onClick={handleConcludeAndGoToNext}
-                className="font-bold shadow-md"
-                rightIcon={<ArrowRight className="w-4 h-4" />}
-              >
-                Concluir e Ir para Próxima Parada
-              </Button>
+              <>
+                {latestValidLog && canVoidLabel && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setVoidingLog(latestValidLog)}
+                    leftIcon={<Ban className="w-4 h-4" />}
+                    className="bg-white border-rose-300 text-rose-700 hover:bg-rose-50 font-semibold"
+                  >
+                    Anular Etiqueta
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  onClick={handleConcludeAndGoToNext}
+                  className="font-bold shadow-md"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                  Concluir e Ir para Próxima Parada
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -563,13 +616,13 @@ export const EtiquetasView: React.FC = () => {
                     </h3>
                   </div>
                   <span className="text-[11px] font-mono text-blh-slate-500">
-                    {printLogs.length} registro(s)
+                    {printLogs.length} {printLogs.length === 1 ? 'registro' : 'registros'}
                   </span>
                 </div>
 
                 {printLogs.length === 0 ? (
                   <p className="text-xs text-blh-slate-500">
-                    Nenhuma impressão registrada ainda para este frasco.
+                    Nenhuma confirmação ou impressão registrada ainda para este frasco.
                   </p>
                 ) : (
                   <div className="divide-y divide-blh-line text-xs">
@@ -595,7 +648,7 @@ export const EtiquetasView: React.FC = () => {
                           </p>
                         </div>
 
-                        {log.status === 'valid' && hasRole('ADMIN', 'COORDENADOR_BLH', 'LABORATORIO') && (
+                        {log.status === 'valid' && canVoidLabel && (
                           <button
                             type="button"
                             onClick={() => setVoidingLog(log)}
@@ -821,7 +874,7 @@ export const EtiquetasView: React.FC = () => {
               type="text"
               value={voidReason}
               onChange={(e) => setVoidReason(e.target.value)}
-              placeholder="Ex: Impressão borrada / troca de frasco"
+              placeholder="Ex.: Impressão borrada / erro no volume aferido / troca de frasco"
               className="w-full text-xs px-3 py-2 rounded-lg border border-blh-slate-300"
             />
           </div>

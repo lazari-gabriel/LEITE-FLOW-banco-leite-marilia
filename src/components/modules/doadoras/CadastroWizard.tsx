@@ -223,21 +223,238 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
     }));
   };
 
+  const EXAMPLE_PROFILES: Array<{
+    nome: string;
+    bebe: string;
+    nascimento: string;
+    diasPosParto: number;
+    zona: DonorFormData['zona'];
+    endereco: string;
+    equipamento: DonorFormData['equipamento'];
+    extracao: DonorFormData['extracao'];
+    pesoBebe: string;
+    apgar: string;
+    medicacao: string;
+  }> = [
+    {
+      nome: 'Renata Silveira Prado',
+      bebe: 'Gabriel Silveira',
+      nascimento: '1997-06-20',
+      diasPosParto: 12,
+      zona: 'Oeste',
+      endereco: 'Rua Nelson Spielmann, 940 — Alto Cafezal, Marília - SP',
+      equipamento: 'Duplex',
+      extracao: 'Ordenha Manual',
+      pesoBebe: '3380',
+      apgar: '9/10',
+      medicacao: 'Polivitamínico pós-parto e Sulfato Ferroso',
+    },
+    {
+      nome: 'Camila Ferreira Nogueira',
+      bebe: 'Helena Nogueira',
+      nascimento: '1995-03-14',
+      diasPosParto: 25,
+      zona: 'Norte',
+      endereco: 'Avenida República, 3120 — Palmital, Marília - SP',
+      equipamento: 'Freezer',
+      extracao: 'Bomba Elétrica',
+      pesoBebe: '3520',
+      apgar: '9/10',
+      medicacao: 'Sulfato Ferroso e Ácido Fólico',
+    },
+    {
+      nome: 'Mariana Costa Oliveira',
+      bebe: 'Lucas Oliveira',
+      nascimento: '1999-11-08',
+      diasPosParto: 5,
+      zona: 'Sul',
+      endereco: 'Rua Santa Helena, 415 — Nova Marília, Marília - SP',
+      equipamento: 'Duplex',
+      extracao: 'Ordenha Manual',
+      pesoBebe: '3190',
+      apgar: '9/10',
+      medicacao: 'Vitamina D3 e Polivitamínico',
+    },
+    {
+      nome: 'Juliana Almeida Ribeiro',
+      bebe: 'Sofia Ribeiro',
+      nascimento: '1993-08-27',
+      diasPosParto: 38,
+      zona: 'Leste',
+      endereco: 'Avenida Cascata, 1180 — Jardim Maria Izabel, Marília - SP',
+      equipamento: 'Freezer',
+      extracao: 'Bomba Manual',
+      pesoBebe: '3640',
+      apgar: '10/10',
+      medicacao: 'Nenhuma medicação contínua',
+    },
+    {
+      nome: 'Beatriz Martins Cardoso',
+      bebe: 'Theo Cardoso',
+      nascimento: '1998-01-19',
+      diasPosParto: 18,
+      zona: 'Rural',
+      endereco: 'Rua das Paineiras, 210 — Distrito de Padre Nóbrega, Marília - SP',
+      equipamento: 'Duplex',
+      extracao: 'Ordenha Manual',
+      pesoBebe: '3290',
+      apgar: '9/10',
+      medicacao: 'Sulfato Ferroso pós-parto',
+    },
+    {
+      nome: 'Larissa Rocha Mendes',
+      bebe: 'Alice Mendes',
+      nascimento: '1996-09-05',
+      diasPosParto: 10,
+      zona: 'Norte',
+      endereco: 'Rua José de Alencar, 620 — Jardim Santa Antonieta, Marília - SP',
+      equipamento: 'Freezer',
+      extracao: 'Bomba Elétrica',
+      pesoBebe: '3410',
+      apgar: '9/10',
+      medicacao: 'Polivitamínico gestacional',
+    },
+    {
+      nome: 'Fernanda Dias Carvalho',
+      bebe: 'Miguel Carvalho',
+      nascimento: '1994-12-03',
+      diasPosParto: 30,
+      zona: 'Sul',
+      endereco: 'Rua Dr. José Guimarães, 508 — Jardim Monte Castelo, Marília - SP',
+      equipamento: 'Duplex',
+      extracao: 'Bomba Manual',
+      pesoBebe: '3490',
+      apgar: '9/10',
+      medicacao: 'Nenhuma medicação contínua',
+    },
+    {
+      nome: 'Patrícia Gomes Santana',
+      bebe: 'Laura Santana',
+      nascimento: '2000-04-22',
+      diasPosParto: 6,
+      zona: 'Oeste',
+      endereco: 'Avenida Rio Branco, 850 — Fragata, Marília - SP',
+      equipamento: 'Duplex',
+      extracao: 'Ordenha Manual',
+      pesoBebe: '3150',
+      apgar: '9/10',
+      medicacao: 'Ácido Fólico e Vitamina D',
+    },
+    {
+      nome: 'Amanda Teixeira Barbosa',
+      bebe: 'Davi Barbosa',
+      nascimento: '1997-07-11',
+      diasPosParto: 22,
+      zona: 'Leste',
+      endereco: 'Rua Sargento Ananias de Oliveira, 330 — Cascata, Marília - SP',
+      equipamento: 'Freezer',
+      extracao: 'Bomba Elétrica',
+      pesoBebe: '3580',
+      apgar: '10/10',
+      medicacao: 'Sulfato Ferroso',
+    },
+    {
+      nome: 'Tatiane Pereira Lima',
+      bebe: 'Manuela Lima',
+      nascimento: '1995-05-30',
+      diasPosParto: 14,
+      zona: 'Rural',
+      endereco: 'Avenida João Martins Coelho, 1450 — Maracá, Marília - SP',
+      equipamento: 'Duplex',
+      extracao: 'Ordenha Manual',
+      pesoBebe: '3320',
+      apgar: '9/10',
+      medicacao: 'Polivitamínico pós-parto',
+    },
+  ];
+
+  const generateValidCPF = (): string => {
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const digits = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
+      if (digits.every((d) => d === digits[0])) continue;
+      let sum = 0;
+      for (let i = 0; i < 9; i++) sum += digits[i] * (10 - i);
+      let d1 = (sum * 10) % 11;
+      if (d1 === 10) d1 = 0;
+      digits.push(d1);
+      sum = 0;
+      for (let i = 0; i < 10; i++) sum += digits[i] * (11 - i);
+      let d2 = (sum * 10) % 11;
+      if (d2 === 10) d2 = 0;
+      digits.push(d2);
+      const raw = digits.join('');
+      const formatted = `${raw.slice(0, 3)}.${raw.slice(3, 6)}.${raw.slice(6, 9)}-${raw.slice(9, 11)}`;
+      if (isValidCPF(formatted)) return formatted;
+    }
+    return '529.982.247-25';
+  };
+
+  const generateValidCNS = (): string => {
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const prefix = ['7', '8', '9'][Math.floor(Math.random() * 3)];
+      const middle = Array.from({ length: 13 }, () => Math.floor(Math.random() * 10)).join('');
+      const first14 = `${prefix}${middle}`;
+      let sum = 0;
+      for (let i = 0; i < 14; i++) sum += Number(first14[i]) * (15 - i);
+      const d15 = (11 - (sum % 11)) % 11;
+      if (d15 === 10) continue;
+      const raw = `${first14}${d15}`;
+      const formatted = `${raw.slice(0, 3)} ${raw.slice(3, 7)} ${raw.slice(7, 11)} ${raw.slice(11, 15)}`;
+      if (isValidCNS(formatted)) return formatted;
+    }
+    return '898 0033 7788 9908';
+  };
+
+  const generateUniquePhone = (): string => {
+    const part1 = 98000 + Math.floor(Math.random() * 1999);
+    const part2 = 1000 + Math.floor(Math.random() * 8999);
+    return `(14) ${part1}-${part2}`;
+  };
+
   const preencherExemplo = () => {
+    const existingNames = new Set(donors.map((d) => d.nome.trim().toLowerCase()));
+    const currentName = formData.nome.trim().toLowerCase();
+
+    // Prioriza perfis ainda não cadastrados no banco e diferentes do que já está preenchido na tela
+    const unseenProfiles = EXAMPLE_PROFILES.filter(
+      (p) => !existingNames.has(p.nome.toLowerCase()) && p.nome.toLowerCase() !== currentName
+    );
+    const fallbackProfiles = EXAMPLE_PROFILES.filter((p) => p.nome.toLowerCase() !== currentName);
+    const pool = unseenProfiles.length > 0 ? unseenProfiles : fallbackProfiles;
+    const picked = pool[Math.floor(Math.random() * pool.length)] || EXAMPLE_PROFILES[0];
+
+    // Se todos os nomes pré-definidos já foram cadastrados, gera variação inédita automaticamente
+    let finalNome = picked.nome;
+    if (existingNames.has(finalNome.toLowerCase())) {
+      const sobrenomesExtras = ['Alves', 'Freitas', 'Moraes', 'Azevedo', 'Ferreira', 'Monteiro', 'Lopes', 'Campos'];
+      const baseFirst = picked.nome.split(' ').slice(0, 2).join(' ');
+      const extra = sobrenomesExtras[Math.floor(Math.random() * sobrenomesExtras.length)];
+      finalNome = `${baseFirst} ${extra}`;
+    }
+
+    // Garante CPF e CNS válidos e 100% inéditos em relação às doadoras cadastradas
+    let cpf = generateValidCPF();
+    let sus = generateValidCNS();
+    for (let i = 0; i < 30; i++) {
+      if (!findDuplicateDonor(donors, sus, cpf)) break;
+      cpf = generateValidCPF();
+      sus = generateValidCNS();
+    }
+
     const dParto = new Date();
-    dParto.setDate(dParto.getDate() - 12); // Bebê com ~12 dias -> Transição
+    dParto.setDate(dParto.getDate() - picked.diasPosParto);
     const hoje = new Date().toISOString().split('T')[0];
 
     setFormData({
-      nome: 'Renata Silveira Prado',
-      bebe: 'Gabriel Silveira',
-      sus: '898 0033 7788 9908',
-      cpf: '529.982.247-25',
-      nascimento: '1997-06-20',
+      nome: finalNome,
+      bebe: picked.bebe,
+      sus,
+      cpf,
+      nascimento: picked.nascimento,
       parto: dParto.toISOString().split('T')[0],
-      telefone: '(14) 99844-3321',
-      zona: 'Oeste',
-      endereco: 'Rua Nelson Spielmann, 940 — Alto Cafezal, Marília - SP',
+      telefone: generateUniquePhone(),
+      zona: picked.zona,
+      endereco: picked.endereco,
       vacinaFebre: true,
       vacinaDtpa: true,
       transfusao: 'Não',
@@ -246,28 +463,28 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
       tatuagemData: '',
       fumo: 'nao',
       alcool: 'nao',
-      medicacao: 'Polivitamínico pós-parto e Sulfato Ferroso',
+      medicacao: picked.medicacao,
       aguaPotavel: true,
       redeEsgoto: true,
       renda: 'De 1 a 3 salários mínimos',
-      pesoBebe: '3380',
-      apgar: '9/10',
+      pesoBebe: picked.pesoBebe,
+      apgar: picked.apgar,
       malformacao: 'nao',
       intercorrencias: {
         infeccao: false,
         hipertensao: false,
         diabetes: false,
-        hepatite: false
+        hepatite: false,
       },
-      equipamento: 'Duplex',
-      extracao: 'Ordenha Manual',
+      equipamento: picked.equipamento,
+      extracao: picked.extracao,
       produtosJunto: false,
       soro1Data: hoje,
       soro1Res: 'normal',
       soro2Data: hoje,
       soro2Res: 'normal',
       soro3Data: hoje,
-      soro3Res: 'normal'
+      soro3Res: 'normal',
     });
     setErrorMsg(null);
   };
