@@ -1,11 +1,17 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AnimatePresence, MotionConfig } from 'motion/react';
-import { AuthProvider, useAuth, UserRole } from './context/AuthContext';
+import { MotionConfig } from 'motion/react';
+import {
+  AuthProvider,
+  useAuth,
+  UserRole,
+  getDefaultRouteForRole,
+} from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import { AppShell } from './components/layout/AppShell';
 import { LoginView } from './components/modules/auth/LoginView';
+import { PublicHomePage } from './components/public/PublicHomePage';
 import {
   ModuleLoadingSkeleton,
   PageTransition,
@@ -52,68 +58,99 @@ const RoleGuard: React.FC<{ roles: UserRole[]; children: React.ReactNode }> = ({
   roles,
   children,
 }) => {
-  const { hasRole } = useAuth();
+  const { hasRole, user } = useAuth();
   if (!hasRole(...roles)) {
-    return <Navigate to="/rotas" replace />;
+    return <Navigate to={getDefaultRouteForRole(user?.role)} replace />;
   }
   return <>{children}</>;
 };
 
-const AnimatedModuleRoutes: React.FC<{ defaultRoute: string }> = ({ defaultRoute }) => {
-  const location = useLocation();
-
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      <PageTransition key={location.pathname} className="w-full">
-        <Suspense fallback={<ModuleLoadingSkeleton />}>
-          <Routes location={location}>
-            <Route path="/login" element={<Navigate to={defaultRoute} replace />} />
-            <Route path="/dashboard" element={<DashboardView />} />
-            <Route
-              path="/doadoras"
-              element={
-                <RoleGuard roles={['ADMIN', 'COORDENADOR_BLH']}>
-                  <DoadorasView />
-                </RoleGuard>
-              }
-            />
-            <Route path="/rotas" element={<RoteirizacaoView />} />
-            <Route path="/mapa" element={<InteractiveMapView />} />
-            <Route path="/etiquetas" element={<EtiquetasView />} />
-            <Route path="/laboratorio" element={<AccountabilityView />} />
-            <Route path="/" element={<Navigate to={defaultRoute} replace />} />
-            <Route path="*" element={<Navigate to={defaultRoute} replace />} />
-          </Routes>
-        </Suspense>
-      </PageTransition>
-    </AnimatePresence>
-  );
-};
-
-const AuthenticatedRoutes: React.FC = () => {
+const LoginRouteGuard: React.FC = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return <SessionLoadingScreen />;
   }
 
-  if (!isAuthenticated) {
-    return (
-      <Routes>
-        <Route path="/login" element={<LoginView />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    );
+  if (isAuthenticated && user) {
+    return <Navigate to={getDefaultRouteForRole(user.role)} replace />;
   }
 
-  const defaultRoute = user?.role === 'LABORATORIO' ? '/laboratorio' : '/rotas';
+  return <LoginView />;
+};
+
+const ProtectedLayout: React.FC = () => {
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return <SessionLoadingScreen />;
+  }
+
+  if (!isAuthenticated || !user) {
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: `${location.pathname}${location.search}` }}
+        replace
+      />
+    );
+  }
 
   return (
     <AppProvider>
       <AppShell>
-        <AnimatedModuleRoutes defaultRoute={defaultRoute} />
+        <PageTransition key={location.pathname} className="w-full">
+          <Suspense fallback={<ModuleLoadingSkeleton />}>
+            <Outlet />
+          </Suspense>
+        </PageTransition>
       </AppShell>
     </AppProvider>
+  );
+};
+
+const FallbackRoute: React.FC = () => {
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  if (isLoading) {
+    return <SessionLoadingScreen />;
+  }
+
+  if (isAuthenticated && user) {
+    return <Navigate to={getDefaultRouteForRole(user.role)} replace />;
+  }
+
+  return <Navigate to="/" replace />;
+};
+
+const AppRoutes: React.FC = () => {
+  return (
+    <Routes>
+      {/* Rotas Públicas */}
+      <Route path="/" element={<PublicHomePage />} />
+      <Route path="/login" element={<LoginRouteGuard />} />
+
+      {/* Rotas Protegidas do Sistema Operacional LEITFLOW */}
+      <Route element={<ProtectedLayout />}>
+        <Route path="/dashboard" element={<DashboardView />} />
+        <Route
+          path="/doadoras"
+          element={
+            <RoleGuard roles={['ADMIN', 'COORDENADOR_BLH']}>
+              <DoadorasView />
+            </RoleGuard>
+          }
+        />
+        <Route path="/rotas" element={<RoteirizacaoView />} />
+        <Route path="/mapa" element={<InteractiveMapView />} />
+        <Route path="/etiquetas" element={<EtiquetasView />} />
+        <Route path="/laboratorio" element={<AccountabilityView />} />
+      </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<FallbackRoute />} />
+    </Routes>
   );
 };
 
@@ -123,7 +160,7 @@ export function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <AuthenticatedRoutes />
+            <AppRoutes />
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>
