@@ -13,9 +13,11 @@ import {
   MapPin
 } from 'lucide-react';
 import { Donor, DonorFormData, GoNoGoVerdict } from '../../../types/donor';
+import { DonorInterest } from '../../../types/donorInterest';
 import { useApp } from '../../../hooks/useApp';
 import { Button } from '../../ui/Button';
-import { apiFetch } from '../../../services/apiClient';
+import { apiFetch, ApiError } from '../../../services/apiClient';
+import { convertInterestToDonor } from '../../../services/donorInterestService';
 import {
   calculateMilkClass,
   getMilkClassDescription,
@@ -29,6 +31,7 @@ import {
 interface CadastroWizardProps {
   onSubmitted: (result: { donor: Donor; verdict: GoNoGoVerdict }) => void;
   editingDonor?: Donor | null;
+  convertingInterest?: DonorInterest | null;
   onCancelEdit?: () => void;
 }
 
@@ -125,7 +128,12 @@ function donorToFormData(donor: Donor): DonorFormData {
   };
 }
 
-export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, editingDonor, onCancelEdit }) => {
+export const CadastroWizard: React.FC<CadastroWizardProps> = ({
+  onSubmitted,
+  editingDonor,
+  convertingInterest,
+  onCancelEdit,
+}) => {
   const { donors, addDonor, updateDonor, cancelEditDonor, addToast } = useApp();
   const handleCancel = onCancelEdit || cancelEditDonor;
   const [step, setStep] = useState(1);
@@ -133,6 +141,7 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [submittingConversion, setSubmittingConversion] = useState(false);
 
   const handleGeocodeAddress = async () => {
     if (!formData.endereco.trim()) {
@@ -193,11 +202,27 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
     { num: 5, label: 'Exames Sorológicos' }
   ];
 
-  // Load donor data when editing
+  // Load donor data when editing or pre-fill from digital capture interest
   useEffect(() => {
     if (editingDonor) {
       setFormData(donorToFormData(editingDonor));
       setIsEditing(true);
+      setStep(1);
+      setErrorMsg(null);
+    } else if (convertingInterest) {
+      setFormData({
+        ...INITIAL_FORM_DATA,
+        nome: convertingInterest.fullName,
+        nascimento: convertingInterest.birthDate || '',
+        telefone: convertingInterest.whatsapp || convertingInterest.phone,
+        zona: convertingInterest.suggestedZone || 'Norte',
+        endereco: `${convertingInterest.neighborhood}, ${convertingInterest.city} - SP`,
+        // Regra sanitária: sorologias sempre iniciam como pendente na conversão
+        soro1Res: 'pendente',
+        soro2Res: 'pendente',
+        soro3Res: 'pendente',
+      });
+      setIsEditing(false);
       setStep(1);
       setErrorMsg(null);
     } else {
@@ -206,7 +231,7 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
       setStep(1);
       setErrorMsg(null);
     }
-  }, [editingDonor]);
+  }, [editingDonor, convertingInterest]);
 
   const handleInputChange = (field: keyof DonorFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -515,7 +540,7 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
     return null;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1) {
       const err = validateStep1();
       if (err) {
@@ -528,19 +553,48 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
       setStep(step + 1);
       setErrorMsg(null);
     } else {
-      // Submissão do cadastro ou atualização
+      // Submissão do cadastro, conversão atômica ou atualização
       if (isEditing && editingDonor) {
         const result = updateDonor(editingDonor.id, formData);
         if (result) {
           onSubmitted(result);
         }
+        setFormData(INITIAL_FORM_DATA);
+        setStep(1);
+        setIsEditing(false);
+      } else if (convertingInterest) {
+        setSubmittingConversion(true);
+        setErrorMsg(null);
+        try {
+          const { donor, verdict } = await convertInterestToDonor(
+            convertingInterest.id,
+            formData
+          );
+          addToast({
+            type: verdict.aptidao === 'Apta' ? 'success' : verdict.aptidao === 'Pendente' ? 'info' : 'warning',
+            title: `Solicitação ${convertingInterest.protocol} convertida`,
+            description: `${donor.nome} cadastrada no fluxo oficial com aptidão inicial "${verdict.aptidao}".`,
+          });
+          setFormData(INITIAL_FORM_DATA);
+          setStep(1);
+          onSubmitted({ donor, verdict });
+        } catch (err) {
+          const msg =
+            err instanceof ApiError
+              ? err.message
+              : 'Não foi possível concluir a conversão. Verifique os dados e tente novamente.';
+          setErrorMsg(msg);
+          addToast({ type: 'error', title: 'Erro na conversão', description: msg });
+        } finally {
+          setSubmittingConversion(false);
+        }
       } else {
         const result = addDonor(formData);
         onSubmitted(result);
+        setFormData(INITIAL_FORM_DATA);
+        setStep(1);
+        setIsEditing(false);
       }
-      setFormData(INITIAL_FORM_DATA);
-      setStep(1);
-      setIsEditing(false);
     }
   };
 
@@ -669,6 +723,24 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
           })}
         </div>
       </div>
+
+      {/* Banner de Conversão de Captação Digital */}
+      {convertingInterest && (
+        <div className="mb-5 p-4 rounded-xl bg-blh-primary-soft/70 border border-blh-primary/25 text-xs text-blh-slate-800 space-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <strong className="text-blh-primary font-bold">
+              Convertendo solicitação {convertingInterest.protocol} em Cadastro Oficial
+            </strong>
+            <span className="text-[11px] text-blh-slate-600">
+              Bairro informado: {convertingInterest.neighborhood} ({convertingInterest.city})
+            </span>
+          </div>
+          <p className="text-blh-slate-600">
+            Dados de contato pré-preenchidos automaticamente. Complemente o Cartão SUS, dados do
+            bebê/parto, endereço completo e finalize a triagem clínica (exames iniciam como pendentes).
+          </p>
+        </div>
+      )}
 
       {/* Error Alert */}
       {errorMsg && (
@@ -1235,6 +1307,7 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
             <Button
               type="submit"
               size="md"
+              isLoading={submittingConversion}
               className={isEditing ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-sm' : ''}
               rightIcon={step === 5 ? <FileCheck2 className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             >
@@ -1242,6 +1315,8 @@ export const CadastroWizard: React.FC<CadastroWizardProps> = ({ onSubmitted, edi
                 ? step === 5
                   ? 'Salvar alterações'
                   : 'Salvar e avançar'
+                : convertingInterest && step === 5
+                ? 'Converter e concluir triagem'
                 : step === 5
                 ? 'Concluir triagem e avaliar aptidão'
                 : 'Próxima etapa'}

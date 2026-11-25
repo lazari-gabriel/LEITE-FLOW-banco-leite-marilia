@@ -12,6 +12,7 @@ import { AppProvider } from './context/AppContext';
 import { AppShell } from './components/layout/AppShell';
 import { LoginView } from './components/modules/auth/LoginView';
 import { PublicHomePage } from './components/public/PublicHomePage';
+import { DonorInterestPage } from './components/public/DonorInterestPage';
 import {
   ModuleLoadingSkeleton,
   PageTransition,
@@ -129,6 +130,7 @@ const AppRoutes: React.FC = () => {
     <Routes>
       {/* Rotas Públicas */}
       <Route path="/" element={<PublicHomePage />} />
+      <Route path="/quero-doar" element={<DonorInterestPage />} />
       <Route path="/login" element={<LoginRouteGuard />} />
 
       {/* Rotas Protegidas do Sistema Operacional LEITFLOW */}

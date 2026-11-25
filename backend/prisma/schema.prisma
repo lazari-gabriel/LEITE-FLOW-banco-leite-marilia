@@ -24,6 +24,9 @@ model User {
   labelPrintLogs     LabelPrintLog[]
   auditLogs          AuditLog[]
   inventoryMovements GlassInventoryMovement[]
+  assignedInterests  DonorInterest[]          @relation("InterestAssignedTo")
+  convertedInterests DonorInterest[]          @relation("InterestConvertedBy")
+  interestEvents     DonorInterestEvent[]
 
   @@index([role, active])
 }
@@ -94,6 +97,7 @@ model Donor {
   visits             CollectionVisit[]
   bottles            Bottle[]
   inventoryMovements GlassInventoryMovement[]
+  interestOrigin     DonorInterest?
 
   @@index([zona, aptidao, statusCadastro])
   @@index([cpfNormalized])
@@ -262,4 +266,82 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@index([createdAt])
+}
+
+model DonorInterest {
+  id                   String    @id @default(cuid())
+  protocol             String    @unique
+
+  fullName             String
+  birthDate            String?
+  city                 String    @default("Marília")
+  neighborhood         String
+  cep                  String?
+  suggestedZone        String?   // Norte | Sul | Oeste | Leste | Rural | null
+
+  phone                String
+  phoneNormalized      String
+  isWhatsappSame       Boolean   @default(true)
+  whatsapp             String?
+  whatsappNormalized   String?
+  email                String?
+  preferredContact     String    @default("WHATSAPP") // WHATSAPP | LIGACAO | EMAIL
+  bestContactTime      String    @default("QUALQUER_HORARIO") // MANHA | TARDE | COMERCIAL | QUALQUER_HORARIO
+
+  donatedBefore        Boolean   @default(false)
+  knowsProcess         String    @default("NAO") // SIM | PARCIALMENTE | NAO
+  hasQuestions         Boolean   @default(false)
+  questionsText        String?
+  discoveryChannel     String    @default("SITE") // SITE | REDES_SOCIAIS | MATERNIDADE_HOSPITAL | UBS_POSTO_SAUDE | INDICACAO | CAMPANHA | OUTRO
+  sourceOrigin         String    @default("SITE_INSTITUCIONAL")
+
+  consentAccepted      Boolean   @default(true)
+  consentAcceptedAt    DateTime
+  consentVersion       String
+  consentIpHash        String?
+
+  status               String    @default("NOVA") // NOVA | AGUARDANDO_ANALISE | AGUARDANDO_CONTATO | EM_CONTATO | AGUARDANDO_RETORNO | ENCAMINHADA_CADASTRO | NAO_PROSSEGUIU | ENCERRADA
+  assignedToUserId     String?
+  assignedTo           User?     @relation("InterestAssignedTo", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  contactAttemptsCount Int       @default(0)
+  lastContactAt        DateTime?
+  nextFollowUpAt       DateTime?
+  adminNotes           String?
+  closureReason        String?
+
+  convertedDonorId     Int?      @unique
+  convertedDonor       Donor?    @relation(fields: [convertedDonorId], references: [id], onDelete: SetNull)
+  convertedAt          DateTime?
+  convertedByUserId    String?
+  convertedBy          User?     @relation("InterestConvertedBy", fields: [convertedByUserId], references: [id], onDelete: SetNull)
+
+  retentionExpiresAt   DateTime?
+  anonymizedAt         DateTime?
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  events               DonorInterestEvent[]
+
+  @@index([status, createdAt])
+  @@index([phoneNormalized])
+  @@index([city, neighborhood])
+  @@index([assignedToUserId])
+}
+
+model DonorInterestEvent {
+  id         String        @id @default(cuid())
+  interestId String
+  interest   DonorInterest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  eventType  String        // CREATED | STATUS_CHANGED | CONTACT_ATTEMPT | NOTE_ADDED | CONVERTED | ANONYMIZED
+  fromStatus String?
+  toStatus   String?
+  channel    String?       // WHATSAPP | LIGACAO | EMAIL | PRESENCIAL
+  outcome    String?       // ATENDEU | SEM_RESPOSTA | CAIXA_POSTAL | RETORNO_AGENDADO | NUMERO_INVALIDO
+  notes      String?
+  userId     String?
+  user       User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt  DateTime      @default(now())
+
+  @@index([interestId, createdAt])
 }

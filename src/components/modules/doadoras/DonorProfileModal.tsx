@@ -84,6 +84,11 @@ export const DonorProfileModal: React.FC<DonorProfileModalProps> = ({
             >
               {donor.geocodeStatus === 'verified' ? 'Endereço verificado' : 'Localização aproximada'}
             </Badge>
+            {donor.interestOriginProtocol && (
+              <Badge variant="info">
+                Captação: {donor.interestOriginProtocol}
+              </Badge>
+            )}
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">

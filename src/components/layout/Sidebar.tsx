@@ -14,6 +14,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react';
 import { useApp } from '../../hooks/useApp';
 import { useAuth, UserRole } from '../../context/AuthContext';
+import { useDonorInterestsSummary } from '../../hooks/useDonorInterestsSummary';
 import { ViewMode } from '../../types/common';
 import { LEITE_FLOW } from '../../constants/blh';
 import { MOTION_EASE, MOTION_SPRING } from '../../lib/motion';
@@ -33,6 +34,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { currentView, setCurrentView, currentZoneStops, stats, routeAssignment, routeMetrics } = useApp();
   const { user, logout, hasRole } = useAuth();
+  const { data: interestSummary } = useDonorInterestsSummary();
+  const newInterestsCount = interestSummary?.totalNew ?? 0;
 
   const roleLabels: Record<UserRole, string> = {
     ADMIN: 'Administrador',
@@ -69,7 +72,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'cadastro' as ViewMode,
       label: 'Doadoras & Triagem',
-      badge: null,
+      badge:
+        newInterestsCount > 0
+          ? `${newInterestsCount} ${newInterestsCount === 1 ? 'nova' : 'novas'}`
+          : null,
+      badgeColor: 'bg-amber-950/80 text-amber-300 border border-amber-500/50 font-bold',
       icon: <UserCheck className="w-5 h-5 shrink-0" />,
       allowed: hasRole('ADMIN', 'COORDENADOR_BLH'),
     },

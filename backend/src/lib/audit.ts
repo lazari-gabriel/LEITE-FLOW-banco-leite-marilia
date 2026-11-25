@@ -37,7 +37,19 @@ export async function recordAudit(input: AuditInput): Promise<void> {
   }
 }
 
-const SENSITIVE_KEYS = new Set(['password', 'passwordHash', 'cpf', 'sus', 'token', 'refreshToken']);
+const SENSITIVE_KEYS = new Set([
+  'password',
+  'passwordHash',
+  'cpf',
+  'sus',
+  'token',
+  'refreshToken',
+  'phone',
+  'phoneNormalized',
+  'whatsapp',
+  'whatsappNormalized',
+  'email',
+]);
 
 function redactSensitiveFields(obj: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {};

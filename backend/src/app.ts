@@ -13,6 +13,7 @@ import { routesRoutes } from './modules/routes/routes.routes.js';
 import { bottlesRoutes } from './modules/bottles/bottles.routes.js';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes.js';
 import { geoRoutes } from './modules/geo/geo.routes.js';
+import { donorInterestsRoutes } from './modules/donor-interests/donorInterests.routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -28,6 +29,9 @@ export async function buildApp(): Promise<FastifyInstance> {
                 'req.body.password',
                 'req.body.cpf',
                 'req.body.sus',
+                'req.body.phone',
+                'req.body.whatsapp',
+                'req.body.email',
               ],
               censor: '[REDACTED]',
             },
@@ -100,6 +104,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await api.register(bottlesRoutes);
       await api.register(dashboardRoutes);
       await api.register(geoRoutes);
+      await api.register(donorInterestsRoutes);
     },
     { prefix: '/api/v1' }
   );

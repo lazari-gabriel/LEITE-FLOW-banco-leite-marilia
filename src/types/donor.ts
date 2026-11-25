@@ -55,6 +55,7 @@ export interface Donor {
   statusCadastro: StatusCadastro;
   motivoInapta?: string;
   dataCadastro: string;
+  interestOriginProtocol?: string;
 }
 
 export interface DonorFormData {

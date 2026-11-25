@@ -3,76 +3,24 @@ import { z } from 'zod';
 import { prisma } from '../../lib/prisma.js';
 import { authenticate, requireRoles } from '../../middlewares/auth.js';
 import {
-  BLH_COORDS,
   evaluateGoNoGo,
   extractNeighborhood,
   isValidCNS,
   isValidCPF,
   normalizeDigits,
   serializeDonorForRole,
-  ZONE_APPROX_COORDS,
 } from '../../lib/domain.js';
 import { recordAudit } from '../../lib/audit.js';
-
-const donorFormSchema = z.object({
-  nome: z.string().trim().min(2),
-  bebe: z.string().trim().min(1),
-  sus: z.string().trim().min(15),
-  cpf: z.string().trim().optional().default(''),
-  nascimento: z.string().optional().default(''),
-  parto: z.string().min(8),
-  telefone: z.string().trim().min(10),
-  zona: z.enum(['Norte', 'Sul', 'Oeste', 'Leste', 'Rural']),
-  endereco: z.string().trim().min(3),
-  lat: z.number().min(-23).max(-21).optional(),
-  lng: z.number().min(-51).max(-49).optional(),
-  geocodeStatus: z.enum(['verified', 'approximate', 'failed']).optional(),
-  vacinaFebre: z.boolean().default(true),
-  vacinaDtpa: z.boolean().default(true),
-  transfusao: z.string().optional().default('Não'),
-  transfusaoData: z.string().optional().nullable(),
-  tatuagem: z.string().optional().default('Não'),
-  tatuagemData: z.string().optional().nullable(),
-  fumo: z.enum(['nao', 'sim_pouco', 'sim_ativo']).default('nao'),
-  alcool: z.enum(['nao', 'raro', 'frequente']).default('nao'),
-  medicacao: z.string().optional().default(''),
-  aguaPotavel: z.boolean().default(true),
-  redeEsgoto: z.boolean().default(true),
-  renda: z.string().optional().default(''),
-  pesoBebe: z.string().optional().default(''),
-  apgar: z.string().optional().default(''),
-  malformacao: z.enum(['nao', 'sim']).default('nao'),
-  intercorrencias: z
-    .object({
-      infeccao: z.boolean().default(false),
-      hipertensao: z.boolean().default(false),
-      diabetes: z.boolean().default(false),
-      hepatite: z.boolean().default(false),
-    })
-    .default({ infeccao: false, hipertensao: false, diabetes: false, hepatite: false }),
-  equipamento: z.enum(['Freezer', 'Duplex', 'Simples']).default('Duplex'),
-  extracao: z.enum(['Ordenha Manual', 'Bomba Elétrica', 'Bomba Manual']).default('Ordenha Manual'),
-  produtosJunto: z.boolean().default(false),
-  soro1Data: z.string().optional().default(''),
-  soro1Res: z.enum(['normal', 'alterada', 'pendente']).default('pendente'),
-  soro2Data: z.string().optional().default(''),
-  soro2Res: z.enum(['normal', 'alterada', 'pendente']).default('pendente'),
-  soro3Data: z.string().optional().default(''),
-  soro3Res: z.enum(['normal', 'alterada', 'pendente']).default('pendente'),
-  statusCadastro: z.enum(['ativa', 'inativa']).optional(),
-});
+import {
+  createValidatedDonor,
+  donorFormSchema,
+  DonorValidationError,
+  zoneFallbackCoords,
+} from './donorCreation.service.js';
 
 const statusPatchSchema = z.object({
   statusCadastro: z.enum(['ativa', 'inativa']),
 });
-
-function zoneFallbackCoords(zona: string): [number, number] {
-  const base = ZONE_APPROX_COORDS[zona] ?? BLH_COORDS;
-  return [
-    Number((base[0] + (Math.random() - 0.5) * 0.015).toFixed(6)),
-    Number((base[1] + (Math.random() - 0.5) * 0.015).toFixed(6)),
-  ];
-}
 
 export async function donorsRoutes(app: FastifyInstance) {
   // Listar doadoras (projeção LGPD automática para COLETOR_CAMPO)
@@ -84,10 +32,20 @@ export async function donorsRoutes(app: FastifyInstance) {
     },
     async (request) => {
       const donors = await prisma.donor.findMany({
+        include: {
+          interestOrigin: {
+            select: { id: true, protocol: true },
+          },
+        },
         orderBy: { id: 'desc' },
       });
       return {
-        data: donors.map((d) => serializeDonorForRole(d, request.user.role)),
+        data: donors.map((d) => ({
+          ...serializeDonorForRole(d, request.user.role),
+          ...(request.user.role !== 'COLETOR_CAMPO' && d.interestOrigin
+            ? { interestOriginProtocol: d.interestOrigin.protocol }
+            : {}),
+        })),
       };
     }
   );
@@ -111,121 +69,34 @@ export async function donorsRoutes(app: FastifyInstance) {
         });
       }
 
-      const data = parsed.data;
-      const susNormalized = normalizeDigits(data.sus);
-      const cpfNormalized = data.cpf ? normalizeDigits(data.cpf) : null;
+      try {
+        const { created, verdict } = await prisma.$transaction((tx) =>
+          createValidatedDonor(tx, parsed.data)
+        );
 
-      if (!isValidCNS(susNormalized)) {
-        return reply.status(422).send({
-          type: 'about:blank',
-          title: 'Cartão SUS inválido',
-          status: 422,
-          detail: 'Informe um Cartão Nacional de Saúde (SUS) válido de 15 dígitos.',
+        await recordAudit({
+          request,
+          action: 'DONOR_CREATED',
+          entity: 'Donor',
+          entityId: created.id,
+          details: { code: created.code, zona: created.zona, aptidao: created.aptidao },
         });
-      }
 
-      if (cpfNormalized && !isValidCPF(cpfNormalized)) {
-        return reply.status(422).send({
-          type: 'about:blank',
-          title: 'CPF inválido',
-          status: 422,
-          detail: 'O CPF informado possui dígitos verificadores inválidos.',
+        return reply.status(201).send({
+          donor: serializeDonorForRole(created, request.user.role),
+          verdict,
         });
+      } catch (err) {
+        if (err instanceof DonorValidationError) {
+          return reply.status(err.status).send({
+            type: 'about:blank',
+            title: err.title,
+            status: err.status,
+            detail: err.message,
+          });
+        }
+        throw err;
       }
-
-      // Verificação de duplicidade
-      const existing = await prisma.donor.findFirst({
-        where: {
-          OR: [
-            { susNormalized },
-            ...(cpfNormalized ? [{ cpfNormalized }] : []),
-          ],
-        },
-      });
-      if (existing) {
-        return reply.status(409).send({
-          type: 'about:blank',
-          title: 'Cadastro duplicado',
-          status: 409,
-          detail: `Já existe uma doadora cadastrada com este documento (${existing.code} — ${existing.nome}).`,
-        });
-      }
-
-      const verdict = evaluateGoNoGo(data);
-      const hasVerifiedCoords = typeof data.lat === 'number' && typeof data.lng === 'number';
-      const [lat, lng] = hasVerifiedCoords ? [data.lat!, data.lng!] : zoneFallbackCoords(data.zona);
-      const geocodeStatus = hasVerifiedCoords ? data.geocodeStatus || 'verified' : 'approximate';
-
-      const latest = await prisma.donor.findFirst({
-        orderBy: { id: 'desc' },
-        select: { id: true },
-      });
-      const nextCodeNum = (latest?.id ?? 0) + 1;
-      const code = `DOAD-${String(nextCodeNum).padStart(3, '0')}`;
-
-      const created = await prisma.donor.create({
-        data: {
-          code,
-          nome: data.nome,
-          bebe: data.bebe,
-          sus: data.sus,
-          susNormalized,
-          cpf: data.cpf || 'Não informado',
-          cpfNormalized,
-          nascimento: data.nascimento,
-          parto: data.parto,
-          telefone: data.telefone,
-          endereco: data.endereco,
-          bairro: extractNeighborhood(data.endereco),
-          zona: data.zona,
-          lat,
-          lng,
-          geocodeStatus,
-          vacinaFebre: data.vacinaFebre,
-          vacinaDtpa: data.vacinaDtpa,
-          transfusao: data.transfusaoData ? data.transfusaoData : data.transfusao || 'Não',
-          transfusaoData: data.transfusaoData || null,
-          tatuagem: data.tatuagemData ? data.tatuagemData : data.tatuagem || 'Não',
-          tatuagemData: data.tatuagemData || null,
-          fumo: data.fumo,
-          alcool: data.alcool,
-          medicacao: data.medicacao || 'Nenhuma',
-          aguaPotavel: data.aguaPotavel,
-          redeEsgoto: data.redeEsgoto,
-          renda: data.renda || null,
-          pesoBebe: data.pesoBebe || null,
-          apgar: data.apgar || null,
-          malformacao: data.malformacao,
-          intercorrencias: JSON.stringify(data.intercorrencias),
-          equipamento: data.equipamento,
-          extracao: data.extracao,
-          produtosJunto: data.produtosJunto,
-          soro1Data: data.soro1Data || null,
-          sorologia1: data.soro1Res,
-          soro2Data: data.soro2Data || null,
-          sorologia2: data.soro2Res,
-          soro3Data: data.soro3Data || null,
-          sorologia3: data.soro3Res,
-          aptidao: verdict.aptidao,
-          statusCadastro: verdict.aptidao === 'Inapta' ? 'inativa' : data.statusCadastro || 'ativa',
-          motivoInapta: verdict.approved ? null : verdict.reasons.join(' · '),
-          consentAcceptedAt: new Date(),
-          dataCadastro: new Date().toISOString().split('T')[0],
-        },
-      });
-
-      await recordAudit({
-        request,
-        action: 'DONOR_CREATED',
-        entity: 'Donor',
-        entityId: created.id,
-        details: { code: created.code, zona: created.zona, aptidao: created.aptidao },
-      });
-
-      return reply.status(201).send({
-        donor: serializeDonorForRole(created, request.user.role),
-        verdict,
-      });
     }
   );
 

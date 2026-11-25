@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
   UserX,
@@ -13,9 +14,12 @@ import {
   Clock,
   XCircle,
   BarChart3,
+  HeartHandshake,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useApp } from '../../../hooks/useApp';
+import { useAuth } from '../../../context/AuthContext';
+import { useDonorInterestsSummary } from '../../../hooks/useDonorInterestsSummary';
 import { ZoneName } from '../../../types/donor';
 import { ZONAS_SEMANA } from '../../../constants/zones';
 import { StatCard } from '../../ui/StatCard';
@@ -40,6 +44,10 @@ function parseBrDate(dateStr: string): Date | null {
 
 export const DashboardView: React.FC = () => {
   const { donors, bottles, routes, setCurrentView, isDataLoading } = useApp();
+  const { hasRole } = useAuth();
+  const navigate = useNavigate();
+  const { data: interestSummary } = useDonorInterestsSummary();
+  const canManageCapture = hasRole('ADMIN', 'COORDENADOR_BLH');
   const [zoneFilter, setZoneFilter] = useState<'Todas' | ZoneName>('Todas');
 
   const filteredDonors = useMemo(
@@ -286,6 +294,36 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Faixa Operacional Real de Rotas e Paradas com Stagger */}
+        {canManageCapture && interestSummary && interestSummary.totalPending > 0 && (
+          <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-start sm:items-center gap-2.5 text-amber-950">
+              <div className="w-8 h-8 rounded-lg bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0">
+                <HeartHandshake className="w-4 h-4" />
+              </div>
+              <div>
+                <strong className="font-bold block">
+                  Captação Digital de Doadoras:{' '}
+                  {interestSummary.totalNew > 0
+                    ? `${interestSummary.totalNew} nova(s) solicitação(ões) aguardando análise`
+                    : `${interestSummary.totalPending} solicitação(ões) em atendimento`}
+                </strong>
+                <span className="text-[11px] text-amber-800">
+                  Total recebidas pelo site: {interestSummary.totalAll} · Convertidas em cadastro:{' '}
+                  {interestSummary.totalConverted}
+                </span>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => navigate('/doadoras?tab=captacao')}
+              leftIcon={<HeartHandshake className="w-3.5 h-3.5" />}
+              className="shrink-0 font-bold"
+            >
+              Abrir Captação
+            </Button>
+          </div>
+        )}
+
         <StaggerContainer
           staggerDelay={0.045}
           className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3 border-t border-blh-line/60 text-xs"
