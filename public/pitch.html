@@ -195,8 +195,9 @@
     }
 
     .brand-logo {
-      width: 56px;
-      height: 56px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
       object-fit: contain;
       flex-shrink: 0;
       filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.28));
@@ -695,8 +696,19 @@
       overflow: hidden;
       border: 1px solid var(--border-card);
       position: relative;
-      background: #091217;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      background: #0d1a22;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    body.light-mode .img-box {
+      background: #e6eeeb;
+      box-shadow: 0 10px 26px rgba(15, 28, 36, 0.12);
+    }
+
+    .img-box picture {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
 
     .img-box img {
@@ -704,11 +716,24 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform 0.35s ease;
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      backface-visibility: hidden;
     }
 
     .img-box:hover img {
-      transform: scale(1.03);
+      transform: scale(1.025);
+    }
+
+    .hero-card-img {
+      width: 344px;
+      aspect-ratio: 16 / 9;
+      height: auto;
+      flex-shrink: 0;
+    }
+
+    .demo-photo-box {
+      height: 100%;
+      min-height: 325px;
     }
 
     .img-caption {
@@ -716,8 +741,8 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: linear-gradient(180deg, transparent 0%, rgba(9, 18, 23, 0.88) 100%);
-      padding: 12px 14px 10px 14px;
+      background: linear-gradient(180deg, transparent 0%, rgba(9, 18, 23, 0.65) 45%, rgba(9, 18, 23, 0.9) 100%);
+      padding: 20px 14px 10px 14px;
       font-size: 0.74rem;
       font-weight: 700;
       color: #ffffff;
@@ -917,7 +942,12 @@
 
       .hero-card-img {
         width: 100% !important;
-        height: 170px !important;
+        max-height: 210px;
+      }
+
+      .demo-photo-box {
+        aspect-ratio: 4 / 3;
+        min-height: 240px !important;
       }
 
       .split-main,
@@ -1046,8 +1076,11 @@
             </p>
           </div>
 
-          <div class="img-box hero-card-img" style="width: 310px; height: 158px; flex-shrink: 0;">
-            <img src="hero_banner.jpg" alt="Frascos padronizados de leite materno com rastreabilidade" style="object-position: center;">
+          <div class="img-box hero-card-img">
+            <picture>
+              <source srcset="hero_banner.webp" type="image/webp">
+              <img src="hero_banner.jpg" alt="Frascos padronizados de leite materno com etiqueta de rastreabilidade e monitoramento térmico a -20,3 °C" width="1376" height="768" loading="eager" decoding="async" style="object-position: center;">
+            </picture>
             <div class="img-caption">
               <span>Banco de Leite Humano</span>
               <span style="color: #6ee7b7;">Marília – SP</span>
@@ -1339,8 +1372,11 @@
             </ul>
           </div>
 
-          <div class="img-box" style="height: 100%; min-height: 315px;">
-            <img src="coleta_domiciliar.jpg" alt="Coleta domiciliar de leite materno em Marília" style="object-position: center 18%;">
+          <div class="img-box demo-photo-box">
+            <picture>
+              <source srcset="coleta_domiciliar.webp" type="image/webp">
+              <img src="coleta_domiciliar.jpg" alt="Profissional de saúde realizando coleta domiciliar de leite materno em cadeia de frio em Marília" width="1200" height="896" loading="eager" decoding="async" style="object-position: center 22%;">
+            </picture>
             <div class="img-caption">
               <span>Sistema em Funcionamento</span>
               <span style="color: #6ee7b7;">BLH Marília – SP</span>

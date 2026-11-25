@@ -141,7 +141,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
     const imgA = resolveLoaded(targetIdx);
     if (!imgA || !imgA.naturalWidth || !imgA.naturalHeight) return false;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 2), 2.5);
     const displayWidth = canvas.clientWidth || stageRef.current?.clientWidth || 0;
     const displayHeight = canvas.clientHeight || stageRef.current?.clientHeight || 0;
     if (displayWidth === 0 || displayHeight === 0) return false;
