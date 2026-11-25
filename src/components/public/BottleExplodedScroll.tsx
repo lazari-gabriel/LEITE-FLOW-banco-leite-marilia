@@ -14,7 +14,7 @@ const MAX_RETRY_ATTEMPTS = 2;
 
 const FRAME_URLS = Array.from({ length: TOTAL_FRAMES }, (_, index) => {
   const num = String(index + 1).padStart(3, '0');
-  return `${import.meta.env.BASE_URL}frames/ezgif-frame-${num}.jpg`;
+  return `${import.meta.env.BASE_URL}frames/frame-${num}.webp`;
 });
 
 const clamp01 = (v: number): number => Math.min(1, Math.max(0, v));
@@ -115,7 +115,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  const drawFrame = useCallback((exactFrame: number, allowSubframeBlend = false): boolean => {
+  const drawFrame = useCallback((exactFrame: number): boolean => {
     const canvas = canvasRef.current;
     if (!canvas) return false;
 
@@ -123,9 +123,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
     if (!ctx) return false;
 
     const clamped = Math.min(TOTAL_FRAMES - 1, Math.max(0, exactFrame));
-    const idxA = Math.floor(clamped);
-    const idxB = Math.min(TOTAL_FRAMES - 1, idxA + 1);
-    const frac = clamped - idxA;
+    const targetIdx = Math.round(clamped);
 
     const resolveLoaded = (frameIndex: number): HTMLImageElement | null => {
       if (loadedFlagsRef.current[frameIndex]) return imagesRef.current[frameIndex];
@@ -140,15 +138,10 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
       return null;
     };
 
-    const imgA = resolveLoaded(allowSubframeBlend ? idxA : Math.round(clamped));
+    const imgA = resolveLoaded(targetIdx);
     if (!imgA || !imgA.naturalWidth || !imgA.naturalHeight) return false;
 
-    const imgB =
-      allowSubframeBlend && frac > 0.01 && frac < 0.99 && idxB !== idxA && loadedFlagsRef.current[idxB]
-        ? imagesRef.current[idxB]
-        : null;
-
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     const displayWidth = canvas.clientWidth || stageRef.current?.clientWidth || 0;
     const displayHeight = canvas.clientHeight || stageRef.current?.clientHeight || 0;
     if (displayWidth === 0 || displayHeight === 0) return false;
@@ -164,7 +157,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Preserva proporção original 16:9 sem corte e sem perda de qualidade
+    // Preserva proporção original 16:9 com nitidez máxima (sem ghosting por crossfade)
     const imgRatio = imgA.naturalWidth / imgA.naturalHeight;
     const canvasRatio = canvas.width / canvas.height;
 
@@ -189,16 +182,9 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(imgA, offsetX, offsetY, drawWidth, drawHeight);
 
-    if (imgB && imgB.naturalWidth && imgB.naturalHeight) {
-      const smoothAlpha = frac * frac * (3 - 2 * frac);
-      ctx.globalAlpha = smoothAlpha;
-      ctx.drawImage(imgB, offsetX, offsetY, drawWidth, drawHeight);
-      ctx.globalAlpha = 1;
-    }
-
-    // Fusão suave das bordas com o fundo branco de estúdio
-    const featherX = drawWidth * 0.08;
-    const featherY = drawHeight * 0.08;
+    // Fusão suave das bordas externas com o fundo branco de estúdio
+    const featherX = drawWidth * 0.06;
+    const featherY = drawHeight * 0.06;
 
     const topGrad = ctx.createLinearGradient(0, offsetY, 0, offsetY + featherY);
     topGrad.addColorStop(0, '#FFFFFF');
@@ -253,13 +239,13 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
           loadedFlagsRef.current[index] = true;
           lastDrawnKeyRef.current = -1;
           if (index === 0) {
-            const painted = drawFrame(currentFrameRef.current, false);
+            const painted = drawFrame(currentFrameRef.current);
             setFirstFrameReady(true);
             if (!painted) {
               window.requestAnimationFrame(() => {
                 if (!isCancelled) {
                   lastDrawnKeyRef.current = -1;
-                  drawFrame(currentFrameRef.current, false);
+                  drawFrame(currentFrameRef.current);
                 }
               });
             }
@@ -325,7 +311,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
 
     const observer = new ResizeObserver(() => {
       lastDrawnKeyRef.current = -1;
-      drawFrame(currentFrameRef.current, false);
+      drawFrame(currentFrameRef.current);
     });
     observer.observe(stage);
     return () => observer.disconnect();
@@ -334,7 +320,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
   useEffect(() => {
     if (firstFrameReady) {
       lastDrawnKeyRef.current = -1;
-      drawFrame(currentFrameRef.current, false);
+      drawFrame(currentFrameRef.current);
     }
   }, [firstFrameReady, drawFrame]);
 
@@ -359,7 +345,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
     const handleResize = () => {
       lastDrawnKeyRef.current = -1;
       handleScroll();
-      drawFrame(currentFrameRef.current, false);
+      drawFrame(currentFrameRef.current);
     };
 
     const tick = (now: number) => {
@@ -368,24 +354,19 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
       const dt = Math.min(0.05, Math.max(0.001, (now - prev) / 1000));
 
       const diff = targetFrameRef.current - currentFrameRef.current;
-      let isMoving = false;
 
       if (prefersReducedMotion || Math.abs(diff) <= 0.01) {
         currentFrameRef.current = targetFrameRef.current;
       } else {
-        const damping = 1 - Math.exp(-dt * 6.5);
+        const damping = 1 - Math.exp(-dt * 8.5);
         currentFrameRef.current += diff * damping;
-        isMoving = true;
       }
 
       const clamped = Math.min(TOTAL_FRAMES - 1, Math.max(0, currentFrameRef.current));
-      const drawKey = isMoving ? Math.round(clamped * 24) : Math.round(clamped) * 24;
+      const drawKey = Math.round(clamped);
 
       if (drawKey !== lastDrawnKeyRef.current) {
-        const painted = drawFrame(
-          isMoving ? clamped : Math.round(clamped),
-          isMoving && !prefersReducedMotion
-        );
+        const painted = drawFrame(drawKey);
         if (painted) {
           lastDrawnKeyRef.current = drawKey;
         }
@@ -421,7 +402,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
       >
         <div
           ref={stageRef}
-          className="sticky top-16 sm:top-20 h-[calc(100vh-4rem)] sm:h-[calc(100vh-5rem)] w-full bg-white overflow-hidden"
+          className="sticky top-16 sm:top-[76px] h-[calc(100vh-4rem)] sm:h-[calc(100vh-76px)] w-full bg-white overflow-hidden"
         >
           <div className="absolute inset-0 flex items-center justify-center">
             {!firstFrameReady && !posterFailed && (
@@ -452,7 +433,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
               visibility: heroOverlay.opacity < 0.01 ? 'hidden' : 'visible',
             }}
           >
-            <div className="space-y-1 sm:space-y-1.5 max-w-3xl px-4 py-1.5 rounded-2xl bg-white/75 backdrop-blur-[2px]">
+            <div className="space-y-1 sm:space-y-1.5 max-w-3xl px-5 py-2 rounded-2xl bg-white/90 backdrop-blur-sm">
               <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.26em] text-[#4A6B5D]">
                 Apoio à gestão do Banco de Leite Humano • Marília – SP
               </p>
@@ -464,7 +445,7 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
               </p>
             </div>
 
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/88 backdrop-blur-sm border border-[#EFECE6]/90 shadow-xs text-[11px] sm:text-xs tracking-[0.18em] uppercase text-[#6B737D]">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/95 backdrop-blur-sm border border-[#E5DFD6] shadow-sm text-[11px] sm:text-xs tracking-[0.18em] uppercase text-[#5E6771]">
               <span>Role para explorar</span>
               <ChevronDown className="w-4 h-4 animate-bounce text-[#4A6B5D]" />
             </div>
@@ -472,18 +453,18 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
 
           {/* 02 — Mid-Scroll Floating Headline */}
           <div
-            className="absolute inset-x-0 bottom-10 sm:bottom-14 px-4 flex justify-center text-center pointer-events-none select-none will-change-transform"
+            className="absolute inset-x-0 bottom-6 sm:bottom-10 px-4 flex justify-center text-center pointer-events-none select-none will-change-transform"
             style={{
               opacity: midOverlay1.opacity,
               transform: `translate3d(0, ${midOverlay1.translateY}px, 0)`,
               visibility: midOverlay1.opacity < 0.01 ? 'hidden' : 'visible',
             }}
           >
-            <div className="max-w-xl px-6 py-4 rounded-3xl bg-white/80 backdrop-blur-md border border-[#EFECE6]/80 shadow-sm">
+            <div className="max-w-xl px-6 py-4 rounded-3xl bg-white/95 backdrop-blur-md border border-[#E7E1D8] shadow-[0_14px_38px_-14px_rgba(30,36,43,0.16)]">
               <h2 className="font-display text-2xl sm:text-4xl font-normal text-[#1E242B] tracking-tight">
                 Alimento essencial para recém-nascidos
               </h2>
-              <p className="text-xs sm:text-sm text-[#1E242B]/75 mt-1.5 leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#1E242B]/80 mt-1.5 leading-relaxed">
                 O leite humano doado oferece proteção imunológica e nutrição adequada para bebês
                 prematuros ou de baixo peso internados em unidades neonatais.
               </p>
@@ -492,18 +473,18 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
 
           {/* 03 — Mid-Scroll Floating Headline */}
           <div
-            className="absolute inset-x-0 bottom-10 sm:bottom-14 px-4 flex justify-center text-center pointer-events-none select-none will-change-transform"
+            className="absolute inset-x-0 bottom-6 sm:bottom-10 px-4 flex justify-center text-center pointer-events-none select-none will-change-transform"
             style={{
               opacity: midOverlay2.opacity,
               transform: `translate3d(0, ${midOverlay2.translateY}px, 0)`,
               visibility: midOverlay2.opacity < 0.01 ? 'hidden' : 'visible',
             }}
           >
-            <div className="max-w-xl px-6 py-4 rounded-3xl bg-white/80 backdrop-blur-md border border-[#EFECE6]/80 shadow-sm">
+            <div className="max-w-xl px-6 py-4 rounded-3xl bg-white/95 backdrop-blur-md border border-[#E7E1D8] shadow-[0_14px_38px_-14px_rgba(30,36,43,0.16)]">
               <h2 className="font-display text-2xl sm:text-4xl font-normal text-[#1E242B] tracking-tight">
                 Logística organizada com cuidado
               </h2>
-              <p className="text-xs sm:text-sm text-[#1E242B]/75 mt-1.5 leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#1E242B]/80 mt-1.5 leading-relaxed">
                 Da orientação inicial à coleta domiciliar em cadeia de frio monitorada, cada etapa
                 é planejada para dar praticidade à doadora e segurança ao leite coletado.
               </p>
@@ -512,27 +493,27 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
 
           {/* 04 — Closing CTA Overlay */}
           <div
-            className="absolute inset-x-0 bottom-8 sm:bottom-12 px-4 flex justify-center text-center will-change-transform"
+            className="absolute inset-x-0 bottom-6 sm:bottom-9 px-4 flex justify-center text-center will-change-transform"
             style={{
               opacity: closingOverlay.opacity,
-              transform: `translate3d(0, ${closingOverlay.translateY}px, 0)`,
+              transform: `translate3d(0, ${Math.min(12, closingOverlay.translateY)}px, 0)`,
               pointerEvents: closingOverlay.opacity > 0.35 ? 'auto' : 'none',
               visibility: closingOverlay.opacity < 0.01 ? 'hidden' : 'visible',
             }}
           >
-            <div className="max-w-lg px-7 py-5 rounded-3xl bg-white/88 backdrop-blur-md border border-[#EFECE6] shadow-lg space-y-3.5">
-              <h2 className="font-display text-2xl sm:text-4xl font-normal text-[#1E242B] tracking-tight">
+            <div className="max-w-lg w-full px-6 py-4 sm:px-7 sm:py-5 rounded-3xl bg-white/95 backdrop-blur-md border border-[#E5DFD6] shadow-[0_18px_48px_-14px_rgba(30,36,43,0.18)] space-y-3">
+              <h2 className="font-display text-2xl sm:text-3xl font-normal text-[#1E242B] tracking-tight leading-tight">
                 Cuidado acompanhado de ponta a ponta
               </h2>
-              <p className="text-xs sm:text-sm text-[#1E242B]/75 leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#1E242B]/80 leading-relaxed">
                 Manifeste seu interesse em se tornar doadora ou acesse a área restrita para a
                 equipe técnica do serviço.
               </p>
-              <div className="pt-1 flex flex-wrap items-center justify-center gap-3">
+              <div className="pt-1 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
                 <button
                   type="button"
                   onClick={onBecomeDonor}
-                  className="px-7 py-3 rounded-full bg-[#4A6B5D] text-white font-medium text-xs sm:text-sm hover:bg-[#3d594d] transition-all shadow-md flex items-center gap-2 transform hover:-translate-y-0.5"
+                  className="px-6 py-2.5 rounded-full bg-[#4A6B5D] text-white font-semibold text-xs sm:text-sm hover:bg-[#3A574B] transition-all shadow-md flex items-center gap-2 transform hover:-translate-y-0.5"
                 >
                   <Heart className="w-4 h-4 fill-white/25" />
                   <span>Quero ser doadora</span>
@@ -540,16 +521,16 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
                 <button
                   type="button"
                   onClick={onAccessSystem}
-                  className="px-6 py-3 rounded-full bg-white text-[#1E242B] font-medium text-xs sm:text-sm border border-[#EFECE6] hover:border-[#4A6B5D]/40 hover:text-[#4A6B5D] transition-all flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-full bg-white text-[#1E242B] font-semibold text-xs sm:text-sm border border-[#DFD9CF] hover:border-[#4A6B5D]/50 hover:text-[#3B594C] hover:bg-[#F3F7F5] transition-all flex items-center gap-2"
                 >
                   {isAuthenticated ? (
                     <>
-                      <LayoutDashboard className="w-4 h-4" />
+                      <LayoutDashboard className="w-4 h-4 text-[#4A6B5D]" />
                       <span>Acessar Meu Painel</span>
                     </>
                   ) : (
                     <>
-                      <LogIn className="w-4 h-4" />
+                      <LogIn className="w-4 h-4 text-[#4A6B5D]" />
                       <span>Acessar sistema</span>
                     </>
                   )}
