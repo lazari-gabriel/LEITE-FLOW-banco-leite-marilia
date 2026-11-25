@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   ChevronDown,
-  ArrowRight,
-  Droplet,
+  Heart,
   Truck,
   ShieldCheck,
   Sparkles,
@@ -55,39 +54,41 @@ function getOverlayMotion(
 
 const HIGHLIGHTS = [
   {
-    icon: Truck,
-    title: 'Coleta Domiciliar',
+    icon: Heart,
+    title: 'Acolhimento à doadora',
     description:
-      'Rotas organizadas nas 5 zonas de Marília com busca gratuita e controle térmico rigoroso.',
+      'Orientação clara desde a manifestação de interesse até o acompanhamento contínuo pela equipe de saúde.',
+  },
+  {
+    icon: Truck,
+    title: 'Logística de coleta',
+    description:
+      'Planejamento de rotas nas regiões atendidas em Marília, com monitoramento térmico durante o transporte.',
   },
   {
     icon: ShieldCheck,
-    title: 'Frascos Esterilizados',
+    title: 'Qualidade e pasteurização',
     description:
-      'Vidros preparados, rastreados por código de barras e entregues sob padrão ANVISA RDC 171.',
+      'Registro organizado das análises laboratoriais, da pasteurização e do controle de estoque.',
   },
   {
     icon: Sparkles,
-    title: 'Rastreio Inteligente',
+    title: 'Rastreabilidade completa',
     description:
-      'Acompanhamento clínico da triagem sorológica à pasteurização e dispensação na UTI Neonatal.',
-  },
-  {
-    icon: Droplet,
-    title: 'Impacto Real',
-    description:
-      '1 litro de leite materno pode alimentar até 10 bebês prematuros na UTI Neonatal.',
+      'Identificação individual de cada frasco com código de barras e QR Code, da coleta à dispensação.',
   },
 ];
 
 interface BottleExplodedScrollProps {
   isAuthenticated: boolean;
   onAccessSystem: () => void;
+  onBecomeDonor: () => void;
 }
 
 export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
   isAuthenticated,
   onAccessSystem,
+  onBecomeDonor,
 }) => {
   const sectionRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -444,26 +445,26 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
 
           {/* 01 — Opening Hero Typography Overlay */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-between py-10 sm:py-14 px-4 text-center pointer-events-none select-none will-change-transform"
+            className="absolute inset-0 flex flex-col items-center justify-between pt-4 pb-3 sm:pt-5 sm:pb-4 px-4 text-center pointer-events-none select-none will-change-transform"
             style={{
               opacity: heroOverlay.opacity,
               transform: `translate3d(0, ${heroOverlay.translateY}px, 0)`,
               visibility: heroOverlay.opacity < 0.01 ? 'hidden' : 'visible',
             }}
           >
-            <div className="space-y-2 sm:space-y-3 mt-1">
-              <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.34em] text-[#4A6B5D]">
-                Banco de Leite Humano • Marília
+            <div className="space-y-1 sm:space-y-1.5 max-w-3xl px-4 py-1.5 rounded-2xl bg-white/75 backdrop-blur-[2px]">
+              <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.26em] text-[#4A6B5D]">
+                Apoio à gestão do Banco de Leite Humano • Marília – SP
               </p>
-              <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-normal tracking-tight text-[#1E242B]">
-                LeiteFlow
+              <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl leading-none font-normal tracking-tight text-[#1E242B]">
+                LEITFLOW
               </h1>
-              <p className="text-xs sm:text-sm uppercase tracking-[0.28em] text-[#1E242B]/65">
-                Cada Gota. Uma Vida.
+              <p className="text-xs sm:text-sm tracking-[0.02em] text-[#1E242B]/80 max-w-2xl mx-auto">
+                Tecnologia, organização e rastreabilidade a serviço da doação de leite humano.
               </p>
             </div>
 
-            <div className="flex flex-col items-center gap-1.5 text-[11px] sm:text-xs tracking-[0.2em] uppercase text-[#8C8275]">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/88 backdrop-blur-sm border border-[#EFECE6]/90 shadow-xs text-[11px] sm:text-xs tracking-[0.18em] uppercase text-[#6B737D]">
               <span>Role para explorar</span>
               <ChevronDown className="w-4 h-4 animate-bounce text-[#4A6B5D]" />
             </div>
@@ -478,13 +479,13 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
               visibility: midOverlay1.opacity < 0.01 ? 'hidden' : 'visible',
             }}
           >
-            <div className="max-w-xl px-6 py-4 rounded-3xl bg-white/75 backdrop-blur-md border border-[#EFECE6]/80 shadow-sm">
+            <div className="max-w-xl px-6 py-4 rounded-3xl bg-white/80 backdrop-blur-md border border-[#EFECE6]/80 shadow-sm">
               <h2 className="font-display text-2xl sm:text-4xl font-normal text-[#1E242B] tracking-tight">
-                Pureza em Movimento
+                Alimento essencial para recém-nascidos
               </h2>
-              <p className="text-xs sm:text-sm text-[#1E242B]/70 mt-1.5 leading-relaxed">
-                Rico em anticorpos vivos e nutrientes insubstituíveis — 1 litro doado alimenta até
-                10 bebês prematuros na UTI Neonatal.
+              <p className="text-xs sm:text-sm text-[#1E242B]/75 mt-1.5 leading-relaxed">
+                O leite humano doado oferece proteção imunológica e nutrição adequada para bebês
+                prematuros ou de baixo peso internados em unidades neonatais.
               </p>
             </div>
           </div>
@@ -498,13 +499,13 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
               visibility: midOverlay2.opacity < 0.01 ? 'hidden' : 'visible',
             }}
           >
-            <div className="max-w-xl px-6 py-4 rounded-3xl bg-white/75 backdrop-blur-md border border-[#EFECE6]/80 shadow-sm">
+            <div className="max-w-xl px-6 py-4 rounded-3xl bg-white/80 backdrop-blur-md border border-[#EFECE6]/80 shadow-sm">
               <h2 className="font-display text-2xl sm:text-4xl font-normal text-[#1E242B] tracking-tight">
-                Coleta 100% Gratuita
+                Logística organizada com cuidado
               </h2>
-              <p className="text-xs sm:text-sm text-[#1E242B]/70 mt-1.5 leading-relaxed">
-                O Banco de Leite Humano de Marília entrega frascos esterilizados e realiza a coleta
-                domiciliar gratuita nas 5 zonas do município.
+              <p className="text-xs sm:text-sm text-[#1E242B]/75 mt-1.5 leading-relaxed">
+                Da orientação inicial à coleta domiciliar em cadeia de frio monitorada, cada etapa
+                é planejada para dar praticidade à doadora e segurança ao leite coletado.
               </p>
             </div>
           </div>
@@ -519,19 +520,27 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
               visibility: closingOverlay.opacity < 0.01 ? 'hidden' : 'visible',
             }}
           >
-            <div className="max-w-lg px-7 py-5 rounded-3xl bg-white/85 backdrop-blur-md border border-[#EFECE6] shadow-lg space-y-3.5">
+            <div className="max-w-lg px-7 py-5 rounded-3xl bg-white/88 backdrop-blur-md border border-[#EFECE6] shadow-lg space-y-3.5">
               <h2 className="font-display text-2xl sm:text-4xl font-normal text-[#1E242B] tracking-tight">
-                Gestão Clínica &amp; Logística
+                Cuidado acompanhado de ponta a ponta
               </h2>
-              <p className="text-xs sm:text-sm text-[#1E242B]/70 leading-relaxed">
-                Plataforma oficial de rastreabilidade, roteirização de coletas e controle
-                laboratorial do Banco de Leite Humano de Marília.
+              <p className="text-xs sm:text-sm text-[#1E242B]/75 leading-relaxed">
+                Manifeste seu interesse em se tornar doadora ou acesse a área restrita para a
+                equipe técnica do serviço.
               </p>
               <div className="pt-1 flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
-                  onClick={onAccessSystem}
+                  onClick={onBecomeDonor}
                   className="px-7 py-3 rounded-full bg-[#4A6B5D] text-white font-medium text-xs sm:text-sm hover:bg-[#3d594d] transition-all shadow-md flex items-center gap-2 transform hover:-translate-y-0.5"
+                >
+                  <Heart className="w-4 h-4 fill-white/25" />
+                  <span>Quero ser doadora</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onAccessSystem}
+                  className="px-6 py-3 rounded-full bg-white text-[#1E242B] font-medium text-xs sm:text-sm border border-[#EFECE6] hover:border-[#4A6B5D]/40 hover:text-[#4A6B5D] transition-all flex items-center gap-2"
                 >
                   {isAuthenticated ? (
                     <>
@@ -545,13 +554,6 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
                     </>
                   )}
                 </button>
-                <a
-                  href="#como-funciona"
-                  className="px-6 py-3 rounded-full bg-white text-[#1E242B] font-medium text-xs sm:text-sm border border-[#EFECE6] hover:border-[#4A6B5D]/40 hover:text-[#4A6B5D] transition-all flex items-center gap-2"
-                >
-                  <span>Entenda o fluxo</span>
-                  <ArrowRight className="w-4 h-4" />
-                </a>
               </div>
             </div>
           </div>
@@ -563,10 +565,11 @@ export const BottleExplodedScroll: React.FC<BottleExplodedScrollProps> = ({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
             <h2 className="font-display text-3xl sm:text-4xl font-normal text-[#1E242B] tracking-tight">
-              Cuidado Clínico em Cada Etapa
+              Organização e segurança em cada etapa
             </h2>
             <p className="text-sm sm:text-base text-[#8C8275] mt-2">
-              Tecnologia e acolhimento humano conectados ao Banco de Leite de Marília.
+              Como a estrutura do serviço e o apoio tecnológico atuam juntos para proteger o leite
+              doado.
             </p>
           </div>
 

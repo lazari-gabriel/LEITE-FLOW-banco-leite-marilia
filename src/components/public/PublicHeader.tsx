@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { Menu, X, LogIn, LayoutDashboard } from 'lucide-react';
+import { Menu, X, LogIn, LayoutDashboard, Heart } from 'lucide-react';
 import { InstitutionalLogo } from './InstitutionalLogo';
 
 interface PublicHeaderProps {
   isAuthenticated: boolean;
   userName?: string;
   onAccessSystem: () => void;
+  onBecomeDonor: () => void;
 }
 
 const NAV_LINKS = [
-  { href: '#como-funciona', label: 'Como Funciona' },
-  { href: '#coleta-marilia', label: 'Coleta em Marília' },
+  { href: '#sobre-projeto', label: 'Sobre o LEITFLOW' },
+  { href: '#como-funciona', label: 'Como Doar' },
   { href: '#requisitos', label: 'Quem Pode Doar' },
-  { href: '#calculadora', label: 'Impacto' },
+  { href: '#plataforma', label: 'A Plataforma' },
   { href: '#duvidas', label: 'Dúvidas' },
 ];
 
@@ -20,6 +21,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
   isAuthenticated,
   userName,
   onAccessSystem,
+  onBecomeDonor,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -51,46 +53,45 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
-          {isAuthenticated ? (
-            <button
-              type="button"
-              onClick={onAccessSystem}
-              className="px-5 py-2.5 rounded-full bg-[#4A6B5D] text-white font-semibold text-sm hover:bg-[#3d594d] transition-all shadow-md shadow-[#4A6B5D]/20 flex items-center gap-2 transform hover:-translate-y-0.5"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>{userName ? `Painel · ${userName.split(' ')[0]}` : 'Acessar Painel'}</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onAccessSystem}
-              className="px-5 py-2.5 rounded-full bg-[#4A6B5D] text-white font-semibold text-sm hover:bg-[#3d594d] transition-all shadow-md shadow-[#4A6B5D]/20 flex items-center gap-2 transform hover:-translate-y-0.5"
-            >
-              <LogIn className="w-4 h-4" />
-              <span>Acessar sistema</span>
-            </button>
-          )}
+        <div className="hidden sm:flex items-center gap-2.5 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onAccessSystem}
+            title="Acesso restrito a profissionais autorizados do serviço"
+            className="px-4 py-2.5 rounded-full bg-white text-[#1E242B] font-semibold text-xs xl:text-sm border border-[#EFECE6] hover:border-[#4A6B5D]/40 hover:text-[#4A6B5D] transition-all flex items-center gap-2"
+          >
+            {isAuthenticated ? (
+              <>
+                <LayoutDashboard className="w-4 h-4 text-[#4A6B5D]" />
+                <span>{userName ? `Painel · ${userName.split(' ')[0]}` : 'Acessar Painel'}</span>
+              </>
+            ) : (
+              <>
+                <LogIn className="w-4 h-4 text-[#4A6B5D]" />
+                <span>Acessar sistema</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={onBecomeDonor}
+            className="px-5 py-2.5 rounded-full bg-[#4A6B5D] text-white font-semibold text-xs xl:text-sm hover:bg-[#3d594d] transition-all shadow-md shadow-[#4A6B5D]/20 flex items-center gap-2 transform hover:-translate-y-0.5"
+          >
+            <Heart className="w-4 h-4 fill-white/25" />
+            <span>Quero ser doadora</span>
+          </button>
         </div>
 
         {/* Mobile Actions */}
         <div className="flex sm:hidden items-center gap-2">
           <button
             type="button"
-            onClick={onAccessSystem}
+            onClick={onBecomeDonor}
             className="px-3.5 py-2 rounded-full bg-[#4A6B5D] text-white font-semibold text-xs flex items-center gap-1.5 shadow-md"
           >
-            {isAuthenticated ? (
-              <>
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                <span>Painel</span>
-              </>
-            ) : (
-              <>
-                <LogIn className="w-3.5 h-3.5" />
-                <span>Acessar</span>
-              </>
-            )}
+            <Heart className="w-3.5 h-3.5 fill-white/25" />
+            <span>Quero doar</span>
           </button>
 
           <button
@@ -119,23 +120,35 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
                 {item.label}
               </a>
             ))}
-            <div className="pt-3 pb-1">
+            <div className="pt-3 pb-1 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onBecomeDonor();
+                }}
+                className="w-full py-3 rounded-xl bg-[#4A6B5D] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Heart className="w-4 h-4 fill-white/25" />
+                <span>Quero ser doadora</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onAccessSystem();
                 }}
-                className="w-full py-3 rounded-xl bg-[#4A6B5D] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm"
+                className="w-full py-2.5 rounded-xl bg-[#FAF9F6] text-[#1E242B] font-semibold text-sm border border-[#EFECE6] flex items-center justify-center gap-2"
               >
                 {isAuthenticated ? (
                   <>
-                    <LayoutDashboard className="w-4 h-4" />
+                    <LayoutDashboard className="w-4 h-4 text-[#4A6B5D]" />
                     <span>Acessar Meu Painel</span>
                   </>
                 ) : (
                   <>
-                    <LogIn className="w-4 h-4" />
+                    <LogIn className="w-4 h-4 text-[#4A6B5D]" />
                     <span>Acessar sistema</span>
                   </>
                 )}
