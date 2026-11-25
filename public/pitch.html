@@ -3,68 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LEITE-FLOW — Pitch Deck YC (8 Slides • 5 Minutos)</title>
-  
+  <title>LEITFLOW — Evolução do Projeto &amp; Demonstração (5 Minutos)</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
-  
+
   <style>
     /* ==========================================================
-       DESIGN TOKENS: MODO ESCURO (HUD CIRÚRGICO) E MODO CLARO (BLH ESTÉRIL)
+       DESIGN TOKENS: MODO ESCURO (HUD CLÍNICO) E MODO CLARO (BLH)
+       Identidade visual preservada do pitch oficial LEITFLOW
        ========================================================== */
     :root {
-      /* MODO ESCURO (Padrão) */
       --bg-body: #091217;
       --bg-panel: #111e27;
       --bg-card: rgba(17, 30, 39, 0.88);
       --border-card: rgba(255, 255, 255, 0.1);
       --border-subtle: rgba(255, 255, 255, 0.06);
-      
+
       --blh-pine: #235347;
       --blh-pine-dark: #16362e;
       --blh-pine-light: #357262;
       --blh-pine-soft: #eaf3f0;
-      
+
       --blh-coral: #cf6656;
       --blh-coral-soft: #fcf1ef;
-      
+
       --fleet-cold: #0284c7;
       --fleet-cyan: #38bdf8;
       --fleet-emerald: #10b981;
-      
+
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --text-soft: #cbd5e1;
-      
+
       --shadow-elevation: 0 10px 30px rgba(0, 0, 0, 0.45);
       --glass-blur: blur(14px);
     }
 
-    /* MODO CLARO BEM FEITO (Clean Health-Tech & Banco de Leite Oficial) */
     body.light-mode {
       --bg-body: #f4f7f6;
       --bg-panel: #ffffff;
-      --bg-card: rgba(255, 255, 255, 0.95);
+      --bg-card: rgba(255, 255, 255, 0.96);
       --border-card: #dbe5e1;
       --border-subtle: #e2ece8;
-      
+
       --blh-pine: #235347;
       --blh-pine-dark: #16362e;
       --blh-pine-light: #2d6657;
       --blh-pine-soft: #eaf3f0;
-      
+
       --blh-coral: #cf6656;
       --blh-coral-soft: #fcf1ef;
-      
+
       --fleet-cold: #0284c7;
       --fleet-cyan: #0284c7;
       --fleet-emerald: #059669;
-      
+
       --text-main: #0f1c24;
       --text-muted: #4a6375;
       --text-soft: #223542;
-      
+
       --shadow-elevation: 0 8px 25px rgba(15, 28, 36, 0.08);
       --glass-blur: blur(8px);
     }
@@ -97,7 +97,7 @@
     .slide {
       position: absolute;
       inset: 0;
-      padding: 40px 70px 75px 70px;
+      padding: 46px 68px 78px 68px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -124,7 +124,7 @@
 
     .content-box {
       width: 100%;
-      max-width: 1240px;
+      max-width: 1220px;
       max-height: 88vh;
       display: flex;
       flex-direction: column;
@@ -132,7 +132,14 @@
       gap: 18px;
     }
 
-    /* BADGES MINIMALISTAS */
+    /* BADGES */
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
     .badge {
       display: inline-flex;
       align-items: center;
@@ -141,7 +148,7 @@
       background: rgba(35, 83, 71, 0.4);
       border: 1px solid rgba(53, 114, 98, 0.55);
       color: #6ee7b7;
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -180,16 +187,36 @@
     }
 
     /* TIPOGRAFIA */
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .brand-logo {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.28));
+    }
+
+    .logo-light-only { display: none; }
+    .logo-dark-only { display: block; }
+    body.light-mode .logo-light-only { display: block; }
+    body.light-mode .logo-dark-only { display: none; }
+
     h1 {
       font-size: clamp(2.6rem, 4.4vw, 4rem);
       font-weight: 800;
       letter-spacing: -0.03em;
-      line-height: 1.05;
+      line-height: 1.04;
       color: var(--text-main);
     }
 
     h1 span {
-      background: linear-gradient(135deg, var(--text-main) 40%, var(--fleet-cyan) 85%, #10b981 100%);
+      background: linear-gradient(135deg, var(--text-main) 35%, var(--fleet-cyan) 80%, #10b981 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -208,10 +235,17 @@
       line-height: 1.15;
     }
 
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.25;
+    }
+
     p.subtitle {
       font-size: 1.02rem;
       color: var(--text-muted);
-      max-width: 840px;
+      max-width: 820px;
       line-height: 1.5;
     }
 
@@ -220,38 +254,32 @@
       background: var(--bg-card);
       border: 1px solid var(--border-card);
       border-radius: 16px;
-      padding: 20px 22px;
+      padding: 20px 24px;
       backdrop-filter: var(--glass-blur);
       box-shadow: var(--shadow-elevation);
       position: relative;
       overflow: hidden;
-      transition: all 0.25s ease;
+      transition: transform 0.25s ease, border-color 0.25s ease;
     }
 
     .card:hover {
       transform: translateY(-2px);
     }
 
-    .card-top-pine::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 3.5px;
-      background: linear-gradient(90deg, var(--blh-pine), #10b981);
-    }
-
-    .card-top-coral::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 3.5px;
-      background: linear-gradient(90deg, var(--blh-coral), #f87171);
-    }
-
+    .card-top-pine::before,
+    .card-top-coral::before,
     .card-top-cold::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 3.5px;
-      background: linear-gradient(90deg, var(--fleet-cold), var(--fleet-cyan));
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3.5px;
     }
+
+    .card-top-pine::before { background: linear-gradient(90deg, var(--blh-pine), #10b981); }
+    .card-top-coral::before { background: linear-gradient(90deg, var(--blh-coral), #f87171); }
+    .card-top-cold::before { background: linear-gradient(90deg, var(--fleet-cold), var(--fleet-cyan)); }
 
     .grid-2 {
       display: grid;
@@ -259,18 +287,352 @@
       gap: 20px;
     }
 
-    /* BOTÕES DE AÇÃO / DEMONSTRAÇÃO AO VIVO */
+    .split-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .split-main {
+      display: grid;
+      grid-template-columns: 1.32fr 0.92fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    /* COMPARATIVO ANTES VS AGORA (SLIDE 2) */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .compare-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .compare-arrow-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blh-pine), #10b981);
+      color: #ffffff;
+      font-size: 1.2rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+    }
+
+    .compare-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .compare-footer {
+      margin-top: 14px;
+      padding: 10px 13px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .compare-footer.before {
+      background: rgba(207, 102, 86, 0.13);
+      border: 1px dashed rgba(207, 102, 86, 0.45);
+      color: #fca5a5;
+    }
+
+    body.light-mode .compare-footer.before {
+      background: #fcf1ef;
+      color: #a94b3d;
+    }
+
+    .compare-footer.after {
+      background: rgba(16, 185, 129, 0.13);
+      border: 1px dashed rgba(16, 185, 129, 0.45);
+      color: #6ee7b7;
+    }
+
+    body.light-mode .compare-footer.after {
+      background: #eaf3f0;
+      color: #166534;
+    }
+
+    /* CARDS DE NOVIDADES (SLIDE 3) */
+    .feature-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 20px 22px;
+    }
+
+    .feature-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .feature-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .feature-icon.pine { background: rgba(35, 83, 71, 0.45); border: 1px solid rgba(16, 185, 129, 0.35); }
+    body.light-mode .feature-icon.pine { background: #eaf3f0; border-color: #c1d3cc; }
+
+    .feature-icon.coral { background: rgba(207, 102, 86, 0.25); border: 1px solid rgba(207, 102, 86, 0.4); }
+    body.light-mode .feature-icon.coral { background: #fcf1ef; border-color: #eed6aa; }
+
+    .feature-icon.cold { background: rgba(2, 132, 199, 0.25); border: 1px solid rgba(56, 189, 248, 0.4); }
+    body.light-mode .feature-icon.cold { background: #e0f2fe; border-color: #bae6fd; }
+
+    .feature-card p {
+      font-size: 0.87rem;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    .feature-tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 4px;
+    }
+
+    .soft-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-card);
+      color: var(--text-muted);
+    }
+
+    body.light-mode .soft-tag {
+      background: #f1f5f9;
+      color: #334a5a;
+    }
+
+    /* INTEGRANTES */
+    .team-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .team-kicker {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .team-meta {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--fleet-emerald);
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .team-item {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .team-badge-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--blh-pine), var(--blh-pine-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.8rem;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .team-badge-icon.coral { background: linear-gradient(135deg, var(--blh-coral), #e17055); }
+    .team-badge-icon.cold { background: linear-gradient(135deg, var(--fleet-cold), #0284c7); }
+
+    .team-info h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .team-info span {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* LISTAS */
+    .pill-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .pill-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: var(--text-soft);
+      line-height: 1.48;
+    }
+
+    .pill-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.74rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .pill-dot.pine { background: rgba(35, 83, 71, 0.6); color: #6ee7b7; }
+    body.light-mode .pill-dot.pine { background: #eaf3f0; color: #166534; }
+    .pill-dot.coral { background: rgba(207, 102, 86, 0.38); color: #fca5a5; }
+    body.light-mode .pill-dot.coral { background: #fcf1ef; color: #991b1b; }
+    .pill-dot.cold { background: rgba(2, 132, 199, 0.38); color: #7dd3fc; }
+    body.light-mode .pill-dot.cold { background: #e0f2fe; color: #075985; }
+
+    /* STEPPER DA DEMO AO VIVO (SLIDE 4) */
+    .demo-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .demo-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding-bottom: 11px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .demo-item:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .demo-step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .demo-item-title {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .demo-item-desc {
+      font-size: 0.81rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.42;
+    }
+
+    /* BANNER INTERATIVO DE AÇÃO */
     .action-banner {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      padding: 12px 18px;
+      padding: 14px 20px;
       background: var(--bg-card);
       border: 1px solid var(--border-card);
-      border-radius: 12px;
+      border-radius: 14px;
       box-shadow: var(--shadow-elevation);
-      margin-top: 4px;
+    }
+
+    .action-lead {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .action-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      color: #10b981;
+      flex-shrink: 0;
+    }
+
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
     }
 
     .action-btn {
@@ -278,11 +640,11 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 9px 18px;
-      font-size: 0.84rem;
+      padding: 11px 20px;
+      font-size: 0.86rem;
       font-weight: 700;
       text-decoration: none;
-      border-radius: 8px;
+      border-radius: 10px;
       transition: all 0.2s ease;
       cursor: pointer;
       white-space: nowrap;
@@ -292,12 +654,12 @@
       background: linear-gradient(135deg, #10b981 0%, var(--blh-pine) 100%);
       color: #ffffff;
       border: 1px solid rgba(16, 185, 129, 0.4);
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.32);
     }
 
     .action-btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
       background: linear-gradient(135deg, #34d399 0%, #235347 100%);
       color: #ffffff;
     }
@@ -327,142 +689,13 @@
       color: var(--fleet-cold);
     }
 
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-    }
-
-    /* INTEGRANTES */
-    .team-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 8px;
-    }
-
-    .team-item {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-card);
-      border-radius: 12px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .team-badge-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, var(--blh-pine), var(--blh-pine-light));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 0.82rem;
-      color: white;
-      flex-shrink: 0;
-    }
-
-    .team-badge-icon.coral {
-      background: linear-gradient(135deg, var(--blh-coral), #e17055);
-    }
-
-    .team-badge-icon.cold {
-      background: linear-gradient(135deg, var(--fleet-cold), #0284c7);
-    }
-
-    .team-info h4 {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text-main);
-      line-height: 1.2;
-    }
-
-    .team-info span {
-      font-size: 0.74rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    /* STATS & MÉTRICAS */
-    .stat-huge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 2.8rem;
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: -0.03em;
-    }
-
-    .stat-huge.pine { color: #10b981; }
-    body.light-mode .stat-huge.pine { color: #15803d; }
-    .stat-huge.coral { color: #f87171; }
-    body.light-mode .stat-huge.coral { color: #cf6656; }
-    .stat-huge.cold { color: var(--fleet-cyan); }
-    body.light-mode .stat-huge.cold { color: var(--fleet-cold); }
-
-    .code-pill {
-      font-family: 'JetBrains Mono', monospace;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 2px 7px;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      font-size: 0.78rem;
-      color: var(--fleet-cyan);
-    }
-
-    body.light-mode .code-pill {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
-      color: #0369a1;
-    }
-
-    /* LISTAS */
-    .pill-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .pill-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 0.9rem;
-      color: var(--text-soft);
-      line-height: 1.45;
-    }
-
-    .pill-dot {
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.72rem;
-      font-weight: 800;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    .pill-dot.pine { background: rgba(35, 83, 71, 0.6); color: #6ee7b7; }
-    body.light-mode .pill-dot.pine { background: #eaf3f0; color: #166534; }
-    .pill-dot.coral { background: rgba(207, 102, 86, 0.4); color: #fca5a5; }
-    body.light-mode .pill-dot.coral { background: #fcf1ef; color: #991b1b; }
-    .pill-dot.cold { background: rgba(2, 132, 199, 0.4); color: #7dd3fc; }
-    body.light-mode .pill-dot.cold { background: #e0f2fe; color: #075985; }
-
-    /* IMAGENS COM TRATAMENTO VISUAL */
+    /* IMAGENS */
     .img-box {
-      border-radius: 12px;
+      border-radius: 16px;
       overflow: hidden;
       border: 1px solid var(--border-card);
       position: relative;
-      background: #000;
+      background: #091217;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
 
@@ -470,9 +703,8 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 20%;
       display: block;
-      transition: transform 0.3s ease;
+      transition: transform 0.35s ease;
     }
 
     .img-box:hover img {
@@ -484,26 +716,69 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: linear-gradient(180deg, transparent 0%, rgba(9, 18, 23, 0.85) 100%);
-      padding: 10px 14px;
-      font-size: 0.75rem;
+      background: linear-gradient(180deg, transparent 0%, rgba(9, 18, 23, 0.88) 100%);
+      padding: 12px 14px 10px 14px;
+      font-size: 0.74rem;
       font-weight: 700;
       color: #ffffff;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
     }
 
-    /* MOCKUP ETIQUETA TÉRMICA 60x40mm */
-    .thermal-label-preview {
-      background: #ffffff;
-      color: #000000;
-      border-radius: 8px;
-      border: 2px solid #000000;
-      padding: 10px 12px;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      user-select: none;
+    /* BLOCO FINAL DE ENCERRAMENTO (SLIDE 5) */
+    .closing-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 18px 26px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-elevation);
+    }
+
+    .closing-quote {
+      font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+
+    .closing-quote span {
+      background: linear-gradient(135deg, var(--fleet-cyan) 10%, #10b981 95%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    body.light-mode .closing-quote span {
+      background: linear-gradient(135deg, var(--blh-pine) 15%, var(--fleet-cold) 90%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .closing-team {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 14px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-soft);
+    }
+
+    .closing-team span::after {
+      content: '·';
+      margin-left: 14px;
+      color: var(--text-muted);
+    }
+
+    .closing-team span:last-child::after {
+      content: '';
+      margin-left: 0;
     }
 
     /* BARRA SUPERIOR & NAVEGAÇÃO */
@@ -519,11 +794,11 @@
 
     .top-bar-controls {
       position: fixed;
-      top: 16px;
-      right: 24px;
+      top: 14px;
+      right: 22px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       z-index: 200;
     }
 
@@ -531,14 +806,14 @@
       background: var(--bg-card);
       border: 1px solid var(--border-card);
       border-radius: 9999px;
-      padding: 6px 14px;
-      font-size: 0.78rem;
+      padding: 6px 13px;
+      font-size: 0.76rem;
       font-weight: 700;
       color: var(--text-main);
       display: flex;
       align-items: center;
-      gap: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      gap: 7px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
       cursor: pointer;
       user-select: none;
       transition: all 0.2s ease;
@@ -555,10 +830,10 @@
       font-weight: 800;
     }
 
-    /* BARRA INFERIOR DE SLIDES */
+    /* BARRA INFERIOR */
     .nav-bar {
       position: fixed;
-      bottom: 18px;
+      bottom: 16px;
       display: flex;
       align-items: center;
       gap: 14px;
@@ -576,18 +851,19 @@
       border: none;
       color: var(--text-main);
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 700;
-      padding: 4px 8px;
+      padding: 5px 8px;
       border-radius: 6px;
       transition: background 0.15s;
     }
 
     .nav-btn:hover { background: rgba(125, 125, 125, 0.15); }
+    .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
     .dots-container {
       display: flex;
-      gap: 6px;
+      gap: 7px;
       align-items: center;
     }
 
@@ -596,13 +872,15 @@
       height: 10px;
       border-radius: 50%;
       background: var(--border-card);
+      border: none;
+      padding: 0;
       cursor: pointer;
       transition: all 0.2s ease;
     }
 
     .slide-dot.active {
       background: var(--blh-pine);
-      width: 24px;
+      width: 26px;
       border-radius: 9999px;
     }
 
@@ -611,207 +889,176 @@
       font-size: 0.8rem;
       font-weight: 700;
       color: var(--text-muted);
-      margin-left: 6px;
     }
 
     /* ==========================================================
-       RESPONSIVIDADE MOBILE & TABLETS (iOS / Android / Telas Pequenas)
+       RESPONSIVIDADE MOBILE & TABLETS
        ========================================================== */
-    @media (max-width: 900px) {
+    @media (max-width: 980px) {
       .slide {
-        padding: 70px 20px 85px 20px !important;
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        justify-content: flex-start !important;
-        align-items: stretch !important;
+        padding: 68px 22px 86px 22px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+        align-items: stretch;
       }
 
       .content-box {
-        max-height: none !important;
-        padding-bottom: 40px !important;
-        gap: 16px !important;
+        max-height: none;
+        padding-bottom: 36px;
+        gap: 15px;
+      }
+
+      .split-hero {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+      }
+
+      .hero-card-img {
         width: 100% !important;
+        height: 170px !important;
       }
 
-      /* Empilhar grids definidos via style inline */
-      div[style*="grid-template-columns: 1.35fr 1fr"],
-      div[style*="grid-template-columns: 1.25fr 1fr"],
-      div[style*="grid-template-columns: repeat(3, 1fr)"] {
-        grid-template-columns: 1fr !important;
-        gap: 16px !important;
+      .split-main,
+      .grid-2,
+      .compare-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
       }
 
-      /* Empilhar cabeçalho da capa */
-      .slide[data-index="0"] .content-box > div:first-child {
-        flex-direction: column !important;
-        gap: 16px !important;
-      }
-
-      .slide[data-index="0"] .img-box {
-        width: 100% !important;
-        height: 160px !important;
-      }
-
-      .grid-2, .grid-3 {
-        grid-template-columns: 1fr !important;
-        gap: 14px !important;
+      .compare-arrow-circle {
+        transform: rotate(90deg);
       }
 
       .team-grid {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 8px !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .action-banner {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .action-btn {
+        width: 100%;
+        padding: 12px 16px;
       }
 
       .top-bar-controls {
         top: 10px;
         right: 12px;
-        gap: 6px;
       }
 
       .control-pill {
-        padding: 6px 12px;
-        font-size: 0.74rem;
-        min-height: 36px;
+        padding: 5px 10px;
+        font-size: 0.72rem;
+        min-height: 34px;
       }
 
       .nav-bar {
         bottom: 10px;
-        padding: 6px 14px;
+        padding: 6px 12px;
         gap: 8px;
         max-width: 96vw;
       }
 
       .nav-btn {
-        font-size: 0.82rem;
-        padding: 6px 10px;
-        min-height: 36px;
-      }
-
-      .dots-container {
-        gap: 5px;
-      }
-
-      .slide-dot {
-        width: 8px;
-        height: 8px;
-      }
-
-      .slide-dot.active {
-        width: 18px;
-      }
-
-      .action-banner {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 14px !important;
-      }
-
-      .action-banner > div:last-child {
-        flex-direction: column !important;
-        width: 100% !important;
-        gap: 8px !important;
-      }
-
-      .action-btn {
-        width: 100% !important;
-        justify-content: center !important;
-        padding: 12px 16px !important;
-        font-size: 0.88rem !important;
+        font-size: 0.8rem;
+        padding: 5px 8px;
+        min-height: 34px;
       }
     }
 
     @media (max-width: 600px) {
       .slide {
-        padding: 62px 14px 80px 14px !important;
+        padding: 60px 14px 80px 14px;
       }
 
-      h1 {
-        font-size: 2.1rem !important;
-      }
+      h1 { font-size: 2.15rem; }
+      h2 { font-size: 1.42rem; }
+      p.subtitle { font-size: 0.88rem; }
 
-      h2 {
-        font-size: 1.4rem !important;
-      }
-
-      p.subtitle {
-        font-size: 0.86rem !important;
-      }
+      .brand-logo { width: 42px; height: 42px; }
 
       .team-grid {
-        grid-template-columns: 1fr !important;
-        gap: 6px !important;
-      }
-
-      .card {
-        padding: 14px 16px !important;
-        border-radius: 14px !important;
-      }
-
-      .stat-huge {
-        font-size: 1.8rem !important;
+        grid-template-columns: 1fr;
       }
 
       .img-box {
         min-height: 220px !important;
-        max-height: 260px !important;
-        height: auto !important;
+        max-height: 270px !important;
+      }
+
+      .closing-team span::after {
+        content: '';
+        margin-left: 0;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Linha de progresso no topo -->
+  <!-- Barra de progresso superior -->
   <div class="top-progress" id="progress"></div>
 
-  <!-- Controles Superiores: Tema Claro/Escuro & Cronômetro Dinâmico -->
+  <!-- Controles superiores: Tema Claro/Escuro e Cronômetro de 5 Minutos -->
   <div class="top-bar-controls">
-    <div class="control-pill" id="themeToggle" title="Alternar Modo Claro / Escuro (Tecla T)">
+    <button type="button" class="control-pill" id="themeToggle" title="Alternar Modo Claro / Escuro (Tecla T)">
       <span id="themeIcon">☀️</span>
       <span id="themeText">Modo Claro</span>
-    </div>
+    </button>
 
-    <div class="control-pill" id="timerBtn" title="Clique para Iniciar/Pausar o Cronômetro de 5 Minutos (Tecla P)">
+    <button type="button" class="control-pill" id="timerBtn" title="Iniciar/Pausar cronômetro de 5 min (Tecla P | R para zerar)">
       <span>⏱️</span>
       <span class="timer-display" id="timerText">05:00</span>
-    </div>
+    </button>
   </div>
 
-  <div class="slide-deck">
+  <main class="slide-deck" aria-live="polite">
 
     <!-- ==========================================================
-         SLIDE 1: CAPA OFICIAL & EQUIPE MULTIDISCIPLINAR
+         SLIDE 1: CAPA OFICIAL & EQUIPE
          ========================================================== -->
-    <div class="slide active" data-index="0">
+    <section class="slide active" data-index="0" aria-label="Slide 1: Capa Oficial e Equipe">
       <div class="content-box">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px;">
+        <div class="split-hero">
           <div>
-            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-              <span class="badge">LEITE-FLOW &bull; MVP v1.0</span>
-              <span class="badge badge-cold">Hospital Materno Infantil &bull; Marília - SP</span>
+            <div class="badge-row" style="margin-bottom: 10px;">
+              <span class="badge">LEITFLOW &bull; Nova Versão</span>
+              <span class="badge badge-cold">Hospital Materno Infantil &bull; Marília – SP</span>
             </div>
-            <h1>LEITE-<span>FLOW</span></h1>
-            <p class="subtitle" style="margin-top: 6px; font-size: 1.2rem;">
-              Inteligência logística e rastreabilidade total para a coleta de leite materno humano.
+
+            <div class="brand-lockup">
+              <img src="logo-circle-white.png" alt="Logo LEITFLOW" class="brand-logo logo-dark-only">
+              <img src="logo-circle.png" alt="Logo LEITFLOW" class="brand-logo logo-light-only">
+              <h1>LEIT<span>FLOW</span></h1>
+            </div>
+
+            <p class="subtitle" style="margin-top: 10px; font-size: 1.12rem;">
+              A evolução completa da plataforma para o <strong>Banco de Leite Humano de Marília</strong> — da primeira doação até a UTI Neonatal.
             </p>
           </div>
 
-          <!-- Card Hero Fotográfico: Frascos e Rastreabilidade -->
-          <div class="img-box" style="width: 290px; height: 145px; flex-shrink: 0;">
-            <img src="hero_banner.jpg" alt="Frascos de Leite Materno e Rastreabilidade" style="object-position: center;">
+          <div class="img-box hero-card-img" style="width: 310px; height: 158px; flex-shrink: 0;">
+            <img src="hero_banner.jpg" alt="Frascos padronizados de leite materno com rastreabilidade" style="object-position: center;">
             <div class="img-caption">
-              <span>Frascos Padronizados</span>
-              <span style="color: #38bdf8;">LF-2026</span>
+              <span>Banco de Leite Humano</span>
+              <span style="color: #6ee7b7;">Marília – SP</span>
             </div>
           </div>
         </div>
 
-        <div style="margin-top: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span style="font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);">
-              Equipe de Engenharia do Projeto
-            </span>
-            <span style="font-size: 0.75rem; color: #10b981; font-weight: 700;">6 Integrantes &bull; Banco de Leite de Marília</span>
+        <div style="margin-top: 6px;">
+          <div class="team-header">
+            <span class="team-kicker">Equipe do Projeto</span>
+            <span class="team-meta">6 Integrantes &bull; Evolução &amp; Demonstração Prática</span>
           </div>
 
           <div class="team-grid">
@@ -819,775 +1066,405 @@
               <div class="team-badge-icon">GL</div>
               <div class="team-info">
                 <h4>Gabriel Neves de Lazari</h4>
-                <span>Engenharia de Software & Roteirização</span>
+                <span>Desenvolvimento &amp; Roteirização</span>
               </div>
             </div>
             <div class="team-item">
               <div class="team-badge-icon coral">FT</div>
               <div class="team-info">
                 <h4>Felipe Tenório Rodrigues</h4>
-                <span>Arquitetura de Sistemas & Modelagem</span>
+                <span>Estrutura do Sistema &amp; Dados</span>
               </div>
             </div>
             <div class="team-item">
               <div class="team-badge-icon cold">VF</div>
               <div class="team-info">
                 <h4>Vinicius Fachini</h4>
-                <span>Etiquetagem Térmica & Padrões ANVISA</span>
+                <span>Etiquetagem &amp; Normas ANVISA</span>
               </div>
             </div>
             <div class="team-item">
               <div class="team-badge-icon cold">RG</div>
               <div class="team-info">
                 <h4>Rafael Garbelini</h4>
-                <span>Design de Interfaces (UI/UX de Campo)</span>
+                <span>Design &amp; Experiência do Usuário</span>
               </div>
             </div>
             <div class="team-item">
               <div class="team-badge-icon">AH</div>
               <div class="team-info">
                 <h4>Adelmo Henrique</h4>
-                <span>Algoritmos de Otimização & Distâncias</span>
+                <span>Mapas &amp; Organização de Rotas</span>
               </div>
             </div>
             <div class="team-item">
               <div class="team-badge-icon coral">MR</div>
               <div class="team-info">
                 <h4>Miguel Rodrigues</h4>
-                <span>Qualidade, Rastreabilidade & Validação</span>
+                <span>Qualidade &amp; Rastreabilidade</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- ==========================================================
-         SLIDE 2: A NOSSA IDEIA (O PROBLEMA E A SOLUÇÃO)
+         SLIDE 2: ANTES VS. AGORA — O SALTO DO LEITFLOW
          ========================================================== -->
-    <div class="slide" data-index="1">
+    <section class="slide" data-index="1" aria-label="Slide 2: Comparação Antes e Agora">
       <div class="content-box">
-        <div style="display: flex; gap: 8px;">
-          <span class="badge badge-coral">O Diagnóstico Real</span>
-          <span class="badge">A Solução Integrada</span>
+        <div class="badge-row">
+          <span class="badge badge-coral">Antes vs. Agora</span>
+          <span class="badge">Evolução Real do Projeto</span>
         </div>
-        <h2>A Nossa Ideia: Do Cadastro ao Frasco Rastreado</h2>
-        <p class="subtitle">Substituindo o processo manual fragmentado por um fluxo contínuo em 3 etapas integradas.</p>
+        <h2>De um Protótipo Inicial a uma Plataforma Completa</h2>
+        <p class="subtitle">Veja o que mudou desde a primeira versão apresentada até o sistema que vamos testar hoje.</p>
 
-        <div class="grid-3" style="align-items: stretch;">
-          <!-- Card 1: O Problema Real -->
+        <div class="compare-grid">
+          <!-- COMO ERA ANTES -->
           <div class="card card-top-coral" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h3 style="font-size: 1.15rem; color: var(--text-main);">Gargalos do Modelo Manual</h3>
-                <span style="font-size: 1.2rem;">⚠️</span>
+              <div class="compare-header">
+                <h3>Como Era Antes</h3>
+                <span class="badge badge-coral" style="font-size: 0.68rem; padding: 3px 10px;">1ª Versão</span>
               </div>
               <ul class="pill-list">
                 <li>
                   <div class="pill-dot coral">✕</div>
-                  <span><strong>Triagem Manual Lenta:</strong> Verificação de sorologias, vacinas e fichas físicas em papel retarda a entrada da doadora na rota.</span>
+                  <span><strong>Sem tela inicial e sem login:</strong> abria direto nas telas internas, sem controle de acesso.</span>
                 </li>
                 <li>
                   <div class="pill-dot coral">✕</div>
-                  <span><strong>Etiquetas que Borram no Gelo:</strong> Anotações em caneta esferográfica rasuram com a umidade, gerando perda involuntária de frascos.</span>
+                  <span><strong>Sem banco de dados:</strong> ao atualizar a página, cadastros e coletas eram perdidos.</span>
                 </li>
                 <li>
                   <div class="pill-dot coral">✕</div>
-                  <span><strong>Rotas Desconexas por Marília:</strong> Deslocamentos sem agrupamento lógico por bairros aumentam o tempo de trânsito da van.</span>
+                  <span><strong>Sem canal para novas mães:</strong> não havia um espaço para interessadas pedirem contato.</span>
+                </li>
+                <li>
+                  <div class="pill-dot coral">✕</div>
+                  <span><strong>Simulação parcial:</strong> etiqueta apenas visual e números fixos de exemplo no painel e laboratório.</span>
                 </li>
               </ul>
             </div>
-            <div style="padding: 8px 12px; background: rgba(207, 102, 86, 0.12); border-radius: 8px; font-size: 0.76rem; color: var(--blh-coral); font-weight: 700; margin-top: 10px;">
-              ⚠️ Risco: Frasco com identificação borrada = Descarte obrigatório
+
+            <div class="compare-footer before">
+              Servia para demonstrar a ideia, mas ainda não sustentava a rotina real do hospital.
             </div>
           </div>
 
-          <!-- Card 2: A Solução Leite-Flow -->
+          <!-- SETA DE EVOLUÇÃO -->
+          <div class="compare-arrow" aria-hidden="true">
+            <div class="compare-arrow-circle">→</div>
+          </div>
+
+          <!-- COMO ESTÁ AGORA -->
           <div class="card card-top-pine" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h3 style="font-size: 1.15rem; color: #10b981;">A Solução LEITE-FLOW</h3>
-                <span style="font-size: 1.2rem;">💡</span>
+              <div class="compare-header">
+                <h3 style="color: var(--fleet-emerald);">Como Está Agora</h3>
+                <span class="badge" style="font-size: 0.68rem; padding: 3px 10px;">Versão Atual</span>
               </div>
               <ul class="pill-list">
                 <li>
-                  <div class="pill-dot pine">1</div>
-                  <span><strong>Triagem com Regra Go / No-Go:</strong> Doadora só entra na rota com validação sorológica e checklist domiciliar aprovados.</span>
+                  <div class="pill-dot pine">✓</div>
+                  <span><strong>Nova Tela Inicial + Login por Perfil:</strong> porta de entrada acolhedora e acesso separado para cada função.</span>
                 </li>
                 <li>
-                  <div class="pill-dot pine">2</div>
-                  <span><strong>Roteirização por Zona e Dia:</strong> Agrupamento automático das visitas pelas regiões de Marília, da saída ao retorno no Hospital.</span>
+                  <div class="pill-dot pine">✓</div>
+                  <span><strong>Dados salvos de verdade:</strong> cadastros, rotas, frascos e histórico permanecem gravados com segurança.</span>
                 </li>
                 <li>
-                  <div class="pill-dot pine">3</div>
-                  <span><strong>Frasco com ID Único Imutável:</strong> Código <span class="code-pill">LF-2026-XXXXXX</span> com data da 1ª coleta, volume e rótulo térmico indelével.</span>
+                  <div class="pill-dot pine">✓</div>
+                  <span><strong>Sistema "Quero ser Doadora":</strong> mães se inscrevem pelo site e a equipe gerencia todo o retorno.</span>
+                </li>
+                <li>
+                  <div class="pill-dot pine">✓</div>
+                  <span><strong>Operação real até a UTI:</strong> etiquetas que o leitor lê de verdade, laboratório ativo e estoque real de vidros.</span>
                 </li>
               </ul>
             </div>
 
-            <div style="background: rgba(35, 83, 71, 0.15); border: 1px dashed var(--blh-pine); padding: 10px 12px; border-radius: 8px; margin-top: 10px;">
-              <p style="font-size: 0.78rem; color: var(--text-main); font-weight: 600; line-height: 1.4;">
-                🎯 <em>"O frasco como entidade central rastreável: da residência da doadora até o Banco de Leite."</em>
-              </p>
-            </div>
-          </div>
-
-          <!-- Card 3: Imagem Humanizada Completa da Doação de Leite (Sem Cortes) -->
-          <div class="img-box" style="height: 100%; min-height: 340px; border-radius: 16px;">
-            <img src="doacao_leite.jpg" alt="Mãe doadora com frasco de leite materno esterilizado" style="object-position: center 15%;">
-            <div class="img-caption">
-              <span>Doadora Residencial</span>
-              <span style="color: #6ee7b7;">Frasco Esterilizado</span>
+            <div class="compare-footer after">
+              Uma plataforma integrada, bonita e pronta para apoiar o ciclo completo da doação.
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- ==========================================================
-         SLIDE 3: O NOSSO OBJETIVO (OS 3 PILARES DO MVP)
+         SLIDE 3: AS PRINCIPAIS MELHORIAS ADICIONADAS
          ========================================================== -->
-    <div class="slide" data-index="2">
+    <section class="slide" data-index="2" aria-label="Slide 3: Principais Melhorias Adicionadas">
       <div class="content-box">
-        <div style="display: flex; gap: 8px;">
-          <span class="badge">Escopo de Engenharia</span>
-          <span class="badge badge-cold">3 Pilares Entregues no MVP</span>
+        <div class="badge-row">
+          <span class="badge">O Que Foi Criado e Melhorado</span>
+          <span class="badge badge-cold">4 Grandes Evoluções</span>
         </div>
-        <h2>O Nosso Objetivo: Eficiência Máxima no Campo</h2>
-        <p class="subtitle">Delimitação precisa das 3 entregas centrais que resolvem os gargalos da coleta domiciliar.</p>
-
-        <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 22px; align-items: stretch;">
-          <!-- Coluna da Esquerda: Os 3 Pilares com Métricas e Detalhes Práticos -->
-          <div style="display: flex; flex-direction: column; gap: 14px; justify-content: space-between;">
-            
-            <!-- Pilar 1: Logística Urbana Inteligente -->
-            <div class="card card-top-cold" style="padding: 16px 20px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                  <span class="stat-huge cold" style="font-size: 1.7rem; line-height: 1;">01</span>
-                  <div>
-                    <h3 style="font-size: 1.1rem; color: var(--text-main); font-weight: 700;">Roteirização por Zonas Urbanas</h3>
-                    <div style="font-size: 0.76rem; color: var(--fleet-cold); font-weight: 600;">Partida e Retorno no Hospital Materno Infantil</div>
-                  </div>
-                </div>
-                <span class="badge badge-cold" style="font-size: 0.72rem; padding: 3px 9px;">-35% Trajeto</span>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="color: var(--fleet-cold); font-weight: bold;">✔</span> Agrupamento por dia/bairro em Marília
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="color: var(--fleet-cold); font-weight: bold;">✔</span> Trajeto ordenado por proximidade GPS
-                </div>
-              </div>
-            </div>
-
-            <!-- Pilar 2: Etiquetagem Física Térmica Rastreável -->
-            <div class="card card-top-pine" style="padding: 16px 20px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                  <span class="stat-huge pine" style="font-size: 1.7rem; line-height: 1;">02</span>
-                  <div>
-                    <h3 style="font-size: 1.1rem; color: var(--text-main); font-weight: 700;">Etiquetagem Térmica 60x40mm</h3>
-                    <div style="font-size: 0.76rem; color: #10b981; font-weight: 600;">Rastreabilidade Total &bull; Conforme RDC 171/2006</div>
-                  </div>
-                </div>
-                <span class="badge" style="font-size: 0.72rem; padding: 3px 9px;">ID Imutável</span>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="color: #10b981; font-weight: bold;">✔</span> Código único <span class="code-pill" style="font-size: 0.72rem;">LF-2026-XXXXXX</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="color: #10b981; font-weight: bold;">✔</span> Code 128 + QR Code à prova de gelo
-                </div>
-              </div>
-            </div>
-
-            <!-- Pilar 3: Agilidade em Campo e Reposição -->
-            <div class="card card-top-coral" style="padding: 16px 20px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                  <span class="stat-huge coral" style="font-size: 1.7rem; line-height: 1;">03</span>
-                  <div>
-                    <h3 style="font-size: 1.1rem; color: var(--text-main); font-weight: 700;">Agilidade de Campo &bull; &lt; 1 min</h3>
-                    <div style="font-size: 0.76rem; color: var(--blh-coral); font-weight: 600;">Fluxo em 1 Toque + Reposição Contínua</div>
-                  </div>
-                </div>
-                <span class="badge badge-coral" style="font-size: 0.72rem; padding: 3px 9px;">Zero Fricção</span>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="color: var(--blh-coral); font-weight: bold;">✔</span> Registro ágil: <span class="code-pill" style="font-size: 0.7rem;">[CHEGUEI]</span> + volume em 1 toque
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span style="color: var(--blh-coral); font-weight: bold;">✔</span> Entrega de novos frascos esterilizados
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Coluna da Direita: Imagem de Coleta Domiciliar Completa (Sem Cortes) -->
-          <div class="img-box" style="height: 100%; min-height: 400px; border-radius: 16px;">
-            <img src="coleta_domiciliar.jpg" alt="Coleta Domiciliar de Leite Materno na porta da residência em Marília" style="object-position: center 18%;">
-            <div class="img-caption">
-              <span>Coleta Domiciliar Ágil</span>
-              <span style="color: #6ee7b7;">Hospital Materno Infantil &bull; BLH</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==========================================================
-         SLIDE 4: EXPLICAÇÃO DO CÓDIGO & ARQUITETURA TÉCNICA
-         ========================================================== -->
-    <div class="slide" data-index="3">
-      <div class="content-box">
-        <div style="display: flex; gap: 8px;">
-          <span class="badge">Engenharia de Software</span>
-          <span class="badge badge-cold">Decisões de Arquitetura</span>
-        </div>
-        <h2>Como o Sistema Funciona por Baixo dos Panos</h2>
-        <p class="subtitle">Tecnologia simples, rápida e à prova de falhas desenvolvida especialmente para o trabalho de campo da van.</p>
+        <h2>Principais Novidades da Nova Versão</h2>
+        <p class="subtitle">Melhorias pensadas tanto para acolher melhor as mães quanto para dar mais segurança e agilidade à equipe.</p>
 
         <div class="grid-2">
-          <!-- Stack e Serviços -->
-          <div class="card">
-            <h3 style="font-size: 1.15rem; color: var(--text-main); margin-bottom: 12px;">Tecnologias Utilizadas</h3>
-            <ul class="pill-list">
-              <li>
-                <div class="pill-dot cold">TS</div>
-                <span><strong>TypeScript:</strong> Garante dados padronizados e sem erros no cadastro de rotas, doadoras e frascos.</span>
-              </li>
-              <li>
-                <div class="pill-dot cold">⚛</div>
-                <span><strong>React 18 + Vite:</strong> Interface ultra-rápida, leve e responsiva para rodar no tablet ou celular do coletor.</span>
-              </li>
-              <li>
-                <div class="pill-dot cold">🗺</div>
-                <span><strong>Mapas Interativos (Leaflet):</strong> Visualização clara das ruas e pontos de coleta divididos pelas zonas de Marília.</span>
-              </li>
-              <li>
-                <div class="pill-dot cold">🔄</div>
-                <span><strong>Sincronização Instantânea:</strong> Ao registrar uma coleta, o status da parada e os totais do dia atualizam na hora.</span>
-              </li>
-            </ul>
+          <!-- Novidade 1 -->
+          <div class="card card-top-pine feature-card">
+            <div class="feature-head">
+              <div class="feature-title-group">
+                <div class="feature-icon pine" aria-hidden="true">✨</div>
+                <h3>Nova Tela Inicial &amp; Design Renovado</h3>
+              </div>
+              <span class="badge" style="font-size: 0.66rem; padding: 2px 8px;">Visual &amp; UX</span>
+            </div>
+            <p>
+              Criamos uma página inicial institucional acolhedora, com animação interativa do frasco, linguagem mais humana e visual refinado que funciona bem no computador e no celular.
+            </p>
+            <div class="feature-tag-row">
+              <span class="soft-tag">Identidade mais limpa</span>
+              <span class="soft-tag">Animações suaves</span>
+              <span class="soft-tag">Explicação clara da doação</span>
+            </div>
           </div>
 
-          <!-- Algoritmos no Código -->
-          <div class="card card-top-cold">
-            <h3 style="font-size: 1.15rem; color: var(--fleet-cold); margin-bottom: 12px;">Lógica & Inteligência do Sistema</h3>
-            <ul class="pill-list">
-              <li>
-                <div class="pill-dot cold">1</div>
-                <div>
-                  <strong>Cálculo Real de Distância:</strong>
-                  <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1px;">
-                    Mede a distância precisa em km entre o Hospital Materno Infantil e cada endereço usando coordenadas geográficas de GPS.
-                  </p>
-                </div>
-              </li>
-              <li>
-                <div class="pill-dot cold">2</div>
-                <div>
-                  <strong>Organização Automática da Rota:</strong>
-                  <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1px;">
-                    O sistema ordena as casas da mais próxima para a mais distante (Vizinho Mais Próximo), diminuindo o trajeto da van.
-                  </p>
-                </div>
-              </li>
-              <li>
-                <div class="pill-dot cold">3</div>
-                <div>
-                  <strong>Previsão Realista de Tempo:</strong>
-                  <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1px;">
-                    Calcula o tempo real no trânsito de Marília somado a 10 minutos de atendimento calmo na porta de cada doadora.
-                  </p>
-                </div>
-              </li>
-              <li>
-                <div class="pill-dot cold">4</div>
-                <div>
-                  <strong>Etiquetas 100% Offline (Sem Internet):</strong>
-                  <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 1px;">
-                    O código de barras e o QR Code são gerados direto no aparelho em formato vetorial SVG, imprimindo rápido mesmo sem sinal 4G.
-                  </p>
-                </div>
-              </li>
-            </ul>
+          <!-- Novidade 2 -->
+          <div class="card card-top-coral feature-card">
+            <div class="feature-head">
+              <div class="feature-title-group">
+                <div class="feature-icon coral" aria-hidden="true">💛</div>
+                <h3>Sistema "Quero ser Doadora"</h3>
+              </div>
+              <span class="badge badge-coral" style="font-size: 0.66rem; padding: 2px 8px;">Captação</span>
+            </div>
+            <p>
+              Mães interessadas preenchem um formulário rápido só com contato e bairro — sem expor exames. O pedido gera um protocolo e cai direto na fila da equipe para contato e cadastro oficial.
+            </p>
+            <div class="feature-tag-row">
+              <span class="soft-tag">Protocolo imediato</span>
+              <span class="soft-tag">Fila de atendimento</span>
+              <span class="soft-tag">Conversão em 1 clique</span>
+            </div>
+          </div>
+
+          <!-- Novidade 3 -->
+          <div class="card card-top-cold feature-card">
+            <div class="feature-head">
+              <div class="feature-title-group">
+                <div class="feature-icon cold" aria-hidden="true">🔒</div>
+                <h3>Login por Perfil &amp; Mais Privacidade</h3>
+              </div>
+              <span class="badge badge-cold" style="font-size: 0.66rem; padding: 2px 8px;">LGPD</span>
+            </div>
+            <p>
+              Cada profissional entra com sua conta (Coordenação, Coleta Externa e Laboratório) e vê apenas o que precisa. Quem está na rua fazendo coleta não visualiza CPF nem exames sensíveis da doadora.
+            </p>
+            <div class="feature-tag-row">
+              <span class="soft-tag">4 perfis de acesso</span>
+              <span class="soft-tag">Dados protegidos</span>
+              <span class="soft-tag">Histórico de ações</span>
+            </div>
+          </div>
+
+          <!-- Novidade 4 -->
+          <div class="card card-top-pine feature-card">
+            <div class="feature-head">
+              <div class="feature-title-group">
+                <div class="feature-icon pine" aria-hidden="true">🍼</div>
+                <h3>Fluxo Real: Coleta, Etiqueta e Laboratório</h3>
+              </div>
+              <span class="badge" style="font-size: 0.66rem; padding: 2px 8px;">Ponta a Ponta</span>
+            </div>
+            <p>
+              Coleta de vários frascos por visita com data da 1ª ordenha, etiquetas com código de barras e QR Code reais, bloqueio automático antes da pasteurização e controle real do estoque de vidros até a UTI.
+            </p>
+            <div class="feature-tag-row">
+              <span class="soft-tag">Etiqueta escaneável</span>
+              <span class="soft-tag">Trava de segurança UTI</span>
+              <span class="soft-tag">Laboratório real</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- ==========================================================
-         SLIDE 5: EXPLICAÇÃO DO SITE & FLUXO DE CAMPO
+         SLIDE 4: VAMOS MOSTRAR NA PRÁTICA AGORA (PONTE PARA DEMO)
          ========================================================== -->
-    <div class="slide" data-index="4">
+    <section class="slide" data-index="3" aria-label="Slide 4: Demonstração na Prática">
       <div class="content-box">
-        <div style="display: flex; gap: 8px;">
-          <span class="badge">Demonstração Visual</span>
-          <span class="badge badge-pine">Operação na Prática</span>
+        <div class="badge-row">
+          <span class="badge badge-cold">Hora da Prática</span>
+          <span class="badge">Demonstração ao Vivo</span>
         </div>
-        <h2>Explicação do Site: Fluxo de Campo do Coletor</h2>
-        <p class="subtitle">Uma esteira fluida e intuitiva desenhada especificamente para uso em movimento na van de coleta.</p>
+        <h2>Vamos Ver Tudo Isso Funcionando Agora</h2>
+        <p class="subtitle">Em vez de ficar só nos slides, vamos percorrer ao vivo o caminho completo dentro do sistema.</p>
 
-        <div class="grid-2" style="align-items: center;">
-          <!-- Card de Simulação da Ação em Campo -->
+        <div class="split-main">
           <div class="card card-top-cold">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span class="badge badge-cold">Central de Rotas &bull; Campo</span>
-              <span class="code-pill">1.8 km &bull; ~6 min</span>
-            </div>
-
-            <div style="background: rgba(0,0,0,0.06); border: 1px solid var(--border-card); border-radius: 12px; padding: 12px;">
-              <span style="font-size: 0.72rem; font-weight: 800; color: var(--fleet-cold); text-transform: uppercase;">
-                🔵 PRÓXIMA PARADA &bull; PARADA 03 / 08
-              </span>
-              <h4 style="font-size: 1.05rem; color: var(--text-main); margin-top: 3px;">Juliana M. Silveira</h4>
-              <p style="font-size: 0.8rem; color: var(--text-muted);">Rua Álvares Cabral, 412 &bull; Zona Norte, Marília</p>
-              
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
-                <div style="background: rgba(2, 132, 199, 0.15); border: 1px solid var(--fleet-cold); color: var(--fleet-cold); text-align: center; padding: 7px; border-radius: 6px; font-size: 0.78rem; font-weight: 700;">
-                  📍 [ IR P/ PARADA ]
+            <ul class="demo-list">
+              <li class="demo-item">
+                <div class="demo-step-num pill-dot pine">1</div>
+                <div>
+                  <div class="demo-item-title">Nova Tela Inicial &amp; "Quero ser Doadora"</div>
+                  <div class="demo-item-desc">Visual acolhedor para as mães de Marília e envio rápido do pedido de doação.</div>
                 </div>
-                <div style="background: linear-gradient(135deg, var(--blh-pine), var(--blh-pine-light)); color: #fff; text-align: center; padding: 7px; border-radius: 6px; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.05em; cursor: pointer;">
-                  ✓ [ CHEGUEI ]
+              </li>
+              <li class="demo-item">
+                <div class="demo-step-num pill-dot cold">2</div>
+                <div>
+                  <div class="demo-item-title">Login, Painel Real &amp; Fila de Interessadas</div>
+                  <div class="demo-item-desc">Indicadores reais do dia, novas solicitações chegando do site e triagem de doadoras.</div>
                 </div>
-              </div>
-
-              <!-- Seleção rápida -->
-              <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-card);">
-                <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Volume Coletado (1 Toque):</div>
-                <div style="display: flex; gap: 6px; margin-top: 5px;">
-                  <span style="background: rgba(125,125,125,0.1); padding: 3px 7px; border-radius: 6px; font-size: 0.72rem;">100 mL</span>
-                  <span style="background: rgba(125,125,125,0.1); padding: 3px 7px; border-radius: 6px; font-size: 0.72rem;">150 mL</span>
-                  <span style="background: var(--blh-pine); color: white; font-weight: bold; padding: 3px 7px; border-radius: 6px; font-size: 0.72rem;">200 mL</span>
-                  <span style="background: rgba(125,125,125,0.1); padding: 3px 7px; border-radius: 6px; font-size: 0.72rem;">250 mL</span>
-                  <span style="background: rgba(125,125,125,0.1); padding: 3px 7px; border-radius: 6px; font-size: 0.72rem;">300 mL</span>
+              </li>
+              <li class="demo-item">
+                <div class="demo-step-num pill-dot pine">3</div>
+                <div>
+                  <div class="demo-item-title">Rotas no Mapa &amp; Coleta em Campo</div>
+                  <div class="demo-item-desc">Organização das visitas por região de Marília e registro de frascos com validade automática.</div>
                 </div>
-              </div>
-            </div>
+              </li>
+              <li class="demo-item">
+                <div class="demo-step-num pill-dot cold">4</div>
+                <div>
+                  <div class="demo-item-title">Etiqueta Real &amp; Trava de Segurança</div>
+                  <div class="demo-item-desc">Código escaneável, confirmação que protege contra alteração e bloqueio antes da pasteurização.</div>
+                </div>
+              </li>
+              <li class="demo-item">
+                <div class="demo-step-num pill-dot coral">5</div>
+                <div>
+                  <div class="demo-item-title">Laboratório, UTI Neonatal &amp; Estoque de Vidros</div>
+                  <div class="demo-item-desc">Aprovação da análise, liberação segura para a UTI com sigilo da doadora e controle dos frascos.</div>
+                </div>
+              </li>
+            </ul>
           </div>
 
-          <!-- Card de Simulação da Etiqueta Física Térmica -->
-          <div class="card card-top-pine">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span class="badge">Rótulo Físico Gerado &bull; 60x40mm</span>
-              <span style="font-size: 0.75rem; color: var(--blh-pine); font-weight: 700;">Pronto p/ Impressão</span>
-            </div>
-
-            <div class="thermal-label-preview">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 4px;">
-                <div>
-                  <div style="font-size: 8.5px; font-weight: 800; text-transform: uppercase;">LEITE FLOW &bull; BLH MARÍLIA</div>
-                  <div style="font-weight: 800; font-size: 11.5px; margin-top: 1px;">HOSPITAL MATERNO INFANTIL</div>
-                  <div style="font-size: 8px; font-weight: 600; color: #475569;">Coleta Domiciliar (Leite Cru) &bull; RDC 171</div>
-                </div>
-                <div style="width: 36px; height: 36px; border: 1px solid #000; padding: 2px; flex-shrink: 0;">
-                  <svg viewBox="0 0 25 25" style="width: 100%; height: 100%; fill: #000;">
-                    <path d="M 1 1 h 7 v 7 h -7 Z M 2 2 h 5 v 5 h -5 Z M 17 1 h 7 v 7 h -7 Z M 18 2 h 5 v 5 h -5 Z M 1 17 h 7 v 7 h -7 Z M 2 18 h 5 v 5 h -5 Z M 11 3 h 2 v 2 h -2 Z M 11 11 h 4 v 4 h -4 Z M 17 15 h 3 v 3 h -3 Z"/>
-                  </svg>
-                </div>
-              </div>
-
-              <div style="padding: 6px 0; border-bottom: 2px solid #000; font-size: 10px;">
-                <div style="display: flex; justify-content: space-between;">
-                  <div>
-                    <span style="font-size: 7px; font-weight: 700; color: #64748b; text-transform: uppercase;">ID do Frasco:</span>
-                    <div style="font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 11.5px;">LF-2026-000123</div>
-                  </div>
-                  <div style="text-align: right;">
-                    <span style="font-size: 7px; font-weight: 700; color: #64748b; text-transform: uppercase;">Zona:</span>
-                    <div style="font-weight: 700;">Zona Norte (Segunda)</div>
-                  </div>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 4px; background: #f1f5f9; padding: 3px 6px; border-radius: 4px;">
-                  <div><strong>Vol:</strong> 200 mL</div>
-                  <div><strong>1ª Coleta:</strong> Hoje 07:30</div>
-                  <div><strong>Validade:</strong> 15 dias (Cru)</div>
-                </div>
-              </div>
-
-              <!-- Barcode SVG -->
-              <div style="display: flex; justify-content: center; align-items: center; gap: 2px; height: 20px; margin-top: 4px;">
-                <div style="width: 3px; height: 100%; background: #000;"></div>
-                <div style="width: 1px; height: 100%; background: #000; margin-left: 2px;"></div>
-                <div style="width: 4px; height: 100%; background: #000; margin-left: 1px;"></div>
-                <div style="width: 2px; height: 100%; background: #000; margin-left: 2px;"></div>
-                <div style="width: 3px; height: 100%; background: #000; margin-left: 1px;"></div>
-                <div style="width: 1px; height: 100%; background: #000; margin-left: 3px;"></div>
-                <div style="width: 4px; height: 100%; background: #000; margin-left: 2px;"></div>
-              </div>
-              <div style="text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 8px; font-weight: 700; margin-top: 2px;">
-                * LF-2026-000123 *
-              </div>
+          <div class="img-box" style="height: 100%; min-height: 315px;">
+            <img src="coleta_domiciliar.jpg" alt="Coleta domiciliar de leite materno em Marília" style="object-position: center 18%;">
+            <div class="img-caption">
+              <span>Sistema em Funcionamento</span>
+              <span style="color: #6ee7b7;">BLH Marília – SP</span>
             </div>
           </div>
         </div>
 
-        <!-- Banner Interativo: Demonstração na Prática & Código -->
+        <!-- Barra de Acesso Direto ao Sistema -->
         <div class="action-banner">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
-              🚀
-            </div>
+          <div class="action-lead">
+            <div class="action-icon-box" aria-hidden="true">▶</div>
             <div>
-              <div style="font-size: 0.94rem; font-weight: 800; color: var(--text-main);">
-                Iremos demonstrar o LEITE-FLOW funcionando na prática agora:
+              <div style="font-size: 0.96rem; font-weight: 800; color: var(--text-main);">
+                Acessar o LEITFLOW ao vivo para a demonstração
               </div>
-              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                Explore as rotas por zona de Marília, simule coletas em campo e gere etiquetas térmicas ao vivo.
+              <div style="font-size: 0.79rem; color: var(--text-muted); margin-top: 2px;">
+                Sistema online pronto para navegar pela tela inicial, captação, rotas, etiquetas e laboratório.
               </div>
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-            <a href="https://leite-flow-banco-leite-marilia.vercel.app" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-primary" title="Abrir sistema em tempo real em nova aba">
-              <span>▶</span> Acessar Sistema na Prática
+          <div class="action-buttons">
+            <a href="https://leite-flow-banco-leite-marilia.vercel.app" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-primary">
+              <span>▶</span> Abrir Sistema na Prática
             </a>
-            <a href="https://github.com/lazari-gabriel/LEITE-FLOW-banco-leite-marilia" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-secondary" title="Ver código-fonte completo no GitHub">
-              <span><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></span> Código no GitHub
+            <a href="https://github.com/lazari-gabriel/LEITE-FLOW-banco-leite-marilia" target="_blank" rel="noopener noreferrer" class="action-btn action-btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+              <span>Ver no GitHub</span>
             </a>
           </div>
         </div>
-
       </div>
-    </div>
+    </section>
 
     <!-- ==========================================================
-         SLIDE 6: O QUE IREMOS IMPLEMENTAR NO FUTURO (ROADMAP)
+         SLIDE 5: VALOR ENTREGUE, PRÓXIMOS PASSOS & ENCERRAMENTO
          ========================================================== -->
-     <div class="slide" data-index="5">
-       <div class="content-box">
-         <div style="display: flex; gap: 8px;">
-           <span class="badge badge-cold">Visão de Futuro</span>
-           <span class="badge">Roadmap & Próximos Passos</span>
-         </div>
-         <h2>O Que Iremos Implementar no Futuro</h2>
-         <p class="subtitle">Evolução planejada do sistema com base nas necessidades reais mapeadas no Banco de Leite.</p>
-
-         <div class="grid-2">
-           <!-- Fase 2: Curto Prazo -->
-           <div class="card card-top-cold">
-             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-               <h3 style="font-size: 1.15rem; color: var(--fleet-cold);">Fase 2: Campo & Impressão Portátil</h3>
-               <span class="badge badge-cold">Curto Prazo</span>
-             </div>
-             <ul class="pill-list">
-               <li>
-                 <div class="pill-dot cold">➔</div>
-                 <span><strong>Mini-Impressora Térmica Bluetooth:</strong> Emissão da etiqueta 60x40mm direto na van ou na porta da doadora via conexão sem fio.</span>
-               </li>
-               <li>
-                 <div class="pill-dot cold">➔</div>
-                 <span><strong>Modo PWA 100% Offline:</strong> Funcionamento completo em garagens, subsolos e distritos afastados (ex: Maracá e Padre Nóbrega) sem depender de 4G.</span>
-               </li>
-               <li>
-                 <div class="pill-dot cold">➔</div>
-                 <span><strong>Cadastro Socioeconômico & Sanitário:</strong> Formulário digital de infraestrutura residencial (freezer/refrigerador e risco de contaminação cruzada).</span>
-               </li>
-             </ul>
-           </div>
-
-           <!-- Fase 3: Médio/Longo Prazo -->
-           <div class="card card-top-coral">
-             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-               <h3 style="font-size: 1.15rem; color: var(--blh-coral);">Fase 3: Laboratório & UTI Neonatal</h3>
-               <span class="badge badge-coral">Médio / Longo Prazo</span>
-             </div>
-             <ul class="pill-list">
-               <li>
-                 <div class="pill-dot coral">➔</div>
-                 <span><strong>Módulo Laboratorial no Hospital:</strong> Registro de testes físico-químicos (Acidez Dornic °D, crematócrito) e pasteurização por lote.</span>
-               </li>
-               <li>
-                 <div class="pill-dot coral">➔</div>
-                 <span><strong>Rastreabilidade até a UTI Neonatal:</strong> Registro do ciclo completo do frasco — da ordenha domiciliar até o leito do recém-nascido prematuro.</span>
-               </li>
-               <li>
-                 <div class="pill-dot coral">➔</div>
-                 <span><strong>Portal & Notificação da Doadora:</strong> Acompanhamento do status do leite e retorno humanizado de impacto ("Seu leite alimentou bebês na UTI").</span>
-               </li>
-             </ul>
-           </div>
-         </div>
-       </div>
-     </div>
-
-    <!-- ==========================================================
-         SLIDE 7: IMPACTO SOCIAL E ECONÔMICO
-         ========================================================== -->
-    <div class="slide" data-index="6">
+    <section class="slide" data-index="4" aria-label="Slide 5: Valor Entregue e Encerramento">
       <div class="content-box">
-        <div style="display: flex; gap: 8px;">
-          <span class="badge">Retorno sobre o Investimento</span>
-          <span class="badge badge-pine">Ganhos Reais</span>
+        <div class="badge-row">
+          <span class="badge">Encerramento</span>
+          <span class="badge badge-cold">Impacto &amp; Próximos Passos</span>
         </div>
-        <h2>Impacto Social e Econômico do LEITE-FLOW</h2>
-        <p class="subtitle">Como a otimização de software gera economia de recursos públicos e salva vidas de prematuros.</p>
+        <h2>O Que o LEITFLOW Já Entrega e Para Onde Vamos</h2>
 
-        <div class="grid-3">
+        <div class="grid-2">
+          <!-- Valor na Prática -->
           <div class="card card-top-pine">
-            <div class="stat-huge pine">0</div>
-            <h3 style="font-size: 1.15rem; color: var(--text-main); margin: 6px 0 4px 0;">Desperdício Zero</h3>
-            <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.45;">
-              Eliminação de 100% dos descartes causados por rotulagem ilegível, caneta borrada pelo gelo ou falta de dados da ordenha.
-            </p>
+            <div class="compare-header" style="margin-bottom: 12px;">
+              <h3 style="color: var(--fleet-emerald);">O Que Mudou na Prática</h3>
+              <span class="badge" style="font-size: 0.68rem; padding: 2px 9px;">Entregue Hoje</span>
+            </div>
+            <ul class="pill-list">
+              <li>
+                <div class="pill-dot pine">✓</div>
+                <span><strong>Mais acolhimento para novas mães:</strong> caminho digital simples para começar a doar com orientação clara.</span>
+              </li>
+              <li>
+                <div class="pill-dot pine">✓</div>
+                <span><strong>Mais segurança para os bebês:</strong> rastreabilidade de ponta a ponta e travas que evitam erros humanos.</span>
+              </li>
+              <li>
+                <div class="pill-dot pine">✓</div>
+                <span><strong>Mais organização para a equipe:</strong> tudo conectado em um só lugar — da captação até o estoque e a UTI.</span>
+              </li>
+            </ul>
           </div>
 
+          <!-- Próximos Passos -->
           <div class="card card-top-cold">
-            <div class="stat-huge cold">-35%</div>
-            <h3 style="font-size: 1.15rem; color: var(--text-main); margin: 6px 0 4px 0;">Eficiência em Frota</h3>
-            <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.45;">
-              Roteirização inteligente e zoneamento semanal reduzem quilômetros rodados pela frota da van municipal de Marília.
-            </p>
-          </div>
-
-          <div class="card card-top-coral">
-            <div class="stat-huge coral">100%</div>
-            <h3 style="font-size: 1.15rem; color: var(--text-main); margin: 6px 0 4px 0;">Segurança Neonatal</h3>
-            <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.45;">
-              Garantia de que mais recém-nascidos de baixo peso recebam leite materno de alta qualidade biológica e rastreável.
-            </p>
+            <div class="compare-header" style="margin-bottom: 12px;">
+              <h3 style="color: var(--fleet-cold);">Próximos Passos do Projeto</h3>
+              <span class="badge badge-cold" style="font-size: 0.68rem; padding: 2px 9px;">Evolução</span>
+            </div>
+            <ul class="pill-list">
+              <li>
+                <div class="pill-dot cold">➔</div>
+                <span><strong>Uso sem internet na van:</strong> continuar registrando coletas mesmo em áreas e distritos com sinal fraco.</span>
+              </li>
+              <li>
+                <div class="pill-dot cold">➔</div>
+                <span><strong>Impressora portátil na coleta:</strong> emitir a etiqueta adesiva na hora via Bluetooth na casa da doadora.</span>
+              </li>
+              <li>
+                <div class="pill-dot cold">➔</div>
+                <span><strong>Validação junto ao hospital:</strong> testes práticos de impressão e rotina com a equipe do BLH de Marília.</span>
+              </li>
+            </ul>
           </div>
         </div>
 
-        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 12px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;">
-          <span style="font-size: 0.88rem; color: var(--text-main); font-weight: 600;">
-            🏥 Parceria com o Banco de Leite do Hospital Materno Infantil de Marília:
-          </span>
-          <span class="badge">Tecnologia Pública de Alto Impacto</span>
+        <!-- Bloco de Encerramento -->
+        <div class="closing-box">
+          <div class="closing-quote">
+            "Cada gota importa. <span>Tecnologia a serviço da vida.</span>"
+          </div>
+
+          <div class="closing-team" aria-label="Integrantes da equipe LEITFLOW">
+            <span>Gabriel Neves de Lazari</span>
+            <span>Felipe Tenório Rodrigues</span>
+            <span>Vinicius Fachini</span>
+            <span>Rafael Garbelini</span>
+            <span>Adelmo Henrique</span>
+            <span>Miguel Rodrigues</span>
+          </div>
+
+          <div class="badge-row" style="justify-content: center;">
+            <span class="badge badge-cold" style="font-size: 0.84rem; padding: 6px 18px;">Muito Obrigado!</span>
+            <span class="badge" style="font-size: 0.84rem; padding: 6px 18px;">Aberto às Perguntas da Banca</span>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- ==========================================================
-         SLIDE 8: CONCLUSÃO & AGRADECIMENTOS
-         ========================================================== -->
-    <div class="slide" data-index="7">
-      <div class="content-box" style="text-align: center; align-items: center;">
-        <span class="badge">Conclusão do Pitch</span>
-        
-        <h1 style="max-width: 960px; font-size: clamp(2.3rem, 4vw, 3.6rem); margin-top: 8px;">
-          "Cada gota importa.<br><span>Tecnologia a serviço da vida.</span>"
-        </h1>
+  </main>
 
-        <p class="subtitle" style="text-align: center; max-width: 760px; margin-top: 6px;">
-          O <strong>LEITE-FLOW</strong> une rigor de engenharia de software e responsabilidade em saúde para proteger o alimento mais valioso dos prematuros de Marília.
-        </p>
+  <!-- Navegação Inferior -->
+  <nav class="nav-bar" aria-label="Navegação de slides">
+    <button type="button" class="nav-btn" id="prevBtn" title="Slide anterior (←)">← Anterior</button>
+    <div class="dots-container" id="dotsContainer"></div>
+    <span class="slide-counter" id="counter">1 / 5</span>
+    <button type="button" class="nav-btn" id="nextBtn" title="Próximo slide (→ ou Espaço)">Próximo →</button>
+  </nav>
 
-        <!-- Card elegante com os integrantes -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 16px; padding: 18px 32px; margin-top: 12px; max-width: 860px; width: 100%; box-shadow: var(--shadow-elevation);">
-          <div style="font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px;">
-            Equipe do Projeto LEITE-FLOW:
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 0.95rem; font-weight: 700; color: var(--text-main);">
-            <div>Gabriel Neves de Lazari</div>
-            <div>Felipe Tenório Rodrigues</div>
-            <div>Vinicius Fachini</div>
-            <div>Rafael Garbelini</div>
-            <div>Adelmo Henrique</div>
-            <div>Miguel Rodrigues</div>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 12px; margin-top: 16px;">
-          <span class="badge badge-cold" style="font-size: 0.92rem; padding: 7px 22px;">Muito Obrigado!</span>
-          <span class="badge" style="font-size: 0.92rem; padding: 7px 22px;">Aberto às Perguntas e Considerações da Banca</span>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- NAVEGAÇÃO INTERATIVA COM PONTOS DIRETOS -->
-  <div class="nav-bar">
-    <button class="nav-btn" id="prevBtn" title="Anterior (←)">← Anterior</button>
-    
-    <div class="dots-container" id="dotsContainer">
-      <!-- Gerado dinamicamente via JS -->
-    </div>
-
-    <span class="slide-counter" id="counter">1 / 8</span>
-    <button class="nav-btn" id="nextBtn" title="Próximo (→ ou Espaço)">Próximo →</button>
-  </div>
-
-  <script>
-    const slides = document.querySelectorAll('.slide');
-    const totalSlides = slides.length;
-    let currentSlide = 0;
-    const progressEl = document.getElementById('progress');
-    const counterEl = document.getElementById('counter');
-    const dotsContainer = document.getElementById('dotsContainer');
-    
-    // Gerar pontos de navegação direta
-    for (let i = 0; i < totalSlides; i++) {
-      const dot = document.createElement('div');
-      dot.className = `slide-dot ${i === 0 ? 'active' : ''}`;
-      dot.title = `Ir para slide ${i + 1}`;
-      dot.addEventListener('click', () => updateSlide(i));
-      dotsContainer.appendChild(dot);
-    }
-    const dots = document.querySelectorAll('.slide-dot');
-
-    function updateSlide(index) {
-      if (index < 0) index = 0;
-      if (index >= totalSlides) index = totalSlides - 1;
-      currentSlide = index;
-
-      slides.forEach((s, idx) => {
-        if (idx === currentSlide) {
-          s.classList.add('active');
-        } else {
-          s.classList.remove('active');
-        }
-      });
-
-      dots.forEach((d, idx) => {
-        if (idx === currentSlide) {
-          d.classList.add('active');
-        } else {
-          d.classList.remove('active');
-        }
-      });
-
-      const percentage = ((currentSlide + 1) / totalSlides) * 100;
-      progressEl.style.width = percentage + '%';
-      counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
-    }
-
-    document.getElementById('prevBtn').addEventListener('click', () => updateSlide(currentSlide - 1));
-    document.getElementById('nextBtn').addEventListener('click', () => updateSlide(currentSlide + 1));
-
-    // ==========================================
-    // CRONÔMETRO DE 5 MINUTOS (PITCH DINÂMICO)
-    // ==========================================
-    let timerTotalSeconds = 5 * 60; // 300 segundos
-    let timerInterval = null;
-    let isTimerRunning = false;
-    const timerText = document.getElementById('timerText');
-    const timerBtn = document.getElementById('timerBtn');
-
-    function updateTimerDisplay() {
-      const mins = Math.floor(timerTotalSeconds / 60);
-      const secs = timerTotalSeconds % 60;
-      timerText.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-      if (timerTotalSeconds <= 60) {
-        timerText.style.color = '#ef4444'; // Alerta de 1 minuto restante
-      }
-    }
-
-    function toggleTimer() {
-      if (isTimerRunning) {
-        clearInterval(timerInterval);
-        isTimerRunning = false;
-        timerBtn.style.opacity = '0.7';
-      } else {
-        isTimerRunning = true;
-        timerBtn.style.opacity = '1';
-        timerInterval = setInterval(() => {
-          if (timerTotalSeconds > 0) {
-            timerTotalSeconds--;
-            updateTimerDisplay();
-          } else {
-            clearInterval(timerInterval);
-            isTimerRunning = false;
-          }
-        }, 1000);
-      }
-    }
-
-    timerBtn.addEventListener('click', toggleTimer);
-
-    // ==========================================
-    // TEMA CLARO BEM FEITO (LIGHT MODE)
-    // ==========================================
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = document.getElementById('themeIcon');
-    const themeText = document.getElementById('themeText');
-
-    function toggleTheme() {
-      const isLight = document.body.classList.toggle('light-mode');
-      if (isLight) {
-        themeIcon.textContent = '🌙';
-        themeText.textContent = 'Modo Escuro';
-        localStorage.setItem('leite_flow_theme', 'light');
-      } else {
-        themeIcon.textContent = '☀️';
-        themeText.textContent = 'Modo Claro';
-        localStorage.setItem('leite_flow_theme', 'dark');
-      }
-    }
-
-    themeToggle.addEventListener('click', toggleTheme);
-
-    // Carregar tema salvo
-    if (localStorage.getItem('leite_flow_theme') === 'light') {
-      document.body.classList.add('light-mode');
-      themeIcon.textContent = '🌙';
-      themeText.textContent = 'Modo Escuro';
-    }
-
-    // ==========================================
-    // ATALHOS DE TECLADO RÁPIDOS
-    // ==========================================
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
-        updateSlide(currentSlide + 1);
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        updateSlide(currentSlide - 1);
-      } else if (e.key === 'Home') {
-        updateSlide(0);
-      } else if (e.key === 'End') {
-        updateSlide(totalSlides - 1);
-      } else if (e.key.toLowerCase() === 't') {
-        toggleTheme();
-      } else if (e.key.toLowerCase() === 'p') {
-        toggleTimer();
-      } else if (e.key >= '1' && e.key <= '8') {
-        updateSlide(parseInt(e.key) - 1);
-      }
-    });
-
-    // ==========================================
-    // SUPORTE A TOUCH SWIPE EM DISPOSITIVOS MÓVEIS (CELULARES E TABLETS)
-    // ==========================================
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchEndX = 0;
-    let touchEndY = 0;
-
-    window.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
-    }, { passive: true });
-
-    window.addEventListener('touchend', (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      touchEndY = e.changedTouches[0].screenY;
-      handleSwipe();
-    }, { passive: true });
-
-    function handleSwipe() {
-      const diffX = touchEndX - touchStartX;
-      const diffY = touchEndY - touchStartY;
-      
-      // Apenas trocar de slide se o gesto horizontal for dominante e maior que 45px
-      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
-        if (diffX < 0) {
-          // Deslizar para a esquerda -> Próximo slide
-          updateSlide(currentSlide + 1);
-        } else {
-          // Deslizar para a direita -> Slide anterior
-          updateSlide(currentSlide - 1);
-        }
-      }
-    }
-
-    updateSlide(0);
-  </script>
+  <script src="pitch.js" defer></script>
 </body>
 </html>
