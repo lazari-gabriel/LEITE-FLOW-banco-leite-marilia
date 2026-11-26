@@ -23,6 +23,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMobileMenu }) => {
 
   const navItems = [
     {
+      id: 'visao' as ViewMode,
+      label: 'Painel',
+      badge: null,
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      allowed: true,
+    },
+    {
       id: 'roteirizacao' as ViewMode,
       label: 'Rotas',
       badge: currentZoneStops.length > 0 ? `${currentZoneStops.length}` : null,
@@ -48,13 +55,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenMobileMenu }) => {
       label: 'Frascos',
       badge: stats.totalBottles > 0 ? `${stats.totalBottles}` : null,
       icon: <Tag className="w-5 h-5" />,
-      allowed: true,
-    },
-    {
-      id: 'visao' as ViewMode,
-      label: 'Painel',
-      badge: null,
-      icon: <LayoutDashboard className="w-5 h-5" />,
       allowed: true,
     },
   ].filter((item) => item.allowed);

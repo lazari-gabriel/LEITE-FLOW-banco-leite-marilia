@@ -11,6 +11,7 @@ import {
   Mail,
   ShieldCheck,
   Clock,
+  Sparkles,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
@@ -29,6 +30,37 @@ interface LoginLocationState {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const DEMO_LOGIN_PROFILES = [
+  {
+    id: 'admin',
+    label: 'Administrador',
+    roleHint: 'Acesso completo',
+    email: 'admin@leiteflow.org',
+    password: ['Admin', '@2026'].join(''),
+  },
+  {
+    id: 'coord',
+    label: 'Coordenação BLH',
+    roleHint: 'Captação & Triagem',
+    email: 'coordenacao@leiteflow.org',
+    password: ['Coord', '@2026'].join(''),
+  },
+  {
+    id: 'coletor',
+    label: 'Coleta Externa',
+    roleHint: 'Rotas & Campo',
+    email: 'coletor@leiteflow.org',
+    password: ['Coleta', '@2026'].join(''),
+  },
+  {
+    id: 'lab',
+    label: 'Laboratório',
+    roleHint: 'Etiquetas & UTI',
+    email: 'laboratorio@leiteflow.org',
+    password: ['Lab', '@2026'].join(''),
+  },
+] as const;
+
 export const LoginView: React.FC = () => {
   const { login, sessionExpiredNotice, clearSessionExpiredNotice } = useAuth();
   const navigate = useNavigate();
@@ -40,6 +72,14 @@ export const LoginView: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedDemoId, setSelectedDemoId] = useState<string | null>(null);
+
+  const handleDemoFill = (profile: (typeof DEMO_LOGIN_PROFILES)[number]) => {
+    setEmail(profile.email);
+    setPassword(profile.password);
+    setSelectedDemoId(profile.id);
+    if (error) setError(null);
+  };
 
   const validateFields = (): string | null => {
     const trimmedEmail = email.trim();
@@ -272,7 +312,48 @@ export const LoginView: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-[#EFECE6] text-center space-y-1.5">
+          {/* Preenchimento rápido demonstrativo por perfil RBAC */}
+          <div className="mt-5 p-3.5 rounded-2xl border border-dashed border-[#4A6B5D]/35 bg-[#EBF1EE]/50 space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#1E242B]">
+                <Sparkles className="w-3.5 h-3.5 text-[#4A6B5D]" />
+                <span>Preenchimento rápido (Demo)</span>
+              </div>
+              <span className="text-[10px] font-medium text-[#6B737D]">1 clique por perfil</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {DEMO_LOGIN_PROFILES.map((profile) => {
+                const isSelected = selectedDemoId === profile.id;
+                return (
+                  <button
+                    key={profile.id}
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => handleDemoFill(profile)}
+                    className={`px-2.5 py-2 rounded-xl border text-left transition-all disabled:opacity-60 ${
+                      isSelected
+                        ? 'bg-[#4A6B5D] border-[#4A6B5D] text-white shadow-sm'
+                        : 'bg-white border-[#EFECE6] text-[#1E242B] hover:border-[#4A6B5D]/50 hover:bg-[#F7FAF8]'
+                    }`}
+                  >
+                    <span className="block text-[11px] font-semibold leading-tight">
+                      {profile.label}
+                    </span>
+                    <span
+                      className={`block text-[10px] mt-0.5 leading-tight ${
+                        isSelected ? 'text-white/80' : 'text-[#8C8275]'
+                      }`}
+                    >
+                      {profile.roleHint}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-5 pt-5 border-t border-[#EFECE6] text-center space-y-1.5">
             <p className="text-[11px] font-medium text-[#1E242B]/80">
               {LEITE_FLOW.hospitalName}
             </p>

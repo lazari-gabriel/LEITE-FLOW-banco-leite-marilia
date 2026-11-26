@@ -46,6 +46,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navItems = [
     {
+      id: 'visao' as ViewMode,
+      label: 'Painel Geral',
+      badge: null,
+      icon: <LayoutDashboard className="w-5 h-5 shrink-0" />,
+      allowed: true,
+    },
+    {
       id: 'roteirizacao' as ViewMode,
       label: 'Rotas de Coleta',
       badge: `${currentZoneStops.length} ${currentZoneStops.length === 1 ? 'Parada' : 'Paradas'}`,
@@ -79,13 +86,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-amber-950/80 text-amber-300 border border-amber-500/50 font-bold',
       icon: <UserCheck className="w-5 h-5 shrink-0" />,
       allowed: hasRole('ADMIN', 'COORDENADOR_BLH'),
-    },
-    {
-      id: 'visao' as ViewMode,
-      label: 'Painel Geral',
-      badge: null,
-      icon: <LayoutDashboard className="w-5 h-5 shrink-0" />,
-      allowed: true,
     },
     {
       id: 'accountability' as ViewMode,
@@ -135,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             whileHover={{ scale: 1.015 }}
             whileTap={{ scale: 0.985 }}
             transition={MOTION_SPRING.tap}
-            onClick={() => handleNavigate('roteirizacao')}
+            onClick={() => handleNavigate('visao')}
             className="flex items-center gap-3 min-w-0 cursor-pointer group"
           >
             <img

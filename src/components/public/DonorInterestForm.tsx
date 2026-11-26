@@ -9,6 +9,7 @@ import {
   HelpCircle,
   ArrowRight,
   Info,
+  Sparkles,
 } from 'lucide-react';
 import { ApiError } from '../../services/apiClient';
 import {
@@ -35,8 +36,93 @@ interface DonorInterestFormProps {
   onSuccess: (response: DonorInterestPublicResponse, submitted: DonorInterestPublicPayload) => void;
 }
 
+interface DemoDonorPreset {
+  fullName: string;
+  birthDate: string;
+  city: string;
+  neighborhood: string;
+  cep: string;
+  suggestedZone: ZoneName;
+  phone: string;
+  email: string;
+  preferredContact: PreferredContact;
+  bestContactTime: BestContactTime;
+  donatedBefore: boolean;
+  knowsProcess: KnowsProcess;
+  discoveryChannel: DiscoveryChannel;
+  questionsText: string;
+}
+
+const DEMO_DONOR_PRESETS: DemoDonorPreset[] = [
+  {
+    fullName: 'Camila Ferreira Almeida',
+    birthDate: '1996-04-18',
+    city: 'Marília',
+    neighborhood: 'Jardim Esmeralda',
+    cep: '17516-000',
+    suggestedZone: 'Leste',
+    phone: '(14) 99612-3401',
+    email: 'camila.demo@exemplo.com',
+    preferredContact: 'WHATSAPP',
+    bestContactTime: 'MANHA',
+    donatedBefore: false,
+    knowsProcess: 'PARCIALMENTE',
+    discoveryChannel: 'SITE',
+    questionsText: 'Gostaria de saber em qual dia da semana a equipe entrega os frascos esterilizados na Zona Leste.',
+  },
+  {
+    fullName: 'Juliana Mendes Costa',
+    birthDate: '1993-09-25',
+    city: 'Marília',
+    neighborhood: 'Parque das Nações',
+    cep: '17511-220',
+    suggestedZone: 'Norte',
+    phone: '(14) 99724-5802',
+    email: 'juliana.demo@exemplo.com',
+    preferredContact: 'WHATSAPP',
+    bestContactTime: 'TARDE',
+    donatedBefore: true,
+    knowsProcess: 'SIM',
+    discoveryChannel: 'MATERNIDADE_HOSPITAL',
+    questionsText: 'Já doei na primeira gestação e tenho excedente para iniciar novas coletas semanais.',
+  },
+  {
+    fullName: 'Beatriz Rocha Santana',
+    birthDate: '1998-01-12',
+    city: 'Marília',
+    neighborhood: 'Jardim Califórnia',
+    cep: '17527-140',
+    suggestedZone: 'Sul',
+    phone: '(14) 99835-7203',
+    email: 'beatriz.demo@exemplo.com',
+    preferredContact: 'LIGACAO',
+    bestContactTime: 'COMERCIAL',
+    donatedBefore: false,
+    knowsProcess: 'NAO',
+    discoveryChannel: 'UBS_POSTO_SAUDE',
+    questionsText: 'Quais exames de pré-natal preciso separar para a triagem inicial?',
+  },
+  {
+    fullName: 'Larissa Nogueira Lima',
+    birthDate: '1995-11-04',
+    city: 'Marília',
+    neighborhood: 'Jardim Universitário',
+    cep: '17525-090',
+    suggestedZone: 'Oeste',
+    phone: '(14) 99146-8304',
+    email: 'larissa.demo@exemplo.com',
+    preferredContact: 'WHATSAPP',
+    bestContactTime: 'QUALQUER_HORARIO',
+    donatedBefore: false,
+    knowsProcess: 'PARCIALMENTE',
+    discoveryChannel: 'REDES_SOCIAIS',
+    questionsText: 'Posso guardar o leite no congelador comum por até quantos dias antes da coleta?',
+  },
+];
+
 export const DonorInterestForm: React.FC<DonorInterestFormProps> = ({ onSuccess }) => {
   const formStartedAtRef = useRef<number>(Date.now());
+  const demoIndexRef = useRef<number>(0);
 
   const [fullName, setFullName] = useState('');
   const [birthDate, setBirthDate] = useState('');
@@ -65,6 +151,36 @@ export const DonorInterestForm: React.FC<DonorInterestFormProps> = ({ onSuccess 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [demoNotice, setDemoNotice] = useState<string | null>(null);
+
+  const handleDemoQuickFill = () => {
+    const preset = DEMO_DONOR_PRESETS[demoIndexRef.current % DEMO_DONOR_PRESETS.length];
+    demoIndexRef.current += 1;
+
+    setFullName(preset.fullName);
+    setBirthDate(preset.birthDate);
+    setCity(preset.city);
+    setNeighborhood(preset.neighborhood);
+    setCep(preset.cep);
+    setSuggestedZone(preset.suggestedZone);
+    setPhone(preset.phone);
+    setIsWhatsappSame(true);
+    setWhatsapp('');
+    setEmail(preset.email);
+    setPreferredContact(preset.preferredContact);
+    setBestContactTime(preset.bestContactTime);
+    setDonatedBefore(preset.donatedBefore);
+    setKnowsProcess(preset.knowsProcess);
+    setDiscoveryChannel(preset.discoveryChannel);
+    setHasQuestions(true);
+    setQuestionsText(preset.questionsText);
+    setConsentAccepted(true);
+    setFieldErrors({});
+    setSubmitError(null);
+    // Garante tempo mínimo de preenchimento para permitir envio imediato durante demonstrações ao vivo
+    formStartedAtRef.current = Math.min(formStartedAtRef.current, Date.now() - 3500);
+    setDemoNotice(`Dados demonstrativos preenchidos (${preset.fullName} — ${preset.neighborhood}).`);
+  };
 
   const clearFieldError = (field: string) => {
     if (fieldErrors[field]) {
@@ -168,6 +284,28 @@ export const DonorInterestForm: React.FC<DonorInterestFormProps> = ({ onSuccess 
           <span>{submitError}</span>
         </div>
       )}
+
+      {/* Barra discreta de Preenchimento Rápido (Modo Demonstrativo) */}
+      <div className="p-3.5 sm:p-4 rounded-2xl border border-dashed border-[#4A6B5D]/35 bg-[#EBF1EE]/55 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-start sm:items-center gap-2.5 text-xs text-[#1E242B]/85">
+          <Sparkles className="w-4 h-4 text-[#4A6B5D] shrink-0 mt-0.5 sm:mt-0" />
+          <div>
+            <span className="font-semibold text-[#1E242B]">Modo demonstrativo</span>
+            <p className="text-[11px] text-[#6B737D]">
+              {demoNotice ?? 'Preencha o formulário automaticamente com dados fictícios para testar o fluxo.'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          disabled={submitting}
+          onClick={handleDemoQuickFill}
+          className="shrink-0 px-3.5 py-2 rounded-xl bg-white text-[#3B594C] font-semibold text-xs border border-[#4A6B5D]/30 hover:bg-[#4A6B5D] hover:text-white transition-all shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-60"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Preenchimento rápido (Demo)</span>
+        </button>
+      </div>
 
       {/* BLOCO 1 — DADOS PESSOAIS & REGIÃO */}
       <section className="space-y-4">
